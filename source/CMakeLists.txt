@@ -8,7 +8,10 @@ PROJECT (${PROJECT_NAME})
 MESSAGE(STATUS "PROJECT NAME    : ${PROJECT_NAME}")
 
 #Setting a variable for source files
-SET (SRCS hcsparse.cpp)
+SET (SRCS
+     hcsparse.cpp
+     hcsparse_init.cpp
+     )
 
 SET (PREFIX "$ENV{MCWCPPAMPBUILD}")
 SET (CLANG_AMP "${PREFIX}/compiler/bin/clang++")
