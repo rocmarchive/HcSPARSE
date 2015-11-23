@@ -116,6 +116,59 @@ inline VALUE_TYPE two_fma( const VALUE_TYPE x_vals,
 #endif
 }
 
+// A method of doing the final reduction without having to copy and paste
+// it a bunch of times.
+// The EXTENDED_PRECISION section is done as part of the PSum2 addition,
+// where we take temporary sums and errors for multiple threads and combine
+// them together using the same 2Sum method.
+// Inputs:  cur_sum: the input from which our sum starts
+//          err: the current running cascade error for this final summation
+//          partial: the local memory which holds the values to sum
+//                  (we eventually use it to pass down temp. err vals as well)
+//          lid: local ID of the work item calling this function.
+//          thread_lane: The lane within this SUBWAVE for reduction.
+//          round: This parallel summation method operates in multiple rounds
+//                  to do a parallel reduction. See the blow comment for usage.
+inline VALUE_TYPE sum2_reduce( VALUE_TYPE cur_sum,
+        VALUE_TYPE &err,
+        VALUE_TYPE *partial,
+        const INDEX_TYPE lid,
+        const INDEX_TYPE thread_lane,
+        const INDEX_TYPE round,
+        Concurrency::tiled_index<WG_SIZE> tidx) restrict(amp)
+{
+    if (SUBWAVE_SIZE > round)
+    {
+#ifdef EXTENDED_PRECISION
+        const unsigned int partial_dest = lid + round;
+        if (thread_lane < round)
+            cur_sum  = two_sum(cur_sum, partial[partial_dest], err);
+        // We reuse the LDS entries to move the error values down into lower
+        // threads. This saves LDS space, allowing higher occupancy, but requires
+        // more barriers, which can reduce performance.
+        tidx.barrier.wait();
+        // Have all of those upper threads pass their temporary errors
+        // into a location that the lower threads can read.
+        if (thread_lane >= round)
+            partial[lid] = err;
+        tidx.barrier.wait();
+        if (thread_lane < round) { // Add those errors in.
+            err += partial[partial_dest];
+            partial[lid] = cur_sum;
+        }
+#else
+        // This is the more traditional reduction algorithm. It is up to
+        // 25% faster (about 10% on average -- potentially worse on devices
+        // with low double-precision calculation rates), but can result in
+        // numerical inaccuracies, especially in single precision.
+        cur_sum += partial[lid + round];
+        tidx.barrier.wait();
+        partial[lid] = cur_sum;
+#endif
+    }
+    return cur_sum;
+}
+
 // Uses macro constants:
 // WAVE_SIZE  - "warp size", typically 64 (AMD) or 32 (NV)
 // WG_SIZE    - workgroup ("block") size, 1D representation assumed
