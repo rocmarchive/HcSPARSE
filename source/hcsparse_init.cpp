@@ -1,4 +1,5 @@
 #include "hcsparse.h"
+#include "csrmv.hpp"
 
 int hcsparseInitialized = 0;
 
@@ -26,3 +27,46 @@ hcsparseTeardown(void)
     return hcsparseSuccess;
 }
 
+hcsparseStatus
+    hcsparseScsrmv( const hcsparseScalar* alpha,
+                        const hcsparseCsrMatrix* matx,
+                        const hcdenseVector* x,
+                        const hcsparseScalar* beta,
+                        hcdenseVector* y,
+                        const hcsparseControl control )
+{
+    if (!hcsparseInitialized)
+    {
+        return hcsparseInvalid;
+    }
+
+    //check opencl elements
+    if (control == nullptr)
+    {
+        return hcsparseInvalid;
+    }
+
+    return csrmv<float>(alpha, matx, x, beta, y, control);
+}
+
+hcsparseStatus
+    hcsparseDcsrmv( const hcsparseScalar* alpha,
+                        const hcsparseCsrMatrix* matx,
+                        const hcdenseVector* x,
+                        const hcsparseScalar* beta,
+                        hcdenseVector* y,
+                        const hcsparseControl control )
+{
+    if (!hcsparseInitialized)
+    {
+        return hcsparseInvalid;
+    }
+
+    //check opencl elements
+    if (control == nullptr)
+    {
+        return hcsparseInvalid;
+    }
+
+    return csrmv<double>(alpha, matx, x, beta, y, control);
+}
