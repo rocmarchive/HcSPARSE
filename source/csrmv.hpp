@@ -3,7 +3,7 @@
 #define WAVE_SIZE 64
 #define SUBWAVE_SIZE 64
 #define WG_SIZE 256
-#define INDEX_TYPE int
+#define INDEX_TYPE uint
 #define SIZE_TYPE ulong
 #define VALUE_TYPE float
 #define GLOBAL_SIZE WG_SIZE
