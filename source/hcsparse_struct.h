@@ -16,6 +16,15 @@ typedef struct hcsparseScalar_
 {
     Concurrency::array_view<float> *value;
     long offValue;
+    void clear( )
+    {
+        value = nullptr;
+    }
+
+    long offset () const
+    {
+        return 0;
+    }
 } hcsparseScalar;
 
 /*! \brief Structure to encapsulate dense vector data to hcsparse API
@@ -25,6 +34,16 @@ typedef struct hcdenseVector_
     int num_values;
     Concurrency::array_view<float> *values;
     long offValues;
+    void clear( )
+    {
+        num_values = 0;
+        values = nullptr;
+    }
+
+    long offset () const
+    {
+        return 0;
+    }
 } hcdenseVector;
 
 /*! \brief Structure to encapsulate sparse matrix data encoded in CSR
@@ -57,6 +76,38 @@ typedef struct hcsparseCsrMatrix_
     /**@}*/
 
     size_t rowBlockSize;  /*!< Size of array used by the rowBlocks handle */
+    void clear( )
+    {
+        num_rows = num_cols = num_nonzeros = 0;
+        values = nullptr;
+        colIndices = rowOffsets = rowBlocks = nullptr;
+        rowBlockSize = 0;
+    }
+
+    uint nnz_per_row() const
+    {
+        return num_nonzeros / num_rows;
+    }
+
+    long valOffset () const
+    {
+        return 0;
+    }
+
+    long colIndOffset () const
+    {
+        return 0;
+    }
+
+    long rowOffOffset () const
+    {
+        return 0;
+    }
+
+    long rowBlocksOffset( ) const
+    {
+        return 0;
+    }
 } hcsparseCsrMatrix;
 
 /*! \brief Structure to encapsulate sparse matrix data encoded in COO
@@ -85,6 +136,31 @@ typedef struct hcsparseCooMatrix_
     long offColInd;
     long offRowInd;
     /**@}*/
+    void clear( )
+    {
+        num_rows = num_cols = num_nonzeros = 0;
+        values = colIndices = rowIndices = nullptr;
+    }
+
+    uint nnz_per_row( ) const
+    {
+        return num_nonzeros / num_rows;
+    }
+
+    long valOffset( ) const
+    {
+        return 0;
+    }
+
+    long colIndOffset( ) const
+    {
+        return 0;
+    }
+
+    long rowOffOffset( ) const
+    {
+        return 0;
+    }
 } hcsparseCooMatrix;
 
 /*! \brief Structure to encapsulate dense matrix data to hcsparse API
@@ -102,6 +178,13 @@ typedef struct hcdenseMatrix_
     Concurrency::array_view<float> *values;  /*!< Array of matrix values */
 
     long offValues;
+
+    void clear( )
+    {
+        num_rows = num_cols = lead_dim = 0;
+        major = rowMajor;
+        values = nullptr;
+    }
 } hcdenseMatrix;
 
 #endif
