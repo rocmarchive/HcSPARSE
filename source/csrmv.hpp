@@ -42,6 +42,51 @@
 #error "SUBWAVE_SIZE is not  a power of two!"
 #endif
 
+// Knuth's Two-Sum algorithm, which allows us to add together two floating
+// point numbers and exactly tranform the answer into a sum and a
+// rounding error.
+// Inputs: x and y, the two inputs to be aded together.
+// In/Out: *sumk_err, which is incremented (by reference) -- holds the
+//         error value as a result of the 2sum calculation.
+// Returns: The non-corrected sum of inputs x and y.
+inline VALUE_TYPE two_sum( VALUE_TYPE x,
+        VALUE_TYPE y,
+        VALUE_TYPE &sumk_err) restrict(amp)
+{
+    const VALUE_TYPE sumk_s = x + y;
+#ifdef EXTENDED_PRECISION
+    // We use this 2Sum algorithm to perform a compensated summation,
+    // which can reduce the cummulative rounding errors in our SpMV summation.
+    // Our compensated sumation is based on the SumK algorithm (with K==2) from
+    // Ogita, Rump, and Oishi, "Accurate Sum and Dot Product" in
+    // SIAM J. on Scientific Computing 26(6) pp 1955-1988, Jun. 2005.
+
+    // 2Sum can be done in 6 FLOPs without a branch. However, calculating
+    // double precision is slower than single precision on every existing GPU.
+    // As such, replacing 2Sum with Fast2Sum when using DPFP results in slightly
+    // better performance. This is especially true on non-workstation GPUs with
+    // low DPFP rates. Fast2Sum is faster even though we must ensure that
+    // |a| > |b|. Branch divergence is better than the DPFP slowdown.
+    // Thus, for DPFP, our compensated summation algorithm is actually described
+    // by both Pichat and Neumaier in "Correction d'une somme en arithmetique
+    // a virgule flottante" (J. Numerische Mathematik 19(5) pp. 400-406, 1972)
+    // and "Rundungsfehleranalyse einiger Verfahren zur Summation endlicher
+    // Summen (ZAMM Z. Angewandte Mathematik und Mechanik 54(1) pp. 39-51,
+    // 1974), respectively.
+    if (fabs(x) < fabs(y))
+    {
+        const VALUE_TYPE swap = x;
+        x = y;
+        y = swap;
+    }
+    sumk_err += (y - (sumk_s - x));
+    // Original 6 FLOP 2Sum algorithm.
+    //VALUE_TYPE bp = sumk_s - x;
+    //(*sumk_err) += ((x - (sumk_s - bp)) + (y - bp));
+#endif
+    return sumk_s;
+}
+
 // Uses macro constants:
 // WAVE_SIZE  - "warp size", typically 64 (AMD) or 32 (NV)
 // WG_SIZE    - workgroup ("block") size, 1D representation assumed
