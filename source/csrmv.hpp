@@ -87,6 +87,35 @@ inline VALUE_TYPE two_sum( VALUE_TYPE x,
     return sumk_s;
 }
 
+// Performs (x_vals * x_vec) + y using an FMA.
+// Ideally, we would perform an error-free transformation here and return the
+// appropriate error. However, the EFT of an FMA is very expensive. As such,
+// if we are in EXTENDED_PRECISION mode, this function devolves into two_sum
+// with x_vals and x_vec inputs multiplied separately from the compensated add.
+inline VALUE_TYPE two_fma( const VALUE_TYPE x_vals,
+        const VALUE_TYPE x_vec,
+        VALUE_TYPE y,
+        VALUE_TYPE &sumk_err ) restrict(amp)
+{
+#ifdef EXTENDED_PRECISION
+    VALUE_TYPE x = x_vals * x_vec;
+    const VALUE_TYPE sumk_s = x + y;
+    if (fabs(x) < fabs(y))
+    {
+        const VALUE_TYPE swap = x;
+        x = y;
+        y = swap;
+    }
+    sumk_err += (y - (sumk_s - x));
+    // 2Sum in the FMA case. Poor performance on low-DPFP GPUs.
+    //const VALUE_TYPE bp = fma(-x_vals, x_vec, sumk_s);
+    //(*sumk_err) += (fma(x_vals, x_vec, -(sumk_s - bp)) + (y - bp));
+    return sumk_s;
+#else
+    return fma(x_vals, x_vec, y);
+#endif
+}
+
 // Uses macro constants:
 // WAVE_SIZE  - "warp size", typically 64 (AMD) or 32 (NV)
 // WG_SIZE    - workgroup ("block") size, 1D representation assumed
