@@ -331,6 +331,35 @@ csrmv_adaptive( const hcsparseScalar* pAlpha,
                 hcdenseVector* pY,
                 hcsparseControl control )
 {
+    if(typeid(T) == typeid(double))
+    {
+#undef VALUE_TYPE
+#define VALUE_TYPE double
+    }
+    else if(typeid(T) == typeid(float))
+    {
+#undef VALUE_TYPE
+#define VALUE_TYPE float
+    }
+
+    if(control->extended_precision)
+    {
+#define EXTENDED_PRECISION 1
+    }
+
+    // if NVIDIA is used it does not allow to run the group size
+    // which is not a multiplication of WG_SIZE. Don't know if that
+    // have an impact on performance
+    // Setting global work size to half the row block size because we are only
+    // using half the row blocks buffer for actual work.
+    // The other half is used for the extended precision reduction.
+    uint global_work_size = ( (pCsrMatx->rowBlockSize/2) - 1 ) * WG_SIZE;
+
+    if( global_work_size < WG_SIZE)
+    {
+#define GLOBAL_SIZE WG_SIZE
+    }
+
     return hcsparseSuccess;
 }
 
