@@ -14,7 +14,7 @@ typedef enum _hcdenseMajor
  */
 typedef struct hcsparseScalar_
 {
-    Concurrency::array_view<float> &value;
+    Concurrency::array_view<float> *value;
     long offValue;
 } hcsparseScalar;
 
@@ -23,7 +23,7 @@ typedef struct hcsparseScalar_
 typedef struct hcdenseVector_
 {
     int num_values;
-    Concurrency::array_view<float> &values;
+    Concurrency::array_view<float> *values;
     long offValues;
 } hcdenseVector;
 
@@ -42,10 +42,10 @@ typedef struct hcsparseCsrMatrix_
 
     /** @name OpenCL state */
     /**@{*/
-    Concurrency::array_view<float> &values;  /*!< non-zero values in sparse matrix of size num_nonzeros */
-    Concurrency::array_view<float> &colIndices;  /*!< column index for corresponding value of size num_nonzeros */
-    Concurrency::array_view<float> &rowOffsets;  /*!< Invariant: rowOffsets[i+1]-rowOffsets[i] = number of values in row i */
-    Concurrency::array_view<float> &rowBlocks;  /*!< Meta-data used for csr-adaptive algorithm; can be NULL */
+    Concurrency::array_view<float> *values;  /*!< non-zero values in sparse matrix of size num_nonzeros */
+    Concurrency::array_view<float> *colIndices;  /*!< column index for corresponding value of size num_nonzeros */
+    Concurrency::array_view<float> *rowOffsets;  /*!< Invariant: rowOffsets[i+1]-rowOffsets[i] = number of values in row i */
+    Concurrency::array_view<float> *rowBlocks;  /*!< Meta-data used for csr-adaptive algorithm; can be NULL */
     /**@}*/
 
     /** @name Buffer offsets */
@@ -74,9 +74,9 @@ typedef struct hcsparseCooMatrix_
 
     /** @name OpenCL state */
     /**@{*/
-    Concurrency::array_view<float> &values;  /*!< CSR non-zero values of size num_nonzeros */
-    Concurrency::array_view<float> &colIndices;  /*!< column index for corresponding element; array size num_nonzeros */
-    Concurrency::array_view<float> &rowIndices;  /*!< row index for corresponding element; array size num_nonzeros */
+    Concurrency::array_view<float> *values;  /*!< CSR non-zero values of size num_nonzeros */
+    Concurrency::array_view<float> *colIndices;  /*!< column index for corresponding element; array size num_nonzeros */
+    Concurrency::array_view<float> *rowIndices;  /*!< row index for corresponding element; array size num_nonzeros */
     /**@}*/
 
     /** @name Buffer offsets */
@@ -99,7 +99,7 @@ typedef struct hcdenseMatrix_
     hcdenseMajor major;  /*! Memory layout for dense matrix */
     /**@}*/
 
-    Concurrency::array_view<float> &values;  /*!< Array of matrix values */
+    Concurrency::array_view<float> *values;  /*!< Array of matrix values */
 
     long offValues;
 } hcdenseMatrix;
