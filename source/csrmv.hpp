@@ -322,6 +322,18 @@ csrmv_vector(const hcsparseScalar* pAlpha,
     return hcsparseSuccess;
 }
 
+void
+csrmv_adaptive_kernel(const Concurrency::array_view<VALUE_TYPE, 1> &vals,
+                      const Concurrency::array_view<INDEX_TYPE, 1> &cols,
+                      const Concurrency::array_view<INDEX_TYPE, 1> &rowPtrs,
+                      const Concurrency::array_view<VALUE_TYPE, 1> &vec,
+                      Concurrency::array_view<VALUE_TYPE, 1> &out,
+                      const Concurrency::array_view<INDEX_TYPE, 1> &rowBlocks,
+                      const Concurrency::array_view<VALUE_TYPE, 1> &pAlpha,
+                      const Concurrency::array_view<VALUE_TYPE, 1> &pBeta)
+{
+}
+
 template <typename T>
 hcsparseStatus
 csrmv_adaptive( const hcsparseScalar* pAlpha,
@@ -359,6 +371,11 @@ csrmv_adaptive( const hcsparseScalar* pAlpha,
     {
 #define GLOBAL_SIZE WG_SIZE
     }
+
+    csrmv_adaptive_kernel (*(pCsrMatx->values), *(pCsrMatx->colIndices),
+                           *(pCsrMatx->rowOffsets), *(pX->values),
+                           *(pY->values), *(pCsrMatx->rowBlocks),
+                           *(pAlpha->value), *(pBeta->value));
 
     return hcsparseSuccess;
 }
