@@ -92,9 +92,9 @@
     hcsparseStatus hcdenseInitMatrix( hcdenseMatrix* denseMatx );
     /**@}*/
 
-    typedef struct _hcsparseControl*  hcsparseControl;
+    //typedef struct _hcsparseControl*  hcsparseControl;
 
-    /*! \brief Enumeration to control the verbosity of the sparse iterative
+    /*! \brief Enumeration to *control the verbosity of the sparse iterative
      * solver routines.  VERBOSE will print helpful diagnostic messages to
      * console
      *
@@ -128,7 +128,7 @@
     typedef struct _solverControl*  hcsparseSolverControl;
 
     /*!
-    * \brief Create a hcsparseSolverControl object to control hcsparse iterative
+    * \brief Create a hcsparseSolverControl object to *control hcsparse iterative
     * solver operations
     *
     * \param[in] precond  A valid enumeration constant from PRECONDITIONER
@@ -194,7 +194,7 @@
     * \param[in] A  a hcsparse CSR matrix with single precision data
     * \param[in] b  the input dense vector with single precision data
     * \param[in] solverControl  a valid hcsparseSolverControl object created with hcsparseCreateSolverControl
-    * \param[in] control A valid hcsparseControl created with hcsparseCreateControl
+    * \param[in] *control A valid hcsparseControl created with hcsparseCreateControl
     *
     * \returns \b hcsparseSuccess
     *
@@ -202,7 +202,7 @@
     */
     hcsparseStatus
         hcsparseScsrcg( hcdenseVector* x, const hcsparseCsrMatrix *A, const hcdenseVector *b,
-                        hcsparseSolverControl solverControl, hcsparseControl control );
+                        hcsparseSolverControl solverControl, hcsparseControl *control );
 
     /*!
     * \brief Execute a double precision Conjugate Gradients solver
@@ -211,7 +211,7 @@
     * \param[in] A  a hcsparse CSR matrix with double precision data
     * \param[in] b  the input dense vector with double precision data
     * \param[in] solverControl  a valid hcsparseSolverControl object created with hcsparseCreateSolverControl
-    * \param[in] control A valid hcsparseControl created with hcsparseCreateControl
+    * \param[in] *control A valid hcsparseControl created with hcsparseCreateControl
     *
     * \returns \b hcsparseSuccess
     *
@@ -219,7 +219,7 @@
     */
     hcsparseStatus
         hcsparseDcsrcg( hcdenseVector* x, const hcsparseCsrMatrix *A, const hcdenseVector *b,
-                        hcsparseSolverControl solverControl, hcsparseControl control );
+                        hcsparseSolverControl solverControl, hcsparseControl *control );
 
      /*!
      * \brief Execute a single precision Bi-Conjugate Gradients Stabilized solver
@@ -228,7 +228,7 @@
      * \param[in] A  the hcsparse CSR matrix with single precision data
      * \param[in] b  the input dense vector with single precision data
      * \param[in] solverControl  a valid hcsparseSolverControl object created with hcsparseCreateSolverControl
-     * \param[in] control A valid hcsparseControl created with hcsparseCreateControl
+     * \param[in] *control A valid hcsparseControl created with hcsparseCreateControl
      *
      * \returns \b hcsparseSuccess
      *
@@ -236,7 +236,7 @@
      */
     hcsparseStatus
         hcsparseScsrbicgStab( hcdenseVector* x, const hcsparseCsrMatrix *A, const hcdenseVector *b,
-                              hcsparseSolverControl solverControl, hcsparseControl control );
+                              hcsparseSolverControl solverControl, hcsparseControl *control );
 
     /*!
     * \brief Execute a double precision Bi-Conjugate Gradients Stabilized solver
@@ -245,7 +245,7 @@
     * \param[in] A  a hcsparse CSR matrix with double precision data
     * \param[in] b  the input dense vector with double precision data
     * \param[in] solverControl  a valid hcsparseSolverControl object created with hcsparseCreateSolverControl
-    * \param[in] control A valid hcsparseControl created with hcsparseCreateControl
+    * \param[in] *control A valid hcsparseControl created with hcsparseCreateControl
     *
     * \returns \b hcsparseSuccess
     *
@@ -253,7 +253,7 @@
     */
     hcsparseStatus
         hcsparseDcsrbicgStab( hcdenseVector* x, const hcsparseCsrMatrix *A, const hcdenseVector *b,
-                              hcsparseSolverControl solverControl, hcsparseControl control );
+                              hcsparseSolverControl solverControl, hcsparseControl *control );
     /**@}*/
 
     /*!
@@ -290,8 +290,8 @@
     * device memory
     * \param[out] cooMatx  The COO sparse structure that represents the matrix in device memory
     * \param[in] filePath  A path in the file-system to the sparse matrix file
-    * \param[in] control A valid hcsparseControl created with hcsparseCreateControl
-    * \param[in] read_explicit_zeroes If the file contains values explicitly declared zero, this controls
+    * \param[in] *control A valid hcsparseControl created with hcsparseCreateControl
+    * \param[in] read_explicit_zeroes If the file contains values explicitly declared zero, this *controls
     * whether they are stored in the COO
     *
     * \note The number of non-zeroes actually read from the file may be different than the number of
@@ -305,7 +305,7 @@
     * \ingroup FILE
     */
     hcsparseStatus
-        hcsparseSCooMatrixfromFile( hcsparseCooMatrix* cooMatx, const char* filePath, hcsparseControl control, bool read_explicit_zeroes );
+        hcsparseSCooMatrixfromFile( hcsparseCooMatrix* cooMatx, const char* filePath, hcsparseControl *control, bool read_explicit_zeroes );
 
     /*!
      * \brief Read sparse matrix data from file in double precision COO format
@@ -316,8 +316,8 @@
      * up-convert the values to double.
      * \param[out] cooMatx  The COO sparse structure that represents the matrix in device memory
      * \param[in] filePath  A path in the file-system to the sparse matrix file
-     * \param[in] control A valid hcsparseControl created with hcsparseCreateControl
-     * \param[in] read_explicit_zeroes If the file contains values explicitly declared zero, this controls
+     * \param[in] *control A valid hcsparseControl created with hcsparseCreateControl
+     * \param[in] read_explicit_zeroes If the file contains values explicitly declared zero, this *controls
      * whether they are stored in the COO
      *
      * \note The number of non-zeroes actually read from the file may be less than the number of
@@ -331,7 +331,7 @@
      * \ingroup FILE
      */
     hcsparseStatus
-        hcsparseDCooMatrixfromFile( hcsparseCooMatrix* cooMatx, const char* filePath, hcsparseControl control, bool read_explicit_zeroes );
+        hcsparseDCooMatrixfromFile( hcsparseCooMatrix* cooMatx, const char* filePath, hcsparseControl *control, bool read_explicit_zeroes );
 
     /*!
      * \brief Read sparse matrix data from file in single precision CSR format
@@ -341,8 +341,8 @@
      * device memory
      * \param[out] csrMatx  The CSR sparse structure that represents the matrix in device memory
      * \param[in] filePath  A path in the file-system to the sparse matrix file
-     * \param[in] control A valid hcsparseControl created with hcsparseCreateControl
-     * \param[in] read_explicit_zeroes If the file contains values explicitly declared zero, this controls
+     * \param[in] *control A valid hcsparseControl created with hcsparseCreateControl
+     * \param[in] read_explicit_zeroes If the file contains values explicitly declared zero, this *controls
      * whether they are stored in the CSR
      *
      * \note The number of non-zeroes actually read from the file may be less than the number of
@@ -356,7 +356,7 @@
      * \ingroup FILE
      */
     hcsparseStatus
-        hcsparseSCsrMatrixfromFile( hcsparseCsrMatrix* csrMatx, const char* filePath, hcsparseControl control, bool read_explicit_zeroes );
+        hcsparseSCsrMatrixfromFile( hcsparseCsrMatrix* csrMatx, const char* filePath, hcsparseControl *control, bool read_explicit_zeroes );
 
     /*!
      * \brief Read sparse matrix data from file in double precision CSR format
@@ -367,8 +367,8 @@
      * up-convert the values to double.
      * \param[out] csrMatx  The CSR sparse structure that represents the matrix in device memory
      * \param[in] filePath  A path in the file-system to the sparse matrix file
-     * \param[in] control A valid hcsparseControl created with hcsparseCreateControl
-     * \param[in] read_explicit_zeroes If the file contains values explicitly declared zero, this controls
+     * \param[in] *control A valid hcsparseControl created with hcsparseCreateControl
+     * \param[in] read_explicit_zeroes If the file contains values explicitly declared zero, this *controls
      * whether they are stored in the CSR
      *
      * \note The number of non-zeroes actually read from the file may be less than the number of
@@ -382,7 +382,7 @@
      * \ingroup FILE
      */
     hcsparseStatus
-        hcsparseDCsrMatrixfromFile( hcsparseCsrMatrix* csrMatx, const char* filePath, hcsparseControl control, bool read_explicit_zeroes );
+        hcsparseDCsrMatrixfromFile( hcsparseCsrMatrix* csrMatx, const char* filePath, hcsparseControl *control, bool read_explicit_zeroes );
 
     /*!
      * \brief Calculate the amount of device memory required to hold meta-data for csr-adaptive SpM-dV algorithm
@@ -392,12 +392,12 @@
      * variable with the appropriate size.  The client program is responsible to allocate device memory in rowBlocks
      * of this size before calling into the library compute routines.
      * \param[in,out] csrMatx  The CSR sparse structure that represents the matrix in device memory
-     * \param[in] control A valid hcsparseControl created with hcsparseCreateControl
+     * \param[in] *control A valid hcsparseControl created with hcsparseCreateControl
      *
      * \ingroup FILE
     */
     hcsparseStatus
-        hcsparseCsrMetaSize( hcsparseCsrMatrix* csrMatx, hcsparseControl control );
+        hcsparseCsrMetaSize( hcsparseCsrMatrix* csrMatx, hcsparseControl *control );
 
     /*!
      * \brief Calculate the meta-data for csr-adaptive SpM-dV algorithm
@@ -406,13 +406,13 @@
      * with the other matrix data.  This function calculates the meta data and stores it into the rowBlocks member of
      * the hcsparseCsrMatrix.
      * \param[in,out] csrMatx  The CSR sparse structure that represents the matrix in device memory
-     * \param[in] control  A valid hcsparseControl created with hcsparseCreateControl
+     * \param[in] *control  A valid hcsparseControl created with hcsparseCreateControl
      * \note This function assumes that the memory for rowBlocks has already been allocated by client program
      *
      * \ingroup FILE
      */
     hcsparseStatus
-        hcsparseCsrMetaCompute( hcsparseCsrMatrix* csrMatx, hcsparseControl control );
+        hcsparseCsrMetaCompute( hcsparseCsrMatrix* csrMatx, hcsparseControl *control );
     /**@}*/
 
     /*!
@@ -421,7 +421,7 @@
      * \param[out] r  Output dense vector
      * \param[in] alpha  Scalar value to multiply
      * \param[in] y  Input dense vector
-     * \param[in] control A valid hcsparseControl created with hcsparseCreateControl
+     * \param[in] *control A valid hcsparseControl created with hcsparseCreateControl
      *
      * \ingroup BLAS-1
      */
@@ -429,7 +429,7 @@
         hcdenseSscale( hcdenseVector* r,
                        const hcsparseScalar* alpha,
                        const hcdenseVector* y,
-                       const hcsparseControl control );
+                       const hcsparseControl *control );
 
     /*!
      * \brief Double precision scale dense vector by a scalar
@@ -437,7 +437,7 @@
      * \param[out] r  Output dense vector
      * \param[in] alpha  Scalar value to multiply
      * \param[in] y  Input dense vector
-     * \param[in] control A valid hcsparseControl created with hcsparseCreateControl
+     * \param[in] *control A valid hcsparseControl created with hcsparseCreateControl
      *
      * \ingroup BLAS-1
      */
@@ -445,7 +445,7 @@
         hcdenseDscale( hcdenseVector* r,
                        const hcsparseScalar* alpha,
                        const hcdenseVector* y,
-                       const hcsparseControl control );
+                       const hcsparseControl *control );
 
     /*!
      * \brief Single precision scale dense vector and add dense vector
@@ -454,7 +454,7 @@
      * \param[in] alpha  Scalar value to multiply
      * \param[in] x  Input dense vector
      * \param[in] y  Input dense vector
-     * \param[in] control A valid hcsparseControl created with hcsparseCreateControl
+     * \param[in] *control A valid hcsparseControl created with hcsparseCreateControl
      *
      * \ingroup BLAS-1
      */
@@ -462,7 +462,7 @@
         hcdenseSaxpy( hcdenseVector* r,
                       const hcsparseScalar* alpha, const hcdenseVector* x,
                       const hcdenseVector* y,
-                      const hcsparseControl control );
+                      const hcsparseControl *control );
 
     /*!
      * \brief Double precision scale dense vector and add dense vector
@@ -471,7 +471,7 @@
      * \param[in] alpha  Scalar value to multiply
      * \param[in] x  Input dense vector
      * \param[in] y  Input dense vector
-     * \param[in] control A valid hcsparseControl created with hcsparseCreateControl
+     * \param[in] *control A valid hcsparseControl created with hcsparseCreateControl
      *
      * \ingroup BLAS-1
      */
@@ -479,7 +479,7 @@
         hcdenseDaxpy( hcdenseVector* r,
                       const hcsparseScalar* alpha, const hcdenseVector* x,
                       const hcdenseVector* y,
-                      const hcsparseControl control );
+                      const hcsparseControl *control );
 
     /*!
      * \brief Single precision scale dense vector and add scaled dense vector
@@ -489,7 +489,7 @@
      * \param[in] x  Input dense vector
      * \param[in] beta  Scalar value for y
      * \param[in] y  Input dense vector
-     * \param[in] control A valid hcsparseControl created with hcsparseCreateControl
+     * \param[in] *control A valid hcsparseControl created with hcsparseCreateControl
      *
      * \ingroup BLAS-1
      */
@@ -498,7 +498,7 @@
                        const hcsparseScalar* alpha, const hcdenseVector* x,
                        const hcsparseScalar* beta,
                        const hcdenseVector* y,
-                       const hcsparseControl control );
+                       const hcsparseControl *control );
 
     /*!
      * \brief Double precision scale dense vector and add scaled dense vector
@@ -508,7 +508,7 @@
      * \param[in] x  Input dense vector
      * \param[in] beta  Scalar value for y
      * \param[in] y  Input dense vector
-     * \param[in] control A valid hcsparseControl created with hcsparseCreateControl
+     * \param[in] *control A valid hcsparseControl created with hcsparseCreateControl
      *
      * \ingroup BLAS-1
      */
@@ -517,108 +517,108 @@
                        const hcsparseScalar* alpha, const hcdenseVector* x,
                        const hcsparseScalar* beta,
                        const hcdenseVector* y,
-                       const hcsparseControl control );
+                       const hcsparseControl *control );
 
     /*!
      * \brief Reduce integer elements of a dense vector into a scalar value
      * \details Implicit plus operator
      * \param[out] s  Output scalar
      * \param[in] x  Input dense vector
-     * \param[in] control A valid hcsparseControl created with hcsparseCreateControl
+     * \param[in] *control A valid hcsparseControl created with hcsparseCreateControl
      *
      * \ingroup BLAS-1
      */
     hcsparseStatus
         hcdenseIreduce( hcsparseScalar* s,
                         const hcdenseVector* x,
-                        const hcsparseControl control );
+                        const hcsparseControl *control );
 
     /*!
      * \brief Reduce single precision elements of a dense vector into a scalar value
      * \details Implicit plus operator
      * \param[out] s  Output scalar
      * \param[in] x  Input dense vector
-     * \param[in] control A valid hcsparseControl created with hcsparseCreateControl
+     * \param[in] *control A valid hcsparseControl created with hcsparseCreateControl
      *
      * \ingroup BLAS-1
      */
     hcsparseStatus
         hcdenseSreduce( hcsparseScalar* s,
                         const hcdenseVector* x,
-                        const hcsparseControl control );
+                        const hcsparseControl *control );
 
     /*!
      * \brief Reduce double precision elements of a dense vector into a scalar value
      * \details Implicit plus operator
      * \param[out] s  Output scalar
      * \param[in] x  Input dense vector
-     * \param[in] control A valid hcsparseControl created with hcsparseCreateControl
+     * \param[in] *control A valid hcsparseControl created with hcsparseCreateControl
      *
      * \ingroup BLAS-1
      */
     hcsparseStatus
         hcdenseDreduce( hcsparseScalar* s,
                         const hcdenseVector* x,
-                        const hcsparseControl control );
+                        const hcsparseControl *control );
 
     /*!
      * \brief Calculate the single precision L1 norm of a dense vector
      * \param[out] s  Output scalar
      * \param[in] x  Input dense vector
-     * \param[in] control A valid hcsparseControl created with hcsparseCreateControl
+     * \param[in] *control A valid hcsparseControl created with hcsparseCreateControl
      *
      * \ingroup BLAS-1
      */
     hcsparseStatus
         hcdenseSnrm1( hcsparseScalar* s,
                       const hcdenseVector* x,
-                      const hcsparseControl control );
+                      const hcsparseControl *control );
 
     /*!
      * \brief Calculate the double precision L1 norm of a dense vector
      * \param[out] s  Output scalar
      * \param[in] x  Input dense vector
-     * \param[in] control A valid hcsparseControl created with hcsparseCreateControl
+     * \param[in] *control A valid hcsparseControl created with hcsparseCreateControl
      *
      * \ingroup BLAS-1
      */
     hcsparseStatus
         hcdenseDnrm1( hcsparseScalar *s,
                       const hcdenseVector* x,
-                      const hcsparseControl control );
+                      const hcsparseControl *control );
 
     /*!
      * \brief Calculate the single precision L2 norm of a dense vector
      * \param[out] s  Output scalar
      * \param[in] x  Input dense vector
-     * \param[in] control A valid hcsparseControl created with hcsparseCreateControl
+     * \param[in] *control A valid hcsparseControl created with hcsparseCreateControl
      *
      * \ingroup BLAS-1
      */
     hcsparseStatus
         hcdenseSnrm2( hcsparseScalar* s,
                       const hcdenseVector* x,
-                      const hcsparseControl control );
+                      const hcsparseControl *control );
 
     /*!
      * \brief Calculate the double precision L2 norm of a dense vector
      * \param[out] s  Output scalar
      * \param[in] x  Input dense vector
-     * \param[in] control A valid hcsparseControl created with hcsparseCreateControl
+     * \param[in] *control A valid hcsparseControl created with hcsparseCreateControl
      *
      * \ingroup BLAS-1
      */
     hcsparseStatus
         hcdenseDnrm2( hcsparseScalar* s,
                       const hcdenseVector* x,
-                      const hcsparseControl control );
+                      const hcsparseControl *control );
 
     /*!
      * \brief Calculates the single precision dot-product of a dense vector
      * \param[out] r  Output dense vector
      * \param[in] x  Input dense vector
      * \param[in] y  Input dense vector
-     * \param[in] control A valid hcsparseControl created with hcsparseCreateControl
+     * \param[in] *control A valid hcsparseControl created with hcsparseCreateControl
      *
      * \ingroup BLAS-1
      */
@@ -626,14 +626,14 @@
         hcdenseSdot( hcsparseScalar* r,
                      const hcdenseVector* x,
                      const hcdenseVector* y,
-                     const hcsparseControl control );
+                     const hcsparseControl *control );
 
     /*!
      * \brief Calculates the double precision dot-product of a dense vector
      * \param[out] r  Output dense vector
      * \param[in] x  Input dense vector
      * \param[in] y  Input dense vector
-     * \param[in] control A valid hcsparseControl created with hcsparseCreateControl
+     * \param[in] *control A valid hcsparseControl created with hcsparseCreateControl
      *
      * \ingroup BLAS-1
      */
@@ -641,7 +641,7 @@
         hcdenseDdot( hcsparseScalar* r,
                      const hcdenseVector* x,
                      const hcdenseVector* y,
-                     const hcsparseControl control );
+                     const hcsparseControl *control );
 
                  /* element-wise operations for dense vectors +, -, *, / */
 
@@ -650,7 +650,7 @@
      * \param[out] r  Output dense vector
      * \param[in] x  Input dense vector
      * \param[in] y  Input dense vector
-     * \param[in] control A valid hcsparseControl created with hcsparseCreateControl
+     * \param[in] *control A valid hcsparseControl created with hcsparseCreateControl
      *
      * \ingroup BLAS-1
      */
@@ -658,14 +658,14 @@
         hcdenseSadd( hcdenseVector* r,
                      const hcdenseVector* x,
                      const hcdenseVector* y,
-                     const hcsparseControl control );
+                     const hcsparseControl *control );
 
     /*!
      * \brief Element-wise double precision addition of two dense vectors
      * \param[out] r  Output dense vector
      * \param[in] x  Input dense vector
      * \param[in] y  Input dense vector
-     * \param[in] control A valid hcsparseControl created with hcsparseCreateControl
+     * \param[in] *control A valid hcsparseControl created with hcsparseCreateControl
      *
      * \ingroup BLAS-1
      */
@@ -673,14 +673,14 @@
         hcdenseDadd( hcdenseVector* r,
                      const hcdenseVector* x,
                      const hcdenseVector* y,
-                     const hcsparseControl control );
+                     const hcsparseControl *control );
 
     /*!
      * \brief Element-wise single precision subtraction of two dense vectors
      * \param[out] r  Output dense vector
      * \param[in] x  Input dense vector
      * \param[in] y  Input dense vector
-     * \param[in] control A valid hcsparseControl created with hcsparseCreateControl
+     * \param[in] *control A valid hcsparseControl created with hcsparseCreateControl
      *
      * \ingroup BLAS-1
      */
@@ -688,14 +688,14 @@
         hcdenseSsub( hcdenseVector* r,
                      const hcdenseVector* x,
                      const hcdenseVector* y,
-                     const hcsparseControl control );
+                     const hcsparseControl *control );
 
     /*!
      * \brief Element-wise double precision subtraction of two dense vectors
      * \param[out] r  Output dense vector
      * \param[in] x  Input dense vector
      * \param[in] y  Input dense vector
-     * \param[in] control A valid hcsparseControl created with hcsparseCreateControl
+     * \param[in] *control A valid hcsparseControl created with hcsparseCreateControl
      *
      * \ingroup BLAS-1
      */
@@ -703,14 +703,14 @@
         hcdenseDsub( hcdenseVector* r,
                      const hcdenseVector* x,
                      const hcdenseVector* y,
-                     const hcsparseControl control );
+                     const hcsparseControl *control );
 
     /*!
      * \brief Element-wise single precision multiplication of two dense vectors
      * \param[out] r  Output dense vector
      * \param[in] x  Input dense vector
      * \param[in] y  Input dense vector
-     * \param[in] control A valid hcsparseControl created with hcsparseCreateControl
+     * \param[in] *control A valid hcsparseControl created with hcsparseCreateControl
      *
      * \ingroup BLAS-1
      */
@@ -718,14 +718,14 @@
         hcdenseSmul( hcdenseVector* r,
                      const hcdenseVector* x,
                      const hcdenseVector* y,
-                     const hcsparseControl control );
+                     const hcsparseControl *control );
 
     /*!
      * \brief Element-wise double precision multiplication of two dense vectors
      * \param[out] r  Output dense vector
      * \param[in] x  Input dense vector
      * \param[in] y  Input dense vector
-     * \param[in] control A valid hcsparseControl created with hcsparseCreateControl
+     * \param[in] *control A valid hcsparseControl created with hcsparseCreateControl
      *
      * \ingroup BLAS-1
      */
@@ -733,14 +733,14 @@
         hcdenseDmul( hcdenseVector* r,
                      const hcdenseVector* x,
                      const hcdenseVector* y,
-                     const hcsparseControl control );
+                     const hcsparseControl *control );
 
     /*!
      * \brief Element-wise single precision division of two dense vectors
      * \param[out] r  Output dense vector
      * \param[in] x  Input dense vector
      * \param[in] y  Input dense vector
-     * \param[in] control A valid hcsparseControl created with hcsparseCreateControl
+     * \param[in] *control A valid hcsparseControl created with hcsparseCreateControl
      *
      * \ingroup BLAS-1
      */
@@ -748,14 +748,14 @@
         hcdenseSdiv( hcdenseVector* r,
                      const hcdenseVector* x,
                      const hcdenseVector* y,
-                     const hcsparseControl control );
+                     const hcsparseControl *control );
 
     /*!
      * \brief Element-wise double precision division of two dense vectors
      * \param[out] r  Output dense vector
      * \param[in] x  Input dense vector
      * \param[in] y  Input dense vector
-     * \param[in] control A valid hcsparseControl created with hcsparseCreateControl
+     * \param[in] *control A valid hcsparseControl created with hcsparseCreateControl
      *
      * \ingroup BLAS-1
      */
@@ -763,7 +763,7 @@
         hcdenseDdiv( hcdenseVector* r,
                      const hcdenseVector* x,
                      const hcdenseVector* y,
-                     const hcsparseControl control );
+                     const hcsparseControl *control );
     /**@}*/
 
     /*!
@@ -777,7 +777,7 @@
      * \param[in] x  Input dense vector
      * \param[in] beta  Scalar value to multiply against sparse vector
      * \param[out] y  Output dense vector
-     * \param[in] control A valid hcsparseControl created with hcsparseCreateControl
+     * \param[in] *control A valid hcsparseControl created with hcsparseCreateControl
      *
      * \ingroup BLAS-2
     */
@@ -787,7 +787,7 @@
                         const hcdenseVector* x,
                         const hcsparseScalar* beta,
                         hcdenseVector* y,
-                        const hcsparseControl control );
+                        const hcsparseControl *control );
 
     /*!
      * \brief Double precision CSR sparse matrix times dense vector
@@ -800,7 +800,7 @@
      * \param[in] x  Input dense vector
      * \param[in] beta  Scalar value to multiply against sparse vector
      * \param[out] y  Output dense vector
-     * \param[in] control A valid hcsparseControl created with hcsparseCreateControl
+     * \param[in] *control A valid hcsparseControl created with hcsparseCreateControl
      *
      * \ingroup BLAS-2
     */
@@ -810,7 +810,7 @@
                         const hcdenseVector* x,
                         const hcsparseScalar* beta,
                         hcdenseVector* y,
-                        const hcsparseControl control );
+                        const hcsparseControl *control );
 
 
     /*!
@@ -821,7 +821,7 @@
      * \param[in] x  Input dense vector
      * \param[in] beta  Scalar value to multiply against sparse vector
      * \param[out] y  Output dense vector
-     * \param[in] control A valid hcsparseControl created with hcsparseCreateControl
+     * \param[in] *control A valid hcsparseControl created with hcsparseCreateControl
      *
      * \ingroup BLAS-2
     */
@@ -831,7 +831,7 @@
                         const hcdenseVector* x,
                         const hcsparseScalar* beta,
                         hcdenseVector* y,
-                        const hcsparseControl control );
+                        const hcsparseControl *control );
 
     /*!
      * \brief Double precision COO sparse matrix times dense vector
@@ -841,7 +841,7 @@
      * \param[in] x  Input dense vector
      * \param[in] beta  Scalar value to multiply against sparse vector
      * \param[out] y  Output dense vector
-     * \param[in] control A valid hcsparseControl created with hcsparseCreateControl
+     * \param[in] *control A valid hcsparseControl created with hcsparseCreateControl
      *
      * \ingroup BLAS-2
     */
@@ -851,7 +851,7 @@
                         const hcdenseVector* x,
                         const hcsparseScalar* beta,
                         hcdenseVector* y,
-                        const hcsparseControl control );
+                        const hcsparseControl *control );
     /**@}*/
 
     /*!
@@ -872,7 +872,7 @@
      * \param[in] denseMatB  Input dense matrix
      * \param[in] beta  Scalar value to multiply against dense matrix
      * \param[out] denseMatC  Output dense matrix
-     * \param[in] control A valid hcsparseControl created with hcsparseCreateControl
+     * \param[in] *control A valid hcsparseControl created with hcsparseCreateControl
      * \note This routine is currently implemented as a batched level 2 matrix
      * times a vector.
      *
@@ -884,7 +884,7 @@
                         const hcdenseMatrix* denseMatB,
                         const hcsparseScalar* beta,
                         hcdenseMatrix* denseMatC,
-                        const hcsparseControl control );
+                        const hcsparseControl *control );
 
     /*!
      * \brief Double precision CSR sparse matrix times dense matrix
@@ -894,7 +894,7 @@
      * \param[in] denseMatB  Input dense matrix
      * \param[in] beta  Scalar value to multiply against dense matrix
      * \param[out] denseMatC  Output dense matrix
-     * \param[in] control A valid hcsparseControl created with hcsparseCreateControl
+     * \param[in] *control A valid hcsparseControl created with hcsparseCreateControl
      * \note This routine is currently implemented as a batched level 2 matrix
      * times a vector.
      *
@@ -906,7 +906,7 @@
                         const hcdenseMatrix* denseMatB,
                         const hcsparseScalar* beta,
                         hcdenseMatrix* denseMatC,
-                        const hcsparseControl control );
+                        const hcsparseControl *control );
 
     /*!
      * \brief Single Precision CSR Sparse Matrix times Sparse Matrix
@@ -914,7 +914,7 @@
      * \param[in] sparseMatA Input CSR sparse matrix
      * \param[in] sparseMatB Input CSR sparse matrix
      * \param[out] sparseMatC Output CSR sparse matrix
-     * \param[in] control A valid hcsparseControl created with hcsparseCreateControl
+     * \param[in] *control A valid hcsparseControl created with hcsparseCreateControl
      * \pre The input sparse matrices data must first be sorted by rows, then by columns
      * \ingroup BLAS-3
      */
@@ -922,7 +922,7 @@
       hcsparseScsrSpGemm( const hcsparseCsrMatrix* sparseMatA,
                           const hcsparseCsrMatrix* sparseMatB,
                                 hcsparseCsrMatrix* sparseMatC,
-                          const hcsparseControl control );
+                          const hcsparseControl *control );
     /**@}*/
 
     /*!
@@ -939,7 +939,7 @@
      * \brief Convert a single precision CSR encoded sparse matrix into a COO encoded sparse matrix
      * \param[in] csr  Input CSR encoded sparse matrix
      * \param[out] coo  Output COO encoded sparse matrix
-     * \param[in] control A valid hcsparseControl created with hcsparseCreateControl
+     * \param[in] *control A valid hcsparseControl created with hcsparseCreateControl
      * \pre The sparse matrix data must first be sorted by rows, then by columns
      *
      * \ingroup CONVERT
@@ -947,13 +947,13 @@
     hcsparseStatus
         hcsparseScsr2coo( const hcsparseCsrMatrix* csr,
                           hcsparseCooMatrix* coo,
-                          const hcsparseControl control );
+                          const hcsparseControl *control );
 
     /*!
      * \brief Convert a double precision CSR encoded sparse matrix into a COO encoded sparse matrix
      * \param[in] csr  Input CSR encoded sparse matrix
      * \param[out] coo  Output COO encoded sparse matrix
-     * \param[in] control A valid hcsparseControl created with hcsparseCreateControl
+     * \param[in] *control A valid hcsparseControl created with hcsparseCreateControl
      * \pre The sparse matrix data must first be sorted by rows, then by columns
      *
      * \ingroup CONVERT
@@ -961,13 +961,13 @@
     hcsparseStatus
         hcsparseDcsr2coo( const hcsparseCsrMatrix* csr,
                           hcsparseCooMatrix* coo,
-                          const hcsparseControl control );
+                          const hcsparseControl *control );
 
     /*!
      * \brief Convert a single precision COO encoded sparse matrix into a CSR encoded sparse matrix
      * \param[in] coo  Input COO encoded sparse matrix
      * \param[out] csr  Output CSR encoded sparse matrix
-     * \param[in] control A valid hcsparseControl created with hcsparseCreateControl
+     * \param[in] *control A valid hcsparseControl created with hcsparseCreateControl
      * \pre The sparse matrix data must first be sorted by rows, then by columns
      *
      * \ingroup CONVERT
@@ -975,13 +975,13 @@
     hcsparseStatus
         hcsparseScoo2csr( const hcsparseCooMatrix* coo,
                           hcsparseCsrMatrix* csr,
-                          const hcsparseControl control );
+                          const hcsparseControl *control );
 
     /*!
      * \brief Convert a double precision COO encoded sparse matrix into a CSR encoded sparse matrix
      * \param[in] coo  Input COO encoded sparse matrix
      * \param[out] csr  Output CSR encoded sparse matrix
-     * \param[in] control A valid hcsparseControl created with hcsparseCreateControl
+     * \param[in] *control A valid hcsparseControl created with hcsparseCreateControl
      * \pre The sparse matrix data must first be sorted by rows, then by columns
      *
      * \ingroup CONVERT
@@ -989,13 +989,13 @@
     hcsparseStatus
         hcsparseDcoo2csr( const hcsparseCooMatrix* coo,
                           hcsparseCsrMatrix* csr,
-                          const hcsparseControl control );
+                          const hcsparseControl *control );
 
     /*!
      * \brief Convert a single precision CSR encoded sparse matrix into a dense matrix
      * \param[in] csr  Input CSR encoded sparse matrix
      * \param[out] A  Output dense matrix
-     * \param[in] control A valid hcsparseControl created with hcsparseCreateControl
+     * \param[in] *control A valid hcsparseControl created with hcsparseCreateControl
      * \pre The sparse matrix data must first be sorted by rows, then by columns
      *
      * \ingroup CONVERT
@@ -1003,13 +1003,13 @@
     hcsparseStatus
         hcsparseScsr2dense( const hcsparseCsrMatrix* csr,
                             hcdenseMatrix* A,
-                            const hcsparseControl control );
+                            const hcsparseControl *control );
 
     /*!
      * \brief Convert a double precision CSR encoded sparse matrix into a dense matrix
      * \param[in] csr  Input CSR encoded sparse matrix
      * \param[out] A  Output dense matrix
-     * \param[in] control A valid hcsparseControl created with hcsparseCreateControl
+     * \param[in] *control A valid hcsparseControl created with hcsparseCreateControl
      * \pre The sparse matrix data must first be sorted by rows, then by columns
      *
      * \ingroup CONVERT
@@ -1017,13 +1017,13 @@
     hcsparseStatus
         hcsparseDcsr2dense( const hcsparseCsrMatrix* csr,
                             hcdenseMatrix* A,
-                            hcsparseControl control );
+                            hcsparseControl *control );
 
     /*!
      * \brief Convert a single precision dense matrix into a CSR encoded sparse matrix
      * \param[in] A  Input dense matrix
      * \param[out] csr  Output CSR encoded sparse matrix
-     * \param[in] control A valid hcsparseControl created with hcsparseCreateControl
+     * \param[in] *control A valid hcsparseControl created with hcsparseCreateControl
      * \pre The sparse matrix data must first be sorted by rows, then by columns
      *
      * \ingroup CONVERT
@@ -1031,20 +1031,20 @@
     hcsparseStatus
         hcsparseSdense2csr( const hcdenseMatrix* A,
                             hcsparseCsrMatrix* csr,
-                            const hcsparseControl control );
+                            const hcsparseControl *control );
 
     /*!
      * \brief Convert a double precision dense matrix into a CSR encoded sparse matrix
      * \param[in] A  Input dense matrix
      * \param[out] csr  Output CSR encoded sparse matrix
-     * \param[in] control A valid hcsparseControl created with hcsparseCreateControl
+     * \param[in] *control A valid hcsparseControl created with hcsparseCreateControl
      * \pre The sparse matrix data must first be sorted by rows, then by columns
      *
      * \ingroup CONVERT
      */
     hcsparseStatus
         hcsparseDdense2csr( const hcdenseMatrix* A, hcsparseCsrMatrix* csr,
-                            const hcsparseControl control );
+                            const hcsparseControl *control );
     /**@}*/
 
 #endif // _HC_SPARSE_H_

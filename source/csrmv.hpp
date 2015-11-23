@@ -256,7 +256,7 @@ csrmv_vector(const hcsparseScalar* pAlpha,
              const hcdenseVector* pX,
              const hcsparseScalar* pBeta,
              hcdenseVector* pY,
-             hcsparseControl control)
+             const hcsparseControl *control)
 {
     uint nnz_per_row = pMatx->nnz_per_row(); //average nnz per row
 
@@ -341,7 +341,7 @@ csrmv_adaptive( const hcsparseScalar* pAlpha,
                 const hcdenseVector* pX,
                 const hcsparseScalar* pBeta,
                 hcdenseVector* pY,
-                hcsparseControl control )
+                const hcsparseControl *control )
 {
     if(typeid(T) == typeid(double))
     {
@@ -387,7 +387,7 @@ csrmv (const hcsparseScalar *pAlpha,
        const hcdenseVector *pX,
        const hcsparseScalar *pBeta,
        hcdenseVector *pY,
-       hcsparseControl control)
+       const hcsparseControl *control)
 {
     if( (pCsrMatx->rowBlocks == nullptr) && (pCsrMatx->rowBlockSize == 0) )
     {

@@ -50,6 +50,11 @@ typedef struct hcdenseVector_
     }
 } hcdenseVector;
 
+typedef struct hcsparseControl_
+{
+    Concurrency::accelerator_view accl_view;
+} hcsparseControl;
+
 /*! \brief Structure to encapsulate sparse matrix data encoded in CSR
  * form to hcsparse API
  * \note The indices stored are 0-based

@@ -1,5 +1,6 @@
 #include "hcsparse.h"
 #include "csrmv.hpp"
+#include "scale.hpp"
 
 int hcsparseInitialized = 0;
 
@@ -33,7 +34,7 @@ hcsparseStatus
                         const hcdenseVector* x,
                         const hcsparseScalar* beta,
                         hcdenseVector* y,
-                        const hcsparseControl control )
+                        const hcsparseControl* control )
 {
     if (!hcsparseInitialized)
     {
@@ -41,7 +42,7 @@ hcsparseStatus
     }
 
     //check opencl elements
-    if (control == nullptr)
+    if (x->values == nullptr || y->values == nullptr)
     {
         return hcsparseInvalid;
     }
@@ -55,7 +56,7 @@ hcsparseStatus
                         const hcdenseVector* x,
                         const hcsparseScalar* beta,
                         hcdenseVector* y,
-                        const hcsparseControl control )
+                        const hcsparseControl* control )
 {
     if (!hcsparseInitialized)
     {
@@ -63,10 +64,11 @@ hcsparseStatus
     }
 
     //check opencl elements
-    if (control == nullptr)
+    if (x->values == nullptr || y->values == nullptr)
     {
         return hcsparseInvalid;
     }
 
     return csrmv<double>(alpha, matx, x, beta, y, control);
 }
+
