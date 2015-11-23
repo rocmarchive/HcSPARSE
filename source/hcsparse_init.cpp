@@ -72,3 +72,42 @@ hcsparseStatus
     return csrmv<double>(alpha, matx, x, beta, y, control);
 }
 
+hcsparseStatus
+hcdenseSscale ( hcdenseVector* r,
+                const hcsparseScalar* alpha,
+                const hcdenseVector* y,
+                const hcsparseControl* control)
+{
+    if (!hcsparseInitialized)
+    {
+        return hcsparseInvalid;
+    }
+
+    if (r->values == nullptr || y->values == nullptr)
+    {
+        return hcsparseInvalid;
+    }
+
+    return scale<float> (r, alpha, y, control);
+}
+
+
+hcsparseStatus
+hcdenseDscale( hcdenseVector* r,
+               const hcsparseScalar* alpha,
+               const hcdenseVector* y,
+               const hcsparseControl* control)
+{
+    if (!hcsparseInitialized)
+    {
+        return hcsparseInvalid;
+    }
+
+    if (r->values == nullptr || y->values == nullptr)
+    {
+        return hcsparseInvalid;
+    }
+
+    return scale<double> (r, alpha, y, control);
+}
+

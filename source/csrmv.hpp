@@ -354,7 +354,7 @@ csrmv_adaptive( const hcsparseScalar* pAlpha,
 #define VALUE_TYPE float
     }
 
-    if(control->extended_precision)
+    //if(control->extended_precision)
     {
 #define EXTENDED_PRECISION 1
     }
