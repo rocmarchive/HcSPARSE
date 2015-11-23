@@ -42,6 +42,27 @@
 #error "SUBWAVE_SIZE is not  a power of two!"
 #endif
 
+// Uses macro constants:
+// WAVE_SIZE  - "warp size", typically 64 (AMD) or 32 (NV)
+// WG_SIZE    - workgroup ("block") size, 1D representation assumed
+// INDEX_TYPE - typename for the type of integer data read by the kernel,  usually unsigned int
+// VALUE_TYPE - typename for the type of floating point data, usually double
+// SUBWAVE_SIZE - the length of a "sub-wave", a power of 2, i.e. 1,2,4,...,WAVE_SIZE, assigned to process a single matrix row
+void csrmv_vector_kernel (const INDEX_TYPE num_rows,
+                          const Concurrency::array_view<VALUE_TYPE, 1> &alpha,
+                          const SIZE_TYPE off_alpha,
+                          const Concurrency::array_view<INDEX_TYPE, 1> &row_offset,
+                          const Concurrency::array_view<INDEX_TYPE, 1> &col,
+                          const Concurrency::array_view<VALUE_TYPE, 1> &val,
+                          const Concurrency::array_view<VALUE_TYPE, 1> &x,
+                          const SIZE_TYPE off_x,
+                          const Concurrency::array_view<VALUE_TYPE, 1> &beta,
+                          const SIZE_TYPE off_beta,
+                          Concurrency::array_view<VALUE_TYPE, 1> &y,
+                          const SIZE_TYPE off_y)
+{
+}
+
 template<typename T>
 hcsparseStatus
 csrmv_vector(const hcsparseScalar* pAlpha,
@@ -106,6 +127,11 @@ csrmv_vector(const hcsparseScalar* pAlpha,
     {
 #define GLOBAL_SIZE WG_SIZE
     }
+
+    csrmv_vector_kernel (pMatx->num_rows, *(pAlpha->value), pAlpha->offset(),
+                         *(pMatx->rowOffsets), *(pMatx->colIndices), *(pMatx->values),
+                         *(pX->values), pX->offset(), *(pBeta->value),
+                         pBeta->offset(), *(pY->values), pY->offset());
 
     return hcsparseSuccess;
 }
