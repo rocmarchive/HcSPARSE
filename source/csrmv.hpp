@@ -51,6 +51,62 @@ csrmv_vector(const hcsparseScalar* pAlpha,
              hcdenseVector* pY,
              hcsparseControl control)
 {
+    uint nnz_per_row = pMatx->nnz_per_row(); //average nnz per row
+
+    // adjust subwave_size according to nnz_per_row;
+    // each wavefron will be assigned to the row of the csr matrix
+#if WAVE_SIZE > 32
+{
+    //this apply only for devices with wavefront > 32 like AMD(64)
+    if (nnz_per_row < 64) {
+#undef SUBWAVE_SIZE
+#define SUBWAVE_SIZE 32
+}
+}
+#endif
+    if (nnz_per_row < 32) {
+#undef SUBWAVE_SIZE
+#define SUBWAVE_SIZE 16
+}
+    if (nnz_per_row < 16) {
+#undef SUBWAVE_SIZE
+#define SUBWAVE_SIZE 8
+}
+    if (nnz_per_row < 8)  {
+#undef SUBWAVE_SIZE
+#define SUBWAVE_SIZE 4
+}
+    if (nnz_per_row < 4)  {
+#undef SUBWAVE_SIZE
+#define SUBWAVE_SIZE 2
+}
+
+    if(typeid(T) == typeid(double))
+    {
+#undef VALUE_TYPE
+#define VALUE_TYPE double
+    }
+    else if(typeid(T) == typeid(float))
+    {
+#undef VALUE_TYPE
+#define VALUE_TYPE float
+    }
+
+    // subwave takes care of each row in matrix;
+    // predicted number of subwaves to be executed;
+    uint predicted = SUBWAVE_SIZE * pMatx->num_rows;
+
+    // if NVIDIA is used it does not allow to run the group size
+    // which is not a multiplication of WG_SIZE. Don't know if that
+    // have an impact on performance
+    uint global_work_size =
+            WG_SIZE * ((predicted + WG_SIZE - 1 ) / WG_SIZE);
+
+    if( global_work_size < WG_SIZE)
+    {
+#define GLOBAL_SIZE WG_SIZE
+    }
+
     return hcsparseSuccess;
 }
 
