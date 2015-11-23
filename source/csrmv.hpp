@@ -188,6 +188,65 @@ void csrmv_vector_kernel (const INDEX_TYPE num_rows,
                           Concurrency::array_view<VALUE_TYPE, 1> &y,
                           const SIZE_TYPE off_y)
 {
+    Concurrency::extent<1> grdExt( WG_SIZE );
+    Concurrency::tiled_extent< WG_SIZE> t_ext(grdExt);
+    Concurrency::parallel_for_each(t_ext, [=] (Concurrency::tiled_index<WG_SIZE> tidx) restrict(amp)
+    {
+        tile_static VALUE_TYPE sdata [WG_SIZE + SUBWAVE_SIZE / 2];
+
+        //const int vectors_per_block = WG_SIZE/SUBWAVE_SIZE;
+        const INDEX_TYPE global_id   = tidx.global[0];         // global workitem id
+        const INDEX_TYPE local_id    = tidx.local[0];          // local workitem id
+        const INDEX_TYPE thread_lane = local_id & (SUBWAVE_SIZE - 1);
+        const INDEX_TYPE vector_id   = global_id / SUBWAVE_SIZE; // global vector id
+        const INDEX_TYPE num_vectors = t_ext[0] / SUBWAVE_SIZE;
+
+        const VALUE_TYPE _alpha = alpha[off_alpha];
+        const VALUE_TYPE _beta = beta[off_beta];
+
+        for(INDEX_TYPE row = vector_id; row < num_rows; row += num_vectors)
+        {
+            const INDEX_TYPE row_start = row_offset[row];
+            const INDEX_TYPE row_end   = row_offset[row+1];
+            VALUE_TYPE sum = 0.;
+
+            VALUE_TYPE sumk_e = 0.;
+            // It is about 5% faster to always multiply by alpha, rather than to
+            // check whether alpha is 0, 1, or other and do different code paths.
+            for(INDEX_TYPE j = row_start + thread_lane; j < row_end; j += SUBWAVE_SIZE)
+                sum = two_fma(_alpha * val[j], x[off_x + col[j]], sum, sumk_e);
+            VALUE_TYPE new_error = 0.;
+            sum = two_sum(sum, sumk_e, new_error);
+
+            // Parallel reduction in shared memory.
+           sdata[local_id] = sum;
+
+           // This compensated summation reduces cummulative rounding errors,
+           // which can become a problem on GPUs because our reduction order is
+           // different than what would be used on a CPU.
+           // It is based on the PSumK algorithm (with K==2) from
+           // Yamanaka, Ogita, Rump, and Oishi, "A Parallel Algorithm of
+           // Accurate Dot Product," in the Journal of Parallel Computing,
+           // 34(6-8), pp. 392-410, Jul. 2008.
+           #pragma unroll
+           for (int i = (WG_SIZE >> 1); i > 0; i >>= 1)
+           {
+               tidx.barrier.wait();
+               sum = sum2_reduce(sum, new_error, sdata, local_id, thread_lane, i, tidx);
+           }
+
+           if (thread_lane == 0)
+           {
+               if (_beta == 0)
+                    y[off_y + row] = sum + new_error;
+               else
+               {
+                   sum = two_fma(_beta, y[off_y + row], sum, new_error);
+                   y[off_y + row] = sum + new_error;
+               }
+           }
+       }
+    });
 }
 
 template<typename T>
