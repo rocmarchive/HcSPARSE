@@ -3,6 +3,10 @@
 
 #include <iostream>
 #include <amp.h>
+#include <amp_math.h>
+
+using namespace Concurrency;
+using namespace Concurrency::precise_math;
 
 typedef enum _hcdenseMajor
 {
