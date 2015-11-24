@@ -28,6 +28,47 @@ hcsparseTeardown(void)
     return hcsparseSuccess;
 }
 
+// Convenience sparse matrix construction functions
+hcsparseStatus
+hcsparseInitScalar( hcsparseScalar* scalar )
+{
+    scalar->clear( );
+
+    return hcsparseSuccess;
+};
+
+hcsparseStatus
+hcsparseInitVector( hcdenseVector* vec )
+{
+    vec->clear( );
+
+    return hcsparseSuccess;
+};
+
+hcsparseStatus
+hcsparseInitCooMatrix( hcsparseCooMatrix* cooMatx )
+{
+    cooMatx->clear( );
+
+    return hcsparseSuccess;
+};
+
+hcsparseStatus
+hcsparseInitCsrMatrix( hcsparseCsrMatrix* csrMatx )
+{
+    csrMatx->clear( );
+
+    return hcsparseSuccess;
+};
+
+hcsparseStatus
+hcdenseInitMatrix( hcdenseMatrix* denseMatx )
+{
+    denseMatx->clear();
+
+    return hcsparseSuccess;
+}
+
 hcsparseStatus
     hcsparseScsrmv( const hcsparseScalar* alpha,
                         const hcsparseCsrMatrix* matx,
