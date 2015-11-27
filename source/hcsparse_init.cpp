@@ -1,6 +1,7 @@
 #include "hcsparse.h"
 #include "csrmv.hpp"
 #include "scale.hpp"
+#include "mm_reader.hpp"
 
 int hcsparseInitialized = 0;
 
