@@ -99,6 +99,7 @@ public:
     }
 
     int MMReadBanner( FILE* infile );
+    int MMReadMtxCrdSize( FILE* infile );
 
     int GetNumRows( )
     {
@@ -227,5 +228,31 @@ int MatrixMarketReader<FloatType>::MMReadBanner( FILE *infile )
 
     return 0;
 
+}
+
+template<typename FloatType>
+int MatrixMarketReader<FloatType>::MMReadMtxCrdSize( FILE *infile )
+{
+    char line[ MM_MAX_LINE_LENGTH ];
+    int num_items_read;
+
+    /* now continue scanning until you reach the end-of-comments */
+    do
+    {
+        if( fgets( line, MM_MAX_LINE_LENGTH, infile ) == NULL )
+            return MM_PREMATURE_EOF;
+    } while( line[ 0 ] == '%' );
+
+    /* line[] is either blank or has M,N, nz */
+    if( sscanf( line, "%d %d %d", &nRows, &nCols, &nNZ ) == 3 )
+        return 0;
+    else
+        do
+        {
+            num_items_read = fscanf( infile, "%d %d %d", &nRows, &nCols, &nNZ );
+            if( num_items_read == EOF ) return MM_PREMATURE_EOF;
+        } while( num_items_read != 3 );
+
+    return 0;
 }
 #endif
