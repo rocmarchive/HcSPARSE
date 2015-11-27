@@ -340,3 +340,90 @@ hcsparseDCooMatrixfromFile( hcsparseCooMatrix* cooMatx, const char* filePath, hc
     return hcsparseSuccess;
 }
 
+hcsparseStatus
+hcsparseSCsrMatrixfromFile(hcsparseCsrMatrix* csrMatx, const char* filePath, hcsparseControl control, bool read_explicit_zeroes )
+{
+
+    // Check that the file format is matrix market; the only format we can read right now
+    // This is not a complete solution, and fails for directories with file names etc...
+    // TODO: Should we use boost filesystem?
+    std::string strPath( filePath );
+    if( strPath.find_last_of( '.' ) != std::string::npos )
+    {
+        std::string ext = strPath.substr( strPath.find_last_of( '.' ) + 1 );
+        if( ext != "mtx" )
+            return hcsparseInvalid;
+    }
+    else
+        return hcsparseInvalid;
+
+    // Read data from a file on disk into CPU buffers
+    // Data is read natively as COO format with the reader
+    MatrixMarketReader< float > mm_reader;
+    if( mm_reader.MMReadFormat( filePath, read_explicit_zeroes ) )
+        return hcsparseInvalid;
+
+    // JPA: Shouldn't that just be an assertion check? It seems to me that
+    // the user have to call hcsparseHeaderfromFile before calling this function,
+    // otherwise the whole pCsrMatrix will be broken;
+
+    csrMatx->num_rows = mm_reader.GetNumRows( );
+    csrMatx->num_cols = mm_reader.GetNumCols( );
+    csrMatx->num_nonzeros = mm_reader.GetNumNonZeroes( );
+
+    //  The following section of code converts the sparse format from COO to CSR
+    int *x = mm_reader.GetXCoordinates( );
+    int *y = mm_reader.GetYCoordinates( );
+    float *val = mm_reader.GetValCoordinates( );
+
+    for(int i = 0 ;i < csrMatx->num_nonzeros; i++)
+    {
+        if(x[i] > x[i+1])
+        {
+            int tmp = x[i];
+            x[i] = x[i+1];
+            x[i+1] = tmp;
+            int tmp1 = y[i];
+            y[i] = y[i+1];
+            y[i+1] = tmp1;
+            float tmp2 = val[i];
+            val[i] = val[i+1];
+            val[i+1] = tmp2;
+        }
+        else if ( x[i] == x[i + 1])
+        {
+            if ( y[i] > y[i+1])
+            {
+                int tmp = x[i];
+                x[i] = x[i+1];
+                x[i+1] = tmp;
+                int tmp1 = y[i];
+                y[i] = y[i+1];
+                y[i+1] = tmp1;
+                float tmp2 = val[i];
+                val[i] = val[i+1];
+                val[i+1] = tmp2;
+            }
+        }
+    }
+
+    Concurrency::array_view<float> *values = static_cast<Concurrency::array_view<float> *>(csrMatx->values);
+    Concurrency::array_view<int> *rowOffsets = static_cast<Concurrency::array_view<int> *>(csrMatx->rowOffsets);
+    Concurrency::array_view<int> *colIndices = static_cast<Concurrency::array_view<int> *>(csrMatx->colIndices);
+
+    int current_row = 1;
+    (*(rowOffsets))[ 0 ] = 0;
+    for( int i = 0; i < csrMatx->num_nonzeros; i++ )
+    {
+        (*(colIndices))[ i ] = y[ i ];
+        (*(values))[ i ] = val[ i ];
+
+        while( x[ i ] >= current_row )
+            (*(rowOffsets))[ current_row++ ] = i;
+    }
+    (*(rowOffsets))[ current_row ] = csrMatx->num_nonzeros;
+    while( current_row <= csrMatx->num_rows )
+        (*(rowOffsets))[ current_row++ ] = csrMatx->num_nonzeros;
+
+    return hcsparseSuccess;
+}
