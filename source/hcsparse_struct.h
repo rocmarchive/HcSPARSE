@@ -53,6 +53,26 @@ typedef struct hcdenseVector_
 typedef struct hcsparseControl_
 {
     Concurrency::accelerator_view accl_view;
+
+    // for NV(32) for AMD(64)
+    size_t wavefront_size;
+    size_t max_wg_size;
+
+    // Should we attempt to perform compensated summation?
+    bool extended_precision;
+
+    // Does our device have double precision support?
+    bool dpfp_support;
+
+    // current device max compute units;
+    uint max_compute_units;
+
+    hcsparseControl_( Concurrency::accelerator_view &accl_view )
+        : accl_view( accl_view ), wavefront_size( 0 ),
+        max_wg_size( 0 ), extended_precision(false),
+        dpfp_support(false), max_compute_units( 0 )
+    {}
+
 } hcsparseControl;
 
 /*! \brief Structure to encapsulate sparse matrix data encoded in CSR
