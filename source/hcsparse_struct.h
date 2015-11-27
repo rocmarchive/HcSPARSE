@@ -70,10 +70,10 @@ typedef struct hcsparseCsrMatrix_
 
     /** @name OpenCL state */
     /**@{*/
-    Concurrency::array_view<float> *values;  /*!< non-zero values in sparse matrix of size num_nonzeros */
-    Concurrency::array_view<uint> *colIndices;  /*!< column index for corresponding value of size num_nonzeros */
-    Concurrency::array_view<uint> *rowOffsets;  /*!< Invariant: rowOffsets[i+1]-rowOffsets[i] = number of values in row i */
-    Concurrency::array_view<uint> *rowBlocks;  /*!< Meta-data used for csr-adaptive algorithm; can be NULL */
+    void *values;  /*!< non-zero values in sparse matrix of size num_nonzeros */
+    void *colIndices;  /*!< column index for corresponding value of size num_nonzeros */
+    void *rowOffsets;  /*!< Invariant: rowOffsets[i+1]-rowOffsets[i] = number of values in row i */
+    void *rowBlocks;  /*!< Meta-data used for csr-adaptive algorithm; can be NULL */
     /**@}*/
 
     /** @name Buffer offsets */
@@ -134,9 +134,9 @@ typedef struct hcsparseCooMatrix_
 
     /** @name OpenCL state */
     /**@{*/
-    Concurrency::array_view<float> *values;  /*!< CSR non-zero values of size num_nonzeros */
-    Concurrency::array_view<uint> *colIndices;  /*!< column index for corresponding element; array size num_nonzeros */
-    Concurrency::array_view<uint> *rowIndices;  /*!< row index for corresponding element; array size num_nonzeros */
+    void *values;  /*!< CSR non-zero values of size num_nonzeros */
+    void *colIndices;  /*!< column index for corresponding element; array size num_nonzeros */
+    void *rowIndices;  /*!< row index for corresponding element; array size num_nonzeros */
     /**@}*/
 
     /** @name Buffer offsets */
@@ -185,7 +185,7 @@ typedef struct hcdenseMatrix_
     hcdenseMajor major;  /*! Memory layout for dense matrix */
     /**@}*/
 
-    Concurrency::array_view<float> *values;  /*!< Array of matrix values */
+    void*values;  /*!< Array of matrix values */
 
     long offValues;
 
