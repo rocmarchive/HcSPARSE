@@ -152,3 +152,26 @@ hcdenseDscale( hcdenseVector* r,
     return scale<double> (r, alpha, y, control);
 }
 
+// This function reads the file header at the given filepath, and returns the size
+// of the sparse matrix in the hcsparseCooMatrix parameter.
+// Post-condition: clears hcsparseCooMatrix, then sets pCooMatx->m, pCooMatx->n
+// pCooMatx->nnz
+hcsparseStatus
+hcsparseHeaderfromFile( int* nnz, int* row, int* col, const char* filePath )
+{
+
+    // Check that the file format is matrix market; the only format we can read right now
+    // This is not a complete solution, and fails for directories with file names etc...
+    // TODO: Should we use boost filesystem?
+    std::string strPath( filePath );
+    if( strPath.find_last_of( '.' ) != std::string::npos )
+    {
+        std::string ext = strPath.substr( strPath.find_last_of( '.' ) + 1 );
+        if( ext != "mtx" )
+            return hcsparseInvalid;
+    }
+    else
+        return hcsparseInvalid;
+
+    return hcsparseSuccess;
+}
