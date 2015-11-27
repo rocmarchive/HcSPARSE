@@ -47,4 +47,31 @@
 
 /********************* Matrix Market error codes ***************************/
 
+#define MM_COULD_NOT_READ_FILE	11
+#define MM_PREMATURE_EOF	12
+#define MM_NOT_MTX		13
+#define MM_NO_HEADER		14
+#define MM_UNSUPPORTED_TYPE	15
+#define MM_LINE_TOO_LONG	16
+#define MM_COULD_NOT_WRITE_FILE 17
+
+#define MM_MTX_STR	"matrix"
+#define MM_ARRAY_STR	"array"
+#define MM_DENSE_STR	"array"
+#define MM_COORDINATE_STR "coordinate"
+#define MM_SPARSE_STR	"coordinate"
+#define MM_COMPLEX_STR	"complex"
+#define MM_REAL_STR	"real"
+#define MM_INT_STR	"integer"
+#define MM_GENERAL_STR  "general"
+#define MM_SYMM_STR	"symmetric"
+#define MM_HERM_STR	"hermitian"
+#define MM_SKEW_STR	"skew-symmetric"
+#define MM_PATTERN_STR  "pattern"
+
+#define MM_MAX_LINE_LENGTH 1025
+#define MM_MAX_TOKEN_LENGTH 64
+#define MatrixMarketBanner "%%MatrixMarket"
+#define MAX_RAND_VAL 5.0
+
 #endif
