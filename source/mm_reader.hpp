@@ -74,4 +74,75 @@
 #define MatrixMarketBanner "%%MatrixMarket"
 #define MAX_RAND_VAL 5.0
 
+template <typename FloatType>
+class MatrixMarketReader
+{
+    char Typecode[ 4 ];
+    int nNZ;
+    int nRows;
+    int nCols;
+    int isSymmetric;
+    int isDoubleMem;
+    int *x;
+    int *y;
+    FloatType *val;
+
+public:
+    MatrixMarketReader( ): nNZ( 0 ), nRows( 0 ), nCols( 0 ), isSymmetric( 0 ), isDoubleMem( 0 )
+    {
+        for( auto c : Typecode )
+            c = '\0';
+
+        x = NULL;
+        y = NULL;
+        val = NULL;
+    }
+
+    int GetNumRows( )
+    {
+        return nRows;
+    }
+
+    int GetNumCols( )
+    {
+        return nCols;
+    }
+
+    int GetNumNonZeroes( )
+    {
+        return nNZ;
+    }
+
+    int GetSymmetric( )
+    {
+        return isSymmetric;
+    }
+
+    char &GetTypecode( )
+    {
+        return Typecode;
+    }
+
+    int *GetXCoordinates( )
+    {
+        return x;
+    }
+
+    int *GetYCoordinates( )
+    {
+        return y;
+    }
+
+    FloatType *GetValCoordinates( )
+    {
+        return val;
+    }
+
+    ~MatrixMarketReader( )
+    {
+        delete[ ] x;
+        delete[ ] y;
+        delete[ ] val;
+    }
+};
 #endif
