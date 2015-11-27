@@ -99,6 +99,7 @@ public:
     }
 
     bool MMReadHeader( FILE* infile );
+    bool MMReadHeader( const std::string& filename );
     int MMReadBanner( FILE* infile );
     int MMReadMtxCrdSize( FILE* infile );
 
@@ -182,6 +183,33 @@ bool MatrixMarketReader<FloatType>::MMReadHeader( FILE* mm_file )
         printf( "Error reading Matrix Market crd_size %d\n", status );
         return( 1 );
     }
+
+    return 0;
+}
+
+template<typename FloatType>
+bool MatrixMarketReader<FloatType>::MMReadHeader( const std::string &filename )
+{
+    FILE *mm_file = ::fopen( filename.c_str( ), "r" );
+    if( mm_file == NULL )
+    {
+        printf( "Cannot Open Matrix-Market File !\n" );
+        return 1;
+    }
+
+    if ( MMReadHeader( mm_file ) )
+    {
+        printf ("Matrix not supported !\n");
+        return 2;
+    }
+
+    // If symmetric MM stored file, double the reported size
+    if( mm_is_symmetric( Typecode ) )
+        nNZ <<= 1;
+
+    ::fclose( mm_file );
+
+    std::clog << "Matrix: " << filename << " [nRow: " << GetNumRows( ) << "] [nCol: " << GetNumCols( ) << "] [nNZ: " << GetNumNonZeroes( ) << "]" << std::endl;
 
     return 0;
 }
