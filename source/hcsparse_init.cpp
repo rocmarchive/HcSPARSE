@@ -174,5 +174,14 @@ hcsparseHeaderfromFile( int* nnz, int* row, int* col, const char* filePath )
     else
         return hcsparseInvalid;
 
+   MatrixMarketReader< float > mm_reader;
+
+    if( mm_reader.MMReadHeader( filePath ) )
+        return hcsparseInvalid;
+
+    *row = mm_reader.GetNumRows( );
+    *col = mm_reader.GetNumCols( );
+    *nnz = mm_reader.GetNumNonZeroes( );
+
     return hcsparseSuccess;
 }
