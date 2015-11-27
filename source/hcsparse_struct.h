@@ -18,7 +18,7 @@ typedef enum _hcdenseMajor
  */
 typedef struct hcsparseScalar_
 {
-    Concurrency::array_view<float> *value;
+    void* value;
     long offValue;
     void clear( )
     {
@@ -36,7 +36,7 @@ typedef struct hcsparseScalar_
 typedef struct hcdenseVector_
 {
     int num_values;
-    Concurrency::array_view<float> *values;
+    void* values;
     long offValues;
     void clear( )
     {

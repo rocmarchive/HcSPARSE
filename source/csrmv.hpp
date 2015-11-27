@@ -314,10 +314,18 @@ csrmv_vector(const hcsparseScalar* pAlpha,
 #define GLOBAL_SIZE WG_SIZE
     }
 
-    csrmv_vector_kernel (pMatx->num_rows, *(pAlpha->value), pAlpha->offset(),
-                         *(pMatx->rowOffsets), *(pMatx->colIndices), *(pMatx->values),
-                         *(pX->values), pX->offset(), *(pBeta->value),
-                         pBeta->offset(), *(pY->values), pY->offset());
+    Concurrency::array_view<VALUE_TYPE> *avAlpha = static_cast<Concurrency::array_view<VALUE_TYPE> *>(pAlpha->value);
+    Concurrency::array_view<INDEX_TYPE> *avMatx_rowOffsets = static_cast<Concurrency::array_view<INDEX_TYPE> *>(pMatx->rowOffsets);
+    Concurrency::array_view<INDEX_TYPE> *avMatx_colIndices = static_cast<Concurrency::array_view<INDEX_TYPE> *>(pMatx->colIndices);
+    Concurrency::array_view<VALUE_TYPE> *avMatx_values = static_cast<Concurrency::array_view<VALUE_TYPE> *>(pMatx->values);
+    Concurrency::array_view<VALUE_TYPE> *avX_values = static_cast<Concurrency::array_view<VALUE_TYPE> *>(pX->values);
+    Concurrency::array_view<VALUE_TYPE> *avBeta = static_cast<Concurrency::array_view<VALUE_TYPE> *>(pBeta->value);
+    Concurrency::array_view<VALUE_TYPE> *avY_values = static_cast<Concurrency::array_view<VALUE_TYPE> *>(pY->values);
+
+    csrmv_vector_kernel (pMatx->num_rows, *avAlpha, pAlpha->offset(),
+                         *avMatx_rowOffsets, *avMatx_colIndices, *avMatx_values,
+                         *avX_values, pX->offset(), *avBeta,
+                         pBeta->offset(), *avY_values, pY->offset());
 
     return hcsparseSuccess;
 }
@@ -372,10 +380,19 @@ csrmv_adaptive( const hcsparseScalar* pAlpha,
 #define GLOBAL_SIZE WG_SIZE
     }
 
-    csrmv_adaptive_kernel (*(pCsrMatx->values), *(pCsrMatx->colIndices),
-                           *(pCsrMatx->rowOffsets), *(pX->values),
-                           *(pY->values), *(pCsrMatx->rowBlocks),
-                           *(pAlpha->value), *(pBeta->value));
+    Concurrency::array_view<VALUE_TYPE> *avCsrMatx_values = static_cast<Concurrency::array_view<VALUE_TYPE> *>(pCsrMatx->values);
+    Concurrency::array_view<INDEX_TYPE> *avColIndices = static_cast<Concurrency::array_view<INDEX_TYPE> *>(pCsrMatx->colIndices);
+    Concurrency::array_view<INDEX_TYPE> *avRowOffsets = static_cast<Concurrency::array_view<INDEX_TYPE> *>(pCsrMatx->rowOffsets);
+    Concurrency::array_view<VALUE_TYPE> *avX_values = static_cast<Concurrency::array_view<VALUE_TYPE> *>(pX->values);
+    Concurrency::array_view<VALUE_TYPE> *avY_values = static_cast<Concurrency::array_view<VALUE_TYPE> *>(pY->values);
+    Concurrency::array_view<INDEX_TYPE> *avRowBlocks = static_cast<Concurrency::array_view<INDEX_TYPE> *>(pCsrMatx->rowBlocks);
+    Concurrency::array_view<VALUE_TYPE> *avAlpha = static_cast<Concurrency::array_view<VALUE_TYPE> *>(pAlpha->value);
+    Concurrency::array_view<VALUE_TYPE> *avBeta = static_cast<Concurrency::array_view<VALUE_TYPE> *>(pBeta->value);
+
+    csrmv_adaptive_kernel (*avCsrMatx_values, *avColIndices,
+                           *avRowOffsets, *avX_values,
+                           *avY_values, *avRowBlocks,
+                           *avAlpha ,*avBeta);
 
     return hcsparseSuccess;
 }
