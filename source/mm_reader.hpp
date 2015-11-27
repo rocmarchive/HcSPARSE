@@ -98,6 +98,8 @@ public:
         val = NULL;
     }
 
+    int MMReadBanner( FILE* infile );
+
     int GetNumRows( )
     {
         return nRows;
@@ -145,4 +147,85 @@ public:
         delete[ ] val;
     }
 };
+
+template<typename FloatType>
+int MatrixMarketReader<FloatType>::MMReadBanner( FILE *infile )
+{
+    char line[ MM_MAX_LINE_LENGTH ];
+    char banner[ MM_MAX_TOKEN_LENGTH ];
+    char mtx[ MM_MAX_TOKEN_LENGTH ];
+    char crd[ MM_MAX_TOKEN_LENGTH ];
+    char data_type[ MM_MAX_TOKEN_LENGTH ];
+    char storage_scheme[ MM_MAX_TOKEN_LENGTH ];
+    char *p;
+
+    mm_clear_typecode( Typecode );
+
+    if( fgets( line, MM_MAX_LINE_LENGTH, infile ) == NULL )
+        return MM_PREMATURE_EOF;
+
+    if( sscanf( line, "%s %s %s %s %s", banner, mtx, crd, data_type,
+        storage_scheme ) != 5 )
+        return MM_PREMATURE_EOF;
+
+    for( p = mtx; *p != '\0'; *p = tolower( *p ), p++ );  /* convert to lower case */
+    for( p = crd; *p != '\0'; *p = tolower( *p ), p++ );
+    for( p = data_type; *p != '\0'; *p = tolower( *p ), p++ );
+    for( p = storage_scheme; *p != '\0'; *p = tolower( *p ), p++ );
+
+    /* check for banner */
+    if( strncmp( banner, MatrixMarketBanner, strlen( MatrixMarketBanner ) ) != 0 )
+        return MM_NO_HEADER;
+
+    /* first field should be "mtx" */
+    if( strcmp( mtx, MM_MTX_STR ) != 0 )
+        return  MM_UNSUPPORTED_TYPE;
+    mm_set_matrix( Typecode );
+
+    /* second field describes whether this is a sparse matrix (in coordinate
+            storgae) or a dense array */
+    if( strcmp( crd, MM_SPARSE_STR ) == 0 )
+        mm_set_sparse( Typecode );
+    else if( strcmp( crd, MM_DENSE_STR ) == 0 )
+        mm_set_dense( Typecode );
+    else
+        return MM_UNSUPPORTED_TYPE;
+
+
+    /* third field */
+
+    if( strcmp( data_type, MM_REAL_STR ) == 0 )
+        mm_set_real( Typecode );
+    else
+        if( strcmp( data_type, MM_COMPLEX_STR ) == 0 )
+            mm_set_complex( Typecode );
+        else
+            if( strcmp( data_type, MM_PATTERN_STR ) == 0 )
+                mm_set_pattern( Typecode );
+            else
+                if( strcmp( data_type, MM_INT_STR ) == 0 )
+                    mm_set_integer( Typecode );
+                else
+                    return MM_UNSUPPORTED_TYPE;
+
+
+    /* fourth field */
+
+    if( strcmp( storage_scheme, MM_GENERAL_STR ) == 0 )
+        mm_set_general( Typecode );
+    else
+        if( strcmp( storage_scheme, MM_SYMM_STR ) == 0 )
+            mm_set_symmetric( Typecode );
+        else
+            if( strcmp( storage_scheme, MM_HERM_STR ) == 0 )
+                mm_set_hermitian( Typecode );
+            else
+                if( strcmp( storage_scheme, MM_SKEW_STR ) == 0 )
+                    mm_set_skew( Typecode );
+                else
+                    return MM_UNSUPPORTED_TYPE;
+
+    return 0;
+
+}
 #endif
