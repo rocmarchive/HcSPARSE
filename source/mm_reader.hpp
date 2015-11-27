@@ -98,6 +98,7 @@ public:
         val = NULL;
     }
 
+    bool MMReadHeader( FILE* infile );
     int MMReadBanner( FILE* infile );
     int MMReadMtxCrdSize( FILE* infile );
 
@@ -148,6 +149,42 @@ public:
         delete[ ] val;
     }
 };
+
+// Class definition
+
+template<typename FloatType>
+bool MatrixMarketReader<FloatType>::MMReadHeader( FILE* mm_file )
+{
+    int status = MMReadBanner( mm_file );
+    if( status != 0 )
+    {
+        printf( "Error Reading Banner in Matrix-Market File !\n" );
+        return 1;
+    }
+
+    if( !mm_is_coordinate( Typecode ) )
+    {
+        printf( "Handling only coordinate format\n" ); return( 1 );
+    }
+
+    if( mm_is_complex( Typecode ) )
+    {
+        printf( "Error: cannot handle complex format\n" );
+        return ( 1 );
+    }
+
+    if( mm_is_symmetric( Typecode ) )
+        isSymmetric = 1;
+
+    status = MMReadMtxCrdSize( mm_file );
+    if( status != 0 )
+    {
+        printf( "Error reading Matrix Market crd_size %d\n", status );
+        return( 1 );
+    }
+
+    return 0;
+}
 
 template<typename FloatType>
 int MatrixMarketReader<FloatType>::MMReadBanner( FILE *infile )
