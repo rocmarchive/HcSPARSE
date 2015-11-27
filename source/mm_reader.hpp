@@ -102,6 +102,7 @@ public:
     bool MMReadHeader( const std::string& filename );
     int MMReadBanner( FILE* infile );
     int MMReadMtxCrdSize( FILE* infile );
+    void MMGenerateCOOFromFile( FILE* infile, bool read_explicit_zeroes );
 
     int GetNumRows( )
     {
@@ -319,5 +320,90 @@ int MatrixMarketReader<FloatType>::MMReadMtxCrdSize( FILE *infile )
         } while( num_items_read != 3 );
 
     return 0;
+}
+
+template<typename FloatType>
+void FillCoordData( char Typecode[ ],
+                    int *x,
+                    int *y,
+                    FloatType *val,
+                    int &unsym_actual_nnz,
+                    int ir,
+                    int ic,
+                    FloatType value )
+{
+    if( mm_is_symmetric( Typecode ) )
+    {
+        x[ unsym_actual_nnz ] = ir - 1;
+        y[ unsym_actual_nnz ] = ic - 1;
+        val[ unsym_actual_nnz++ ] = value;
+
+        if( x[ unsym_actual_nnz - 1 ] != y[ unsym_actual_nnz - 1 ] )
+        {
+            x[ unsym_actual_nnz ] = y[ unsym_actual_nnz - 1 ];
+            y[ unsym_actual_nnz ] = x[ unsym_actual_nnz - 1 ];
+            val[ unsym_actual_nnz ] = val[ unsym_actual_nnz - 1 ];
+            unsym_actual_nnz++;
+        }
+    }
+    else
+    {
+        x[ unsym_actual_nnz ] = ir - 1;
+        y[ unsym_actual_nnz ] = ic - 1;
+        val[ unsym_actual_nnz++ ] = value;
+    }
+}
+
+template<typename FloatType>
+void MatrixMarketReader<FloatType>::MMGenerateCOOFromFile( FILE *infile, bool read_explicit_zeroes )
+{
+    int unsym_actual_nnz = 0;
+    FloatType value;
+    int ir, ic;
+
+    const int exp_zeroes = read_explicit_zeroes;
+
+    //silence warnings from fscanf (-Wunused-result)
+    int rv = 0;
+
+    for( int i = 0; i < nNZ; i++ )
+    {
+        if( mm_is_real( Typecode ) )
+        {
+            if( typeid( FloatType ) == typeid( float ) )
+              rv = fscanf( infile, "%d %d %f\n", &ir, &ic, (float*)( &value ) );
+            else if( typeid( FloatType ) == typeid( double ) )
+              rv = fscanf( infile, "%d %d %lf\n", &ir, &ic, (double*)( &value ) );
+
+            if( exp_zeroes == 0 && value == 0 )
+                continue;
+            else
+                FillCoordData( Typecode, x, y, val, unsym_actual_nnz, ir, ic, value );
+        }
+        else if( mm_is_integer( Typecode ) )
+        {
+            if(typeid(FloatType) == typeid(float))
+               rv = fscanf(infile, "%d %d %f\n", &ir, &ic, (float*)( &value ) );
+            else if(typeid(FloatType) == typeid(double))
+               rv = fscanf(infile, "%d %d %lf\n", &ir, &ic, (double*)( &value ) );
+
+            if( exp_zeroes == 0 && value == 0 )
+                continue;
+            else
+                FillCoordData( Typecode, x, y, val, unsym_actual_nnz, ir, ic, value );
+
+        }
+        else if( mm_is_pattern( Typecode ) )
+        {
+            rv = fscanf( infile, "%d %d", &ir, &ic );
+            value = static_cast<FloatType>( MAX_RAND_VAL * ( rand( ) / ( RAND_MAX + 1.0 ) ) );
+
+            if( exp_zeroes == 0 && value == 0 )
+                continue;
+            else
+                FillCoordData( Typecode, x, y, val, unsym_actual_nnz, ir, ic, value );
+        }
+    }
+    nNZ = unsym_actual_nnz;
 }
 #endif
