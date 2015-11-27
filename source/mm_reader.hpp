@@ -100,6 +100,7 @@ public:
 
     bool MMReadHeader( FILE* infile );
     bool MMReadHeader( const std::string& filename );
+    bool MMReadFormat( const std::string& _filename, bool read_explicit_zeroes );
     int MMReadBanner( FILE* infile );
     int MMReadMtxCrdSize( FILE* infile );
     void MMGenerateCOOFromFile( FILE* infile, bool read_explicit_zeroes );
@@ -405,5 +406,40 @@ void MatrixMarketReader<FloatType>::MMGenerateCOOFromFile( FILE *infile, bool re
         }
     }
     nNZ = unsym_actual_nnz;
+}
+
+template<typename FloatType>
+bool MatrixMarketReader<FloatType>::MMReadFormat( const std::string &filename, bool read_explicit_zeroes )
+{
+    FILE *mm_file = ::fopen( filename.c_str( ), "r" );
+    if( mm_file == NULL )
+    {
+        printf( "Cannot Open Matrix-Market File !\n" );
+        return 1;
+    }
+
+    if ( MMReadHeader( mm_file ) )
+    {
+        printf ("Matrix not supported !\n");
+        return 2;
+    }
+
+    if( mm_is_symmetric( Typecode ) )
+    {
+        x = new int[ 2 * nNZ ];
+        y = new int[ 2 * nNZ ];
+        val = new FloatType[ 2 * nNZ ];
+    }
+    else
+    {
+        x = new int[ nNZ ];
+        y = new int[ nNZ ];
+        val = new FloatType[ nNZ ];
+    }
+
+    MMGenerateCOOFromFile( mm_file, read_explicit_zeroes );
+    ::fclose( mm_file );
+
+    return 0;
 }
 #endif
