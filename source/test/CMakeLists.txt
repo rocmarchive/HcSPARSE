@@ -22,7 +22,7 @@ execute_process(COMMAND ${CLAMP_CONFIG} --build --cxxflags
 string(STRIP "${CLAMP_CXXFLAGS}" CLAMP_CXXFLAGS)
 set (CLAMP_CXXFLAGS "${CLAMP_CXXFLAGS}")
 
-execute_process(COMMAND ${CLAMP_CONFIG} --build --ldflags --shared
+execute_process(COMMAND ${CLAMP_CONFIG} --build --ldflags
                             OUTPUT_VARIABLE CLAMP_LDFLAGS)
 
 string(STRIP "${CLAMP_LDFLAGS}" CLAMP_LDFLAGS)
