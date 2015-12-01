@@ -511,3 +511,34 @@ hcsparseDCsrMatrixfromFile( hcsparseCsrMatrix* csrMatx, const char* filePath, hc
 
     return hcsparseSuccess;
 }
+
+hcsparseStatus
+hcsparseCsrMetaSize( hcsparseCsrMatrix* csrMatx, hcsparseControl *control )
+{
+    Concurrency::array_view<int> *rCsrRowOffsets = static_cast<Concurrency::array_view<int> *>(csrMatx->rowOffsets);
+    int * dataRO = rCsrRowOffsets->data();
+
+    csrMatx->rowBlockSize = ComputeRowBlocksSize( dataRO, csrMatx->num_rows, BLOCKSIZE, BLOCK_MULTIPLIER, ROWS_FOR_VECTOR );
+
+    return hcsparseSuccess;
+}
+
+hcsparseStatus
+hcsparseCsrMetaCompute( hcsparseCsrMatrix* csrMatx, hcsparseControl *control )
+{
+    // Check to ensure nRows can fit in 32 bits
+    if( static_cast<ulong>( csrMatx->num_rows ) > static_cast<ulong>( std::pow( 2, ( 64 - ROWBITS ) ) ) )
+    {
+        printf( "Number of Rows in the Sparse Matrix is greater than what is supported at present ((64-WG_BITS) bits) !" );
+        return hcsparseInvalid;
+    }
+
+    Concurrency::array_view<int> *rCsrRowOffsets = static_cast<Concurrency::array_view<int> *>(csrMatx->rowOffsets);
+    int *dataRO = rCsrRowOffsets->data();
+    Concurrency::array_view<ulong> *rRowBlocks = static_cast<Concurrency::array_view<ulong> *>(csrMatx->rowBlocks);
+    ulong *dataRB = rRowBlocks->data();
+
+    ComputeRowBlocks( dataRB, csrMatx->rowBlockSize, dataRO, csrMatx->num_rows, BLOCKSIZE, BLOCK_MULTIPLIER, ROWS_FOR_VECTOR, true );
+
+    return hcsparseSuccess;
+}
