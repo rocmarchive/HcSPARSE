@@ -2,6 +2,7 @@
 #include "csrmv.hpp"
 #include "scale.hpp"
 #include "mm_reader.hpp"
+#include "csr_meta.hpp"
 
 int hcsparseInitialized = 0;
 
