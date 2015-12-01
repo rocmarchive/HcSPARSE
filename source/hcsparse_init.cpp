@@ -1,6 +1,6 @@
 #include "hcsparse.h"
 #include "csrmv.hpp"
-#include "scale.hpp"
+#include "blas1/hcdense-scale.h"
 #include "mm_reader.hpp"
 #include "csr_meta.hpp"
 

@@ -11,6 +11,7 @@ MESSAGE(STATUS "PROJECT NAME    : ${PROJECT_NAME}")
 SET (SRCS
      hcsparse.cpp
      hcsparse_init.cpp
+     blas1/hcdense-scale.cpp
      )
 
 SET (PREFIX "$ENV{MCWCPPAMPBUILD}")
