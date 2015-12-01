@@ -215,4 +215,11 @@ void ComputeRowBlocks( ulong* rowBlocks, size_t& rowBlockSize, const int* rowDel
         rowBlockSize = 2 * total_row_blocks;
 }
 
+inline size_t ComputeRowBlocksSize( const int* rowDelimiters, const int nRows, const unsigned int blkSize,
+                                    const unsigned int blkMultiplier, const unsigned int rows_for_vector )
+{
+    size_t rowBlockSize;
+    ComputeRowBlocks( (ulong*)NULL, rowBlockSize, rowDelimiters, nRows, blkSize, blkMultiplier, rows_for_vector, false );
+    return rowBlockSize;
+}
 #endif
