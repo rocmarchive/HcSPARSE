@@ -9,7 +9,8 @@ MESSAGE(STATUS "PROJECT NAME    : ${PROJECT_NAME}")
 
 #Setting a variable for source files
 SET (TESTSRCS 
-     scale_test.cpp
+     scale_float_test.cpp
+     scale_double_test.cpp
     )
 
 SET (PREFIX "$ENV{MCWCPPAMPBUILD}")
