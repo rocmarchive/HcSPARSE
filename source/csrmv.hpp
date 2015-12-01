@@ -8,11 +8,6 @@
 #define VALUE_TYPE float
 #define GLOBAL_SIZE WG_SIZE
 #define EXTENDED_PRECISION 1
-#define ROWS_FOR_VECTOR 1
-#define BLOCK_MULTIPLIER 3
-#define BLOCKSIZE 1024
-#define WGBITS 24
-#define ROWBITS 32
 
 #ifndef INDEX_TYPE
 #error "INDEX_TYPE undefined!"

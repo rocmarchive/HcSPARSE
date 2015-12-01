@@ -3,6 +3,12 @@
 
 #include "hcsparse_struct.h"
 
+#define ROWS_FOR_VECTOR 1
+#define BLOCK_MULTIPLIER 3
+#define BLOCKSIZE 1024
+#define WGBITS 24
+#define ROWBITS 32
+
     typedef enum hcsparseStatus_
     {
         /** @name Inherited OpenCL codes */
