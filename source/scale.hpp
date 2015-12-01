@@ -9,11 +9,12 @@ void scale_kernel (const long size,
               const long pYOffset,
               const Concurrency::array_view<T> &pAlpha,
               const long pAlphaOffset,
-              const int globalSize)
+              const int globalSize,
+              const hcsparseControl* control)
 {
     Concurrency::extent<1> grdExt( globalSize );
     Concurrency::tiled_extent<BLOCK_SIZE> t_ext(grdExt);
-    Concurrency::parallel_for_each(t_ext, [=] (Concurrency::tiled_index<BLOCK_SIZE> tidx) restrict(amp)
+    Concurrency::parallel_for_each(control->accl_view, t_ext, [=] (Concurrency::tiled_index<BLOCK_SIZE> tidx) restrict(amp)
     {
         int i = tidx.global[0];
         if (i < size)
@@ -39,7 +40,7 @@ scale ( hcdenseVector* r,
     Concurrency::array_view<T> *avY = static_cast<Concurrency::array_view<T>*>(y->values);
     Concurrency::array_view<T> *avAlpha = static_cast<Concurrency::array_view<T>*>(alpha->value);
 
-    scale_kernel<T> (size, *avR, r->offValues, *avY, y->offValues, *avAlpha, alpha->offValue, globalSize);
+    scale_kernel<T> (size, *avR, r->offValues, *avY, y->offValues, *avAlpha, alpha->offValue, globalSize, control);
 
     return hcsparseSuccess;
 }
