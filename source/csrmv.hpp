@@ -181,11 +181,12 @@ void csrmv_vector_kernel (const INDEX_TYPE num_rows,
                           const Concurrency::array_view<VALUE_TYPE, 1> &beta,
                           const SIZE_TYPE off_beta,
                           Concurrency::array_view<VALUE_TYPE, 1> &y,
-                          const SIZE_TYPE off_y)
+                          const SIZE_TYPE off_y,
+                          const hcsparseControl *control)
 {
     Concurrency::extent<1> grdExt( WG_SIZE );
     Concurrency::tiled_extent< WG_SIZE> t_ext(grdExt);
-    Concurrency::parallel_for_each(t_ext, [=] (Concurrency::tiled_index<WG_SIZE> tidx) restrict(amp)
+    Concurrency::parallel_for_each(control->accl_view, t_ext, [=] (Concurrency::tiled_index<WG_SIZE> tidx) restrict(amp)
     {
         tile_static VALUE_TYPE sdata [WG_SIZE + SUBWAVE_SIZE / 2];
 
@@ -320,7 +321,7 @@ csrmv_vector(const hcsparseScalar* pAlpha,
     csrmv_vector_kernel (pMatx->num_rows, *avAlpha, pAlpha->offset(),
                          *avMatx_rowOffsets, *avMatx_colIndices, *avMatx_values,
                          *avX_values, pX->offset(), *avBeta,
-                         pBeta->offset(), *avY_values, pY->offset());
+                         pBeta->offset(), *avY_values, pY->offset(), control);
 
     return hcsparseSuccess;
 }
@@ -333,7 +334,8 @@ csrmv_adaptive_kernel(const Concurrency::array_view<VALUE_TYPE, 1> &vals,
                       Concurrency::array_view<VALUE_TYPE, 1> &out,
                       const Concurrency::array_view<INDEX_TYPE, 1> &rowBlocks,
                       const Concurrency::array_view<VALUE_TYPE, 1> &pAlpha,
-                      const Concurrency::array_view<VALUE_TYPE, 1> &pBeta)
+                      const Concurrency::array_view<VALUE_TYPE, 1> &pBeta,
+                      const hcsparseControl *control)
 {
 }
 
@@ -387,7 +389,7 @@ csrmv_adaptive( const hcsparseScalar* pAlpha,
     csrmv_adaptive_kernel (*avCsrMatx_values, *avColIndices,
                            *avRowOffsets, *avX_values,
                            *avY_values, *avRowBlocks,
-                           *avAlpha ,*avBeta);
+                           *avAlpha ,*avBeta, control);
 
     return hcsparseSuccess;
 }
