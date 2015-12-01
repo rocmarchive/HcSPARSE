@@ -191,7 +191,7 @@ hcsparseHeaderfromFile( int* nnz, int* row, int* col, const char* filePath )
 // Pre-condition: This function assumes that the device memory buffers have been
 // pre-allocated by the caller
 hcsparseStatus
-hcsparseSCooMatrixfromFile( hcsparseCooMatrix* cooMatx, const char* filePath, hcsparseControl control, bool read_explicit_zeroes )
+hcsparseSCooMatrixfromFile( hcsparseCooMatrix* cooMatx, const char* filePath, hcsparseControl *control, bool read_explicit_zeroes )
 {
     // Check that the file format is matrix market; the only format we can read right now
     // This is not a complete solution, and fails for directories with file names etc...
@@ -266,7 +266,7 @@ hcsparseSCooMatrixfromFile( hcsparseCooMatrix* cooMatx, const char* filePath, hc
 }
 
 hcsparseStatus
-hcsparseDCooMatrixfromFile( hcsparseCooMatrix* cooMatx, const char* filePath, hcsparseControl control, bool read_explicit_zeroes )
+hcsparseDCooMatrixfromFile( hcsparseCooMatrix* cooMatx, const char* filePath, hcsparseControl *control, bool read_explicit_zeroes )
 {
     // Check that the file format is matrix market; the only format we can read right now
     // This is not a complete solution, and fails for directories with file names etc...
@@ -341,7 +341,7 @@ hcsparseDCooMatrixfromFile( hcsparseCooMatrix* cooMatx, const char* filePath, hc
 }
 
 hcsparseStatus
-hcsparseSCsrMatrixfromFile(hcsparseCsrMatrix* csrMatx, const char* filePath, hcsparseControl control, bool read_explicit_zeroes )
+hcsparseSCsrMatrixfromFile(hcsparseCsrMatrix* csrMatx, const char* filePath, hcsparseControl *control, bool read_explicit_zeroes )
 {
 
     // Check that the file format is matrix market; the only format we can read right now
@@ -429,7 +429,7 @@ hcsparseSCsrMatrixfromFile(hcsparseCsrMatrix* csrMatx, const char* filePath, hcs
 }
 
 hcsparseStatus
-hcsparseDCsrMatrixfromFile( hcsparseCsrMatrix* csrMatx, const char* filePath, hcsparseControl control, bool read_explicit_zeroes )
+hcsparseDCsrMatrixfromFile( hcsparseCsrMatrix* csrMatx, const char* filePath, hcsparseControl *control, bool read_explicit_zeroes )
 {
     // Check that the file format is matrix market; the only format we can read right now
     // This is not a complete solution, and fails for directories with file names etc...
