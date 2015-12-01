@@ -12,9 +12,9 @@ int main()
     hcsparseControl control(accl_view);
 
     int num_elements = 100;
-    float *host_X = (float*) calloc(num_elements, sizeof(float));
-    float *host_Y = (float*) calloc(num_elements, sizeof(float));
-    float *host_alpha = (float*) calloc(1, sizeof(float));
+    double *host_X = (double*) calloc(num_elements, sizeof(double));
+    double *host_Y = (double*) calloc(num_elements, sizeof(double));
+    double *host_alpha = (double*) calloc(1, sizeof(double));
 
     srand (time(NULL));
     for (int i = 0; i < num_elements; i++)
@@ -25,9 +25,9 @@ int main()
     
     host_alpha[0] = rand()%100;
 
-    Concurrency::array_view<float> dev_X(num_elements, host_X);
-    Concurrency::array_view<float> dev_Y(num_elements, host_Y);
-    Concurrency::array_view<float> dev_alpha(1, host_alpha);
+    Concurrency::array_view<double> dev_X(num_elements, host_X);
+    Concurrency::array_view<double> dev_Y(num_elements, host_Y);
+    Concurrency::array_view<double> dev_alpha(1, host_alpha);
 
     hcsparseSetup();
     hcsparseInitScalar(&gAlpha);
@@ -51,7 +51,7 @@ int main()
     }
 
     bool ispassed = 1;
-    Concurrency::array_view<float> *av_res = static_cast<Concurrency::array_view<float> *>(gX.values);
+    Concurrency::array_view<double> *av_res = static_cast<Concurrency::array_view<double> *>(gX.values);
     for (int i = 0; i < num_elements; i++)
     {
         if (host_X[i] != (*av_res)[i])
@@ -62,6 +62,8 @@ int main()
     }
 
     std::cout << (ispassed?"TEST PASSED":"TEST FAILED") << std::endl;
-    
+
+    hcsparseTeardown();   
+ 
     return 0; 
 }
