@@ -1,4 +1,4 @@
-#include "hcsparse.h"
+#include "hcdense-scale.h"
 #define BLOCK_SIZE 256
 
 template <typename  T>
