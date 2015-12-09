@@ -1,9 +1,62 @@
 #include "elementwise-operators.h"
 
-const char* ElementWiseOperatorTrait<EW_PLUS>::operation = "OP_EW_PLUS";
-const char* ElementWiseOperatorTrait<EW_MINUS>::operation = "OP_EW_MINUS";
-const char* ElementWiseOperatorTrait<EW_MULTIPLY>::operation = "OP_EW_MULTIPLY";
-const char* ElementWiseOperatorTrait<EW_DIV>::operation = "OP_EW_DIV";
-const char* ElementWiseOperatorTrait<EW_MIN>::operation = "OP_EW_MIN";
-const char* ElementWiseOperatorTrait<EW_MAX>::operation = "OP_EW_MAX";
-const char* ElementWiseOperatorTrait<EW_DUMMY>::operation = "OP_EW_DUMMY";
+template<typename T>
+T add (T a, T b)
+{
+    return a + b;
+}
+
+template<typename T>
+T sub (T a, T b)
+{
+    return a - b;
+}
+
+template<typename T>
+T multi (T a, T b)
+{
+    return a * b;
+}
+
+template<typename T>
+T div (T a, T b)
+{
+    return a / b;
+}
+
+template<typename T>
+T min (T a, T b)
+{
+    return (a >= b) ? b : a;
+}
+
+template<typename T>
+T max (T a, T b)
+{
+    return (a >= b) ? a : b;
+}
+
+template<typename T>
+T dummy (T a, T b)
+{
+    return a;
+}
+
+template<typename T, ElementWiseOperator OP>
+T operation(T a, T b)
+{
+    if (OP == EW_PLUS)
+        add<T>(a, b);    
+    else if (OP == EW_MINUS)
+        sub<T>(a, b);    
+    else if (OP == EW_MULTIPLY)
+        multi<T>(a, b);    
+    else if (OP == EW_DIV)
+        div<T>(a, b);    
+    else if (OP == EW_MIN)
+        min<T>(a, b);    
+    else if (OP == EW_MAX)
+        max<T>(a, b);    
+    else
+        dummy<T>(a, b);    
+}
