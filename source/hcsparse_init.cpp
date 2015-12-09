@@ -1,6 +1,7 @@
 #include "hcsparse.h"
 #include "csrmv.hpp"
 #include "blas1/hcdense-scale.h"
+#include "blas1/hcdense-axpby.h"
 #include "mm_reader.hpp"
 #include "csr_meta.hpp"
 
@@ -152,6 +153,27 @@ hcdenseDscale( hcdenseVector* r,
     }
 
     return scale<double> (r, alpha, y, control);
+}
+
+hcsparseStatus
+hcdenseSaxpby ( hcdenseVector* r,
+                const hcsparseScalar* alpha,
+                const hcdenseVector* x,
+                const hcsparseScalar* beta,
+                const hcdenseVector* y,
+                const hcsparseControl* control)
+{
+    if (!hcsparseInitialized)
+    {
+        return hcsparseInvalid;
+    }
+
+    if (r->values == nullptr || y->values == nullptr || x->values == nullptr)
+    {
+        return hcsparseInvalid;
+    }
+
+    return axpby<float> (r, alpha, x, beta, y,  control);
 }
 
 // This function reads the file header at the given filepath, and returns the size

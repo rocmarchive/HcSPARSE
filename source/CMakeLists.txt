@@ -12,6 +12,7 @@ SET (SRCS
      hcsparse.cpp
      hcsparse_init.cpp
      blas1/hcdense-scale.cpp
+     blas1/hcdense-axpby.cpp
      blas1/elementwise-operators.cpp
      )
 
