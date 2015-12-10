@@ -11,6 +11,7 @@ MESSAGE(STATUS "PROJECT NAME    : ${PROJECT_NAME}")
 SET (TESTSRCS 
      scale_float_test.cpp
      scale_double_test.cpp
+     axpby_float_test.cpp
     )
 
 SET (PREFIX "$ENV{MCWCPPAMPBUILD}")
