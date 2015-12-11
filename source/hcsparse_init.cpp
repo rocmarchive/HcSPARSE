@@ -176,6 +176,27 @@ hcdenseSaxpby ( hcdenseVector* r,
     return axpby<float> (r, alpha, x, beta, y,  control);
 }
 
+hcsparseStatus
+hcdenseDaxpby ( hcdenseVector* r,
+                const hcsparseScalar* alpha,
+                const hcdenseVector* x,
+                const hcsparseScalar* beta,
+                const hcdenseVector* y,
+                const hcsparseControl* control)
+{
+    if (!hcsparseInitialized)
+    {
+        return hcsparseInvalid;
+    }
+
+    if (r->values == nullptr || y->values == nullptr || x->values == nullptr)
+    {
+        return hcsparseInvalid;
+    }
+
+    return axpby<double> (r, alpha, x, beta, y,  control);
+}
+
 // This function reads the file header at the given filepath, and returns the size
 // of the sparse matrix in the hcsparseCooMatrix parameter.
 // Post-condition: clears hcsparseCooMatrix, then sets pCooMatx->m, pCooMatx->n
