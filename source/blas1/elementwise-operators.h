@@ -1,4 +1,3 @@
-
 enum ElementWiseOperator
 {
     EW_PLUS = 0,
@@ -56,17 +55,19 @@ template<typename T, ElementWiseOperator OP>
 T operation(T a, T b) restrict(amp)
 {
     if (OP == EW_PLUS)
-        add<T>(a, b);    
+        return add<T>(a, b);    
     else if (OP == EW_MINUS)
-        sub<T>(a, b);    
+        return sub<T>(a, b);    
     else if (OP == EW_MULTIPLY)
-        multi<T>(a, b);    
+        return multi<T>(a, b);    
     else if (OP == EW_DIV)
-        div<T>(a, b);    
+        return div<T>(a, b);    
     else if (OP == EW_MIN)
-        min<T>(a, b);    
+        return min<T>(a, b);    
     else if (OP == EW_MAX)
-        max<T>(a, b);    
+        return max<T>(a, b);    
     else
-        dummy<T>(a, b);    
+        return dummy<T>(a, b);  
 }
+
+ 
