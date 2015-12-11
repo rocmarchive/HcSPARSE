@@ -15,6 +15,7 @@ int main()
 
     int num_elements = 100;
     float *host_R = (float*) calloc(num_elements, sizeof(float));
+    float *host_res = (float*) calloc(num_elements, sizeof(float));
     float *host_X = (float*) calloc(num_elements, sizeof(float));
     float *host_Y = (float*) calloc(num_elements, sizeof(float));
     float *host_alpha = (float*) calloc(1, sizeof(float));
@@ -50,6 +51,12 @@ int main()
     gX.values = &dev_X;
     gY.values = &dev_Y;
 
+    gAlpha.offValue = 0;
+    gBeta.offValue = 0;
+    gR.offValues = 0;
+    gX.offValues = 0;
+    gY.offValues = 0;
+
     gR.num_values = num_elements;
     gX.num_values = num_elements;
     gY.num_values = num_elements;
@@ -60,14 +67,14 @@ int main()
 
     for (int i = 0; i < num_elements; i++)
     {
-        host_R[i] = host_alpha[0] * host_X[i] + host_beta[0] * host_Y[i];
+        host_res[i] = host_alpha[0] * host_X[i] + host_beta[0] * host_Y[i];
     }
 
     bool ispassed = 1;
     Concurrency::array_view<float> *av_res = static_cast<Concurrency::array_view<float> *>(gR.values);
     for (int i = 0; i < num_elements; i++)
     {
-        if (host_R[i] != (*av_res)[i])
+        if (host_res[i] != (*av_res)[i])
         {
             ispassed = 0;
             break;
