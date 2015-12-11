@@ -12,6 +12,7 @@ int main()
     hcsparseControl control(accl_view);
 
     int num_elements = 100;
+    float *host_res = (float*) calloc(num_elements, sizeof(float));
     float *host_X = (float*) calloc(num_elements, sizeof(float));
     float *host_Y = (float*) calloc(num_elements, sizeof(float));
     float *host_alpha = (float*) calloc(1, sizeof(float));
@@ -38,6 +39,10 @@ int main()
     gX.values = &dev_X;
     gY.values = &dev_Y;
 
+    gAlpha.offValue = 0;
+    gX.offValues = 0;
+    gY.offValues = 0;
+
     gX.num_values = num_elements;
     gY.num_values = num_elements;
 
@@ -47,14 +52,14 @@ int main()
 
     for (int i = 0; i < num_elements; i++)
     {
-        host_X[i] = host_alpha[0] * host_Y[i];
+        host_res[i] = host_alpha[0] * host_Y[i];
     }
 
     bool ispassed = 1;
     Concurrency::array_view<float> *av_res = static_cast<Concurrency::array_view<float> *>(gX.values);
     for (int i = 0; i < num_elements; i++)
     {
-        if (host_X[i] != (*av_res)[i])
+        if (host_res[i] != (*av_res)[i])
         {
             ispassed = 0;
             break;
