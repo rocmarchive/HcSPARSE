@@ -12,6 +12,7 @@ SET (TESTSRCS
      scale_float_test.cpp
      scale_double_test.cpp
      axpby_float_test.cpp
+     axpby_double_test.cpp
     )
 
 SET (PREFIX "$ENV{MCWCPPAMPBUILD}")
