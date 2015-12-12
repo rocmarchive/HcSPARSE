@@ -1,3 +1,6 @@
+#ifndef _REDUCE_OPERATORS_H_
+#define _REDUCE_OPERATORS_H_
+
 enum ReduceOperator
 {
     RO_PLUS = 0,
@@ -22,13 +25,13 @@ T sqr (T a, T b) restrict(amp)
 template<typename T>
 T sqrt (T a, T b) restrict(amp)
 {
-    return a + sqrt(b);
+    return a + Concurrency::fast_math::sqrt(b);
 }
 
 template<typename T>
 T fabs (T a, T b) restrict(amp)
 {
-    return a + fabs(b);
+    return a + Concurrency::fast_math::fabs(b);
 }
 
 template<typename T>
@@ -51,3 +54,4 @@ T reduceOperation (T a, T b) restrict(amp)
     else
         return reduce_dummy<T>(a, b);
 }
+#endif
