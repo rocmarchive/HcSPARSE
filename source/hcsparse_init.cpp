@@ -217,6 +217,42 @@ hcdenseIreduce(hcsparseScalar* s,
     return reduce<int, RO_PLUS>(s, x, control);
 }
 
+hcsparseStatus
+hcdenseSreduce(hcsparseScalar* s,
+               const hcdenseVector* x,
+               const hcsparseControl* control)
+{
+    if (!hcsparseInitialized)
+    {
+        return hcsparseInvalid;
+    }
+
+    if (x->values == nullptr)
+    {
+        return hcsparseInvalid;
+    }
+
+    return reduce<float, RO_PLUS>(s, x, control);
+}
+
+hcsparseStatus
+hcdenseDreduce(hcsparseScalar* s,
+               const hcdenseVector* x,
+               const hcsparseControl* control)
+{
+    if (!hcsparseInitialized)
+    {
+        return hcsparseInvalid;
+    }
+
+    if (x->values == nullptr)
+    {
+        return hcsparseInvalid;
+    }
+
+    return reduce<double, RO_PLUS>(s, x, control);
+}
+
 // This function reads the file header at the given filepath, and returns the size
 // of the sparse matrix in the hcsparseCooMatrix parameter.
 // Post-condition: clears hcsparseCooMatrix, then sets pCooMatx->m, pCooMatx->n
