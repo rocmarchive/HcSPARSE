@@ -2,7 +2,7 @@
 #include "reduce-operators.h"
 #define BLOCK_SIZE 256
 
-template <typename T, ReduceOperator G_OP>
+template <typename T, ReduceOperator G_OP, ReduceOperator F_OP>
 void global_reduce (const long size,
                     Concurrency::array_view<T> &pR,
                     const long pROffset,
@@ -53,11 +53,11 @@ void global_reduce (const long size,
         {
             sum += partial[i];
         }
-        pR[pROffset] = sum;
+        pR[pROffset] = reduceOperation<T, F_OP>(sum);
     });
 }
 
-template<typename T, ReduceOperator G_OP>
+template<typename T, ReduceOperator G_OP, ReduceOperator F_OP = RO_DUMMY>
 hcsparseStatus
 reduce(hcsparseScalar* pR,
        const hcdenseVector* pX,
@@ -72,7 +72,7 @@ reduce(hcsparseScalar* pR,
     Concurrency::array_view<T> *avX = static_cast<Concurrency::array_view<T>*>(pX->values);
     Concurrency::array_view<T> avPartial(REDUCE_BLOCKS_NUMBER, partial);
 
-    global_reduce<T, G_OP> (size, *avR, pR->offValue, *avX, pX->offValues, avPartial, REDUCE_BLOCKS_NUMBER, control);
+    global_reduce<T, G_OP, F_OP> (size, *avR, pR->offValue, *avX, pX->offValues, avPartial, REDUCE_BLOCKS_NUMBER, control);
 
     return hcsparseSuccess;
 }

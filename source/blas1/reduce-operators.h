@@ -23,19 +23,19 @@ T sqr (T a, T b) restrict(amp)
 }
 
 template<typename T>
-T sqrt (T a, T b) restrict(amp)
-{
-    return a + Concurrency::fast_math::sqrt(b);
-}
-
-template<typename T>
 T fabs (T a, T b) restrict(amp)
 {
     return a + Concurrency::fast_math::fabs(b);
 }
 
 template<typename T>
-T reduce_dummy (T a, T b) restrict(amp)
+T sqrt (T a) restrict(amp)
+{
+    return Concurrency::fast_math::sqrt(a);
+}
+
+template<typename T>
+T reduce_dummy (T a) restrict(amp)
 {
     return a;
 }
@@ -47,11 +47,16 @@ T reduceOperation (T a, T b) restrict(amp)
         return plus<T>(a, b);
     else if (OP == RO_SQR)
         return sqr<T>(a, b);
-    else if (OP == RO_SQRT)
-        return sqrt<T>(a, b);
     else if (OP == RO_FABS)
         return fabs<T>(a, b);
+}
+
+template<typename T, ReduceOperator OP>
+T reduceOperation (T a) restrict(amp)
+{
+    if (OP == RO_SQRT)
+        return sqrt<T>(a);
     else
-        return reduce_dummy<T>(a, b);
+        return reduce_dummy<T>(a);
 }
 #endif
