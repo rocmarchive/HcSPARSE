@@ -2,6 +2,7 @@
 #include "csrmv.hpp"
 #include "blas1/hcdense-scale.h"
 #include "blas1/hcdense-axpby.h"
+#include "blas1/hcdense-axpy.h"
 #include "blas1/hcdense-reduce.h"
 #include "blas1/reduce-operators.h"
 #include "mm_reader.hpp"
@@ -155,6 +156,46 @@ hcdenseDscale( hcdenseVector* r,
     }
 
     return scale<double> (r, alpha, y, control);
+}
+
+hcsparseStatus
+hcdenseSaxpy ( hcdenseVector* r,
+                const hcsparseScalar* alpha,
+                const hcdenseVector* x,
+                const hcdenseVector* y,
+                const hcsparseControl* control)
+{
+    if (!hcsparseInitialized)
+    {
+        return hcsparseInvalid;
+    }
+
+    if (r->values == nullptr || y->values == nullptr || x->values == nullptr)
+    {
+        return hcsparseInvalid;
+    }
+
+    return axpy<float> (r, alpha, x, y,  control);
+}
+
+hcsparseStatus
+hcdenseDaxpy ( hcdenseVector* r,
+                const hcsparseScalar* alpha,
+                const hcdenseVector* x,
+                const hcdenseVector* y,
+                const hcsparseControl* control)
+{
+    if (!hcsparseInitialized)
+    {
+        return hcsparseInvalid;
+    }
+
+    if (r->values == nullptr || y->values == nullptr || x->values == nullptr)
+    {
+        return hcsparseInvalid;
+    }
+
+    return axpy<double> (r, alpha, x, y,  control);
 }
 
 hcsparseStatus

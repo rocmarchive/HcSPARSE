@@ -11,6 +11,8 @@ MESSAGE(STATUS "PROJECT NAME    : ${PROJECT_NAME}")
 SET (TESTSRCS 
      scale_float_test.cpp
      scale_double_test.cpp
+     axpy_float_test.cpp
+     axpy_double_test.cpp
      axpby_float_test.cpp
      axpby_double_test.cpp
      reduce_int_test.cpp

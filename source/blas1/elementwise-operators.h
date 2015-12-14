@@ -1,3 +1,6 @@
+#ifndef _ELEMENTWISE_OPERATORS_H_
+#define _ELEMENTWISE_OPERATORS_H_
+
 enum ElementWiseOperator
 {
     EW_PLUS = 0,
@@ -69,5 +72,5 @@ T operation(T a, T b) restrict(amp)
     else
         return dummy<T>(a, b);  
 }
-
+#endif
  
