@@ -301,6 +301,16 @@ hcdenseSadd( hcdenseVector* r,
              const hcdenseVector* y,
              const hcsparseControl* control )
 {
+    if (!hcsparseInitialized)
+    {
+        return hcsparseInvalid;
+    }
+
+    if (r->values == nullptr || x->values == nullptr || y->values == nullptr)
+    {
+        return hcsparseInvalid;
+    }
+
     return elementwise_transform<float, EW_PLUS> (r, x, y, control);
 }
 
@@ -310,6 +320,16 @@ hcdenseDadd( hcdenseVector* r,
              const hcdenseVector* y,
              const hcsparseControl* control )
 {
+    if (!hcsparseInitialized)
+    {
+        return hcsparseInvalid;
+    }
+
+    if (r->values == nullptr || x->values == nullptr || y->values == nullptr)
+    {
+        return hcsparseInvalid;
+    }
+
     return elementwise_transform<double, EW_PLUS> (r, x, y, control);
 }
 
@@ -319,6 +339,16 @@ hcdenseSsub( hcdenseVector* r,
              const hcdenseVector* y,
              const hcsparseControl* control )
 {
+    if (!hcsparseInitialized)
+    {
+        return hcsparseInvalid;
+    }
+
+    if (r->values == nullptr || x->values == nullptr || y->values == nullptr)
+    {
+        return hcsparseInvalid;
+    }
+
     return elementwise_transform<float, EW_MINUS> (r, x, y, control);
 }
 
@@ -328,6 +358,16 @@ hcdenseDsub( hcdenseVector* r,
              const hcdenseVector* y,
              const hcsparseControl* control )
 {
+    if (!hcsparseInitialized)
+    {
+        return hcsparseInvalid;
+    }
+
+    if (r->values == nullptr || x->values == nullptr || y->values == nullptr)
+    {
+        return hcsparseInvalid;
+    }
+
     return elementwise_transform<double, EW_MINUS> (r, x, y, control);
 }
 
@@ -337,6 +377,16 @@ hcdenseSmul( hcdenseVector* r,
              const hcdenseVector* y,
              const hcsparseControl* control )
 {
+    if (!hcsparseInitialized)
+    {
+        return hcsparseInvalid;
+    }
+
+    if (r->values == nullptr || x->values == nullptr || y->values == nullptr)
+    {
+        return hcsparseInvalid;
+    }
+
     return elementwise_transform<float, EW_MULTIPLY> (r, x, y, control);
 }
 
@@ -346,6 +396,16 @@ hcdenseDmul( hcdenseVector* r,
              const hcdenseVector* y,
              const hcsparseControl* control )
 {
+    if (!hcsparseInitialized)
+    {
+        return hcsparseInvalid;
+    }
+
+    if (r->values == nullptr || x->values == nullptr || y->values == nullptr)
+    {
+        return hcsparseInvalid;
+    }
+
     return elementwise_transform<double, EW_MULTIPLY> (r, x, y, control);
 }
 
@@ -355,6 +415,16 @@ hcdenseSdiv( hcdenseVector* r,
              const hcdenseVector* y,
              const hcsparseControl* control )
 {
+    if (!hcsparseInitialized)
+    {
+        return hcsparseInvalid;
+    }
+
+    if (r->values == nullptr || x->values == nullptr || y->values == nullptr)
+    {
+        return hcsparseInvalid;
+    }
+
     return elementwise_transform<float, EW_DIV> (r, x, y, control);
 }
 
@@ -364,6 +434,16 @@ hcdenseDdiv( hcdenseVector* r,
              const hcdenseVector* y,
              const hcsparseControl* control )
 {
+    if (!hcsparseInitialized)
+    {
+        return hcsparseInvalid;
+    }
+
+    if (r->values == nullptr || x->values == nullptr || y->values == nullptr)
+    {
+        return hcsparseInvalid;
+    }
+
     return elementwise_transform<double, EW_DIV> (r, x, y, control);
 }
 
