@@ -18,6 +18,8 @@ SET (TESTSRCS
      reduce_int_test.cpp
      reduce_float_test.cpp
      reduce_double_test.cpp
+     transform_float_test.cpp
+     transform_double_test.cpp
     )
 
 SET (PREFIX "$ENV{MCWCPPAMPBUILD}")

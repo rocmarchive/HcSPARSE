@@ -5,6 +5,7 @@
 #include "blas1/hcdense-axpy.h"
 #include "blas1/hcdense-reduce.h"
 #include "blas1/reduce-operators.h"
+#include "blas1/elementwise-transform.h"
 #include "mm_reader.hpp"
 #include "csr_meta.hpp"
 
@@ -292,6 +293,78 @@ hcdenseDreduce(hcsparseScalar* s,
     }
 
     return reduce<double, RO_PLUS>(s, x, control);
+}
+
+hcsparseStatus
+hcdenseSadd( hcdenseVector* r,
+             const hcdenseVector* x,
+             const hcdenseVector* y,
+             const hcsparseControl* control )
+{
+    return elementwise_transform<float, EW_PLUS> (r, x, y, control);
+}
+
+hcsparseStatus
+hcdenseDadd( hcdenseVector* r,
+             const hcdenseVector* x,
+             const hcdenseVector* y,
+             const hcsparseControl* control )
+{
+    return elementwise_transform<double, EW_PLUS> (r, x, y, control);
+}
+
+hcsparseStatus
+hcdenseSsub( hcdenseVector* r,
+             const hcdenseVector* x,
+             const hcdenseVector* y,
+             const hcsparseControl* control )
+{
+    return elementwise_transform<float, EW_MINUS> (r, x, y, control);
+}
+
+hcsparseStatus
+hcdenseDsub( hcdenseVector* r,
+             const hcdenseVector* x,
+             const hcdenseVector* y,
+             const hcsparseControl* control )
+{
+    return elementwise_transform<double, EW_MINUS> (r, x, y, control);
+}
+
+hcsparseStatus
+hcdenseSmul( hcdenseVector* r,
+             const hcdenseVector* x,
+             const hcdenseVector* y,
+             const hcsparseControl* control )
+{
+    return elementwise_transform<float, EW_MULTIPLY> (r, x, y, control);
+}
+
+hcsparseStatus
+hcdenseDmul( hcdenseVector* r,
+             const hcdenseVector* x,
+             const hcdenseVector* y,
+             const hcsparseControl* control )
+{
+    return elementwise_transform<double, EW_MULTIPLY> (r, x, y, control);
+}
+
+hcsparseStatus
+hcdenseSdiv( hcdenseVector* r,
+             const hcdenseVector* x,
+             const hcdenseVector* y,
+             const hcsparseControl* control )
+{
+    return elementwise_transform<float, EW_DIV> (r, x, y, control);
+}
+
+hcsparseStatus
+hcdenseDdiv( hcdenseVector* r,
+             const hcdenseVector* x,
+             const hcdenseVector* y,
+             const hcsparseControl* control )
+{
+    return elementwise_transform<double, EW_DIV> (r, x, y, control);
 }
 
 // This function reads the file header at the given filepath, and returns the size
