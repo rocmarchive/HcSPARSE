@@ -6,6 +6,8 @@ SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/../../cma
 
 FIND_PACKAGE(HC++ 1.0 REQUIRED)
 
+INCLUDE_DIRECTORIES(include)
+
 #Setting a Project name
 SET(PROJECT_NAME "libhcsparse")
 PROJECT (${PROJECT_NAME})
@@ -13,7 +15,6 @@ MESSAGE(STATUS "PROJECT NAME    : ${PROJECT_NAME}")
 
 #Setting a variable for source files
 SET (INIT_SRC
-     hcsparse.cpp
      hcsparse_init.cpp
      )
 
@@ -53,6 +54,6 @@ ELSE(WIN32)
 
   SET_PROPERTY(TARGET "${PROJECT_NAME}.so"  APPEND_STRING PROPERTY LINK_FLAGS " ${CLAMP_LDFLAGS}")
   INSTALL(TARGETS "${PROJECT_NAME}.so" DESTINATION "/usr/lib/")
-  INSTALL(FILES hcsparse.h hcsparse_struct.h DESTINATION include)
+  INSTALL(FILES include/hcsparse.h include/hcsparse_struct.h DESTINATION include)
 
 ENDIF(WIN32)

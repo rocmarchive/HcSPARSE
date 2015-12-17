@@ -1,4 +1,4 @@
-#include "../hcsparse.h"
+#include "hcsparse.h"
 #include "elementwise-operators.h"
 #define BLOCK_SIZE 256
 
