@@ -10,7 +10,7 @@ int main()
 
     hcsparseControl control(accl_view);
 
-    int num_elements = 100;
+    int num_elements = 10000;
     float *host_res = (float*) calloc(1, sizeof(float));
     float *host_X = (float*) calloc(num_elements, sizeof(float));
     float *host_R = (float*) calloc(1, sizeof(float));

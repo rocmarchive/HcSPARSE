@@ -7,6 +7,7 @@
 #include "blas1/reduce-operators.h"
 #include "blas1/hcdense-nrm1.h"
 #include "blas1/hcdense-nrm2.h"
+#include "blas1/hcdense-dot.h"
 #include "blas1/elementwise-transform.h"
 #include "mm_reader.hpp"
 #include "csr_meta.hpp"
@@ -519,6 +520,46 @@ hcdenseDnrm2(hcsparseScalar* s,
     }
 
     return Norm2<double>(s, x, control);
+}
+
+hcsparseStatus
+hcdenseSdot (hcsparseScalar* r,
+             const hcdenseVector* x,
+             const hcdenseVector* y,
+             const hcsparseControl* control)
+{
+    if (!hcsparseInitialized)
+    {
+        return hcsparseInvalid;
+    }
+
+    //check opencl elements
+    if (x->values == nullptr || y->values == nullptr)
+    {
+        return hcsparseInvalid;
+    }
+
+    return dot<float>(r, x, y, control);
+}
+
+hcsparseStatus
+hcdenseDdot (hcsparseScalar* r,
+             const hcdenseVector* x,
+             const hcdenseVector* y,
+             const hcsparseControl* control)
+{
+    if (!hcsparseInitialized)
+    {
+        return hcsparseInvalid;
+    }
+
+    //check opencl elements
+    if (x->values == nullptr || y->values == nullptr)
+    {
+        return hcsparseInvalid;
+    }
+
+    return dot<double>(r, x, y, control);
 }
 
 // This function reads the file header at the given filepath, and returns the size
