@@ -1,4 +1,4 @@
-# Object libraries require CMAKE 2.8.8 version 
+#Object libraries require CMAKE 2.8.8 version 
 CMAKE_MINIMUM_REQUIRED (VERSION 2.8.8) 
 MESSAGE(STATUS "CMAKE VERSION ${CMAKE_VERSION}")
 
@@ -22,6 +22,8 @@ SET (TESTSRCS
      reduce_double_test.cpp
      transform_float_test.cpp
      transform_double_test.cpp
+     nrm1_float_test.cpp
+     nrm2_float_test.cpp
     )
 
 IF(WIN32)
