@@ -1,5 +1,5 @@
 #include "hcsparse.h"
-#include "csrmv.hpp"
+#include "blas2/csrmv.h"
 #include "blas1/hcdense-scale.h"
 #include "blas1/hcdense-axpby.h"
 #include "blas1/hcdense-axpy.h"
@@ -9,8 +9,8 @@
 #include "blas1/hcdense-nrm2.h"
 #include "blas1/hcdense-dot.h"
 #include "blas1/elementwise-transform.h"
-#include "mm_reader.hpp"
-#include "csr_meta.hpp"
+#include "io/mm_reader.h"
+#include "blas2/csr_meta.h"
 
 int hcsparseInitialized = 0;
 

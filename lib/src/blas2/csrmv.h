@@ -7,7 +7,7 @@
 #define SIZE_TYPE ulong
 #define VALUE_TYPE float
 #define GLOBAL_SIZE WG_SIZE
-#define EXTENDED_PRECISION 1
+#define EXTENDED_PRECISION 0
 
 #ifndef INDEX_TYPE
 #error "INDEX_TYPE undefined!"
@@ -361,7 +361,7 @@ csrmv_adaptive( const hcsparseScalar* pAlpha,
 
     //if(control->extended_precision)
     {
-#define EXTENDED_PRECISION 1
+//#define EXTENDED_PRECISION 1
     }
 
     // if NVIDIA is used it does not allow to run the group size
