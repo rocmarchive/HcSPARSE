@@ -629,23 +629,14 @@ hcsparseSCooMatrixfromFile( hcsparseCooMatrix* cooMatx, const char* filePath, hc
 
     //JPA:: Coo matrix is need to be sorted as well because we need to have matrix
     // which is sorted by row and then column, in the mtx files usually is opposite.
-    for(int i = 0 ;i < cooMatx->num_nonzeros; i++)
+    bool swap;
+
+    do
     {
-        if(x[i] > x[i+1])
+        swap = 0;
+        for(int i = 0 ;i < cooMatx->num_nonzeros; i++)
         {
-            int tmp = x[i];
-            x[i] = x[i+1];
-            x[i+1] = tmp;
-            int tmp1 = y[i];
-            y[i] = y[i+1];
-            y[i+1] = tmp1;
-            float tmp2 = val[i];
-            val[i] = val[i+1];
-            val[i+1] = tmp2;
-        }
-        else if ( x[i] == x[i + 1])
-        {
-            if ( y[i] > y[i+1])
+            if(x[i] > x[i+1])
             {
                 int tmp = x[i];
                 x[i] = x[i+1];
@@ -656,9 +647,28 @@ hcsparseSCooMatrixfromFile( hcsparseCooMatrix* cooMatx, const char* filePath, hc
                 float tmp2 = val[i];
                 val[i] = val[i+1];
                 val[i+1] = tmp2;
+
+                swap = 1;
+            }
+            else if ( x[i] == x[i + 1])
+            {
+                if ( y[i] > y[i+1])
+                {
+                    int tmp = x[i];
+                    x[i] = x[i+1];
+                    x[i+1] = tmp;
+                    int tmp1 = y[i];
+                    y[i] = y[i+1];
+                    y[i+1] = tmp1;
+                    float tmp2 = val[i];
+                    val[i] = val[i+1];
+                    val[i+1] = tmp2;
+
+                    swap = 1;
+                }
             }
         }
-    }
+    }while(swap);
 
     Concurrency::array_view<float> *values = static_cast<Concurrency::array_view<float> *>(cooMatx->values);
     Concurrency::array_view<int> *rowIndices = static_cast<Concurrency::array_view<int> *>(cooMatx->rowIndices);
@@ -704,23 +714,14 @@ hcsparseDCooMatrixfromFile( hcsparseCooMatrix* cooMatx, const char* filePath, hc
 
     //JPA:: Coo matrix is need to be sorted as well because we need to have matrix
     // which is sorted by row and then column, in the mtx files usually is opposite.
-    for(int i = 0 ;i < cooMatx->num_nonzeros; i++)
+    bool swap;
+
+    do
     {
-        if(x[i] > x[i+1])
+        swap = 0;
+        for(int i = 0 ;i < cooMatx->num_nonzeros; i++)
         {
-            int tmp = x[i];
-            x[i] = x[i+1];
-            x[i+1] = tmp;
-            int tmp1 = y[i];
-            y[i] = y[i+1];
-            y[i+1] = tmp1;
-            double tmp2 = val[i];
-            val[i] = val[i+1];
-            val[i+1] = tmp2;
-        }
-        else if ( x[i] == x[i + 1])
-        {
-            if ( y[i] > y[i+1])
+            if(x[i] > x[i+1])
             {
                 int tmp = x[i];
                 x[i] = x[i+1];
@@ -728,12 +729,31 @@ hcsparseDCooMatrixfromFile( hcsparseCooMatrix* cooMatx, const char* filePath, hc
                 int tmp1 = y[i];
                 y[i] = y[i+1];
                 y[i+1] = tmp1;
-                double tmp2 = val[i];
+                float tmp2 = val[i];
                 val[i] = val[i+1];
                 val[i+1] = tmp2;
+
+                swap = 1;
+            }
+            else if ( x[i] == x[i + 1])
+            {
+                if ( y[i] > y[i+1])
+                {
+                    int tmp = x[i];
+                    x[i] = x[i+1];
+                    x[i+1] = tmp;
+                    int tmp1 = y[i];
+                    y[i] = y[i+1];
+                    y[i+1] = tmp1;
+                    float tmp2 = val[i];
+                    val[i] = val[i+1];
+                    val[i+1] = tmp2;
+
+                    swap = 1;
+                }
             }
         }
-    }
+    }while(swap);
 
     Concurrency::array_view<double> *values = static_cast<Concurrency::array_view<double> *>(cooMatx->values);
     Concurrency::array_view<int> *rowIndices = static_cast<Concurrency::array_view<int> *>(cooMatx->rowIndices);
@@ -785,23 +805,14 @@ hcsparseSCsrMatrixfromFile(hcsparseCsrMatrix* csrMatx, const char* filePath, hcs
     int *y = mm_reader.GetYCoordinates( );
     float *val = mm_reader.GetValCoordinates( );
 
-    for(int i = 0 ;i < csrMatx->num_nonzeros; i++)
+    bool swap;
+
+    do
     {
-        if(x[i] > x[i+1])
+        swap = 0;
+        for(int i = 0 ;i < csrMatx->num_nonzeros; i++)
         {
-            int tmp = x[i];
-            x[i] = x[i+1];
-            x[i+1] = tmp;
-            int tmp1 = y[i];
-            y[i] = y[i+1];
-            y[i+1] = tmp1;
-            float tmp2 = val[i];
-            val[i] = val[i+1];
-            val[i+1] = tmp2;
-        }
-        else if ( x[i] == x[i + 1])
-        {
-            if ( y[i] > y[i+1])
+            if(x[i] > x[i+1])
             {
                 int tmp = x[i];
                 x[i] = x[i+1];
@@ -812,15 +823,34 @@ hcsparseSCsrMatrixfromFile(hcsparseCsrMatrix* csrMatx, const char* filePath, hcs
                 float tmp2 = val[i];
                 val[i] = val[i+1];
                 val[i+1] = tmp2;
+
+                swap = 1;
+            }
+            else if ( x[i] == x[i + 1])
+            {
+                if ( y[i] > y[i+1])
+                {
+                    int tmp = x[i];
+                    x[i] = x[i+1];
+                    x[i+1] = tmp;
+                    int tmp1 = y[i];
+                    y[i] = y[i+1];
+                    y[i+1] = tmp1;
+                    float tmp2 = val[i];
+                    val[i] = val[i+1];
+                    val[i+1] = tmp2;
+
+                    swap = 1;
+                }
             }
         }
-    }
+    }while(swap);
 
     Concurrency::array_view<float> *values = static_cast<Concurrency::array_view<float> *>(csrMatx->values);
     Concurrency::array_view<int> *rowOffsets = static_cast<Concurrency::array_view<int> *>(csrMatx->rowOffsets);
     Concurrency::array_view<int> *colIndices = static_cast<Concurrency::array_view<int> *>(csrMatx->colIndices);
 
-    int current_row = 1;
+    int current_row = 0;
     (*(rowOffsets))[ 0 ] = 0;
     for( int i = 0; i < csrMatx->num_nonzeros; i++ )
     {
@@ -868,23 +898,14 @@ hcsparseDCsrMatrixfromFile( hcsparseCsrMatrix* csrMatx, const char* filePath, hc
     int *y = mm_reader.GetYCoordinates( );
     double *val = mm_reader.GetValCoordinates( );
 
-    for(int i = 0 ;i < csrMatx->num_nonzeros; i++)
+    bool swap;
+
+    do
     {
-        if(x[i] > x[i+1])
+        swap = 0;
+        for(int i = 0 ;i < csrMatx->num_nonzeros; i++)
         {
-            int tmp = x[i];
-            x[i] = x[i+1];
-            x[i+1] = tmp;
-            int tmp1 = y[i];
-            y[i] = y[i+1];
-            y[i+1] = tmp1;
-            double tmp2 = val[i];
-            val[i] = val[i+1];
-            val[i+1] = tmp2;
-        }
-        else if ( x[i] == x[i + 1])
-        {
-            if ( y[i] > y[i+1])
+            if(x[i] > x[i+1])
             {
                 int tmp = x[i];
                 x[i] = x[i+1];
@@ -892,12 +913,31 @@ hcsparseDCsrMatrixfromFile( hcsparseCsrMatrix* csrMatx, const char* filePath, hc
                 int tmp1 = y[i];
                 y[i] = y[i+1];
                 y[i+1] = tmp1;
-                double tmp2 = val[i];
+                float tmp2 = val[i];
                 val[i] = val[i+1];
                 val[i+1] = tmp2;
+
+                swap = 1;
+            }
+            else if ( x[i] == x[i + 1])
+            {
+                if ( y[i] > y[i+1])
+                {
+                    int tmp = x[i];
+                    x[i] = x[i+1];
+                    x[i+1] = tmp;
+                    int tmp1 = y[i];
+                    y[i] = y[i+1];
+                    y[i+1] = tmp1;
+                    float tmp2 = val[i];
+                    val[i] = val[i+1];
+                    val[i+1] = tmp2;
+
+                    swap = 1;
+                }
             }
         }
-    }
+    }while(swap);
 
     Concurrency::array_view<double> *values = static_cast<Concurrency::array_view<double> *>(csrMatx->values);
     Concurrency::array_view<int> *rowOffsets = static_cast<Concurrency::array_view<int> *>(csrMatx->rowOffsets);
