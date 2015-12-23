@@ -5,16 +5,11 @@
 #define WG_SIZE 256
 #define INDEX_TYPE uint
 #define SIZE_TYPE ulong
-#define VALUE_TYPE float
 #define GLOBAL_SIZE WG_SIZE
 #define EXTENDED_PRECISION 0
 
 #ifndef INDEX_TYPE
 #error "INDEX_TYPE undefined!"
-#endif
-
-#ifndef VALUE_TYPE
-#error "VALUE_TYPE undefined!"
 #endif
 
 #ifndef SIZE_TYPE
@@ -44,11 +39,12 @@
 // In/Out: *sumk_err, which is incremented (by reference) -- holds the
 //         error value as a result of the 2sum calculation.
 // Returns: The non-corrected sum of inputs x and y.
-inline VALUE_TYPE two_sum( VALUE_TYPE x,
-        VALUE_TYPE y,
-        VALUE_TYPE &sumk_err) restrict(amp)
+template <typename T>
+inline T two_sum( T x,
+        T y,
+        T &sumk_err) restrict(amp)
 {
-    const VALUE_TYPE sumk_s = x + y;
+    const T sumk_s = x + y;
 #ifdef EXTENDED_PRECISION
     // We use this 2Sum algorithm to perform a compensated summation,
     // which can reduce the cummulative rounding errors in our SpMV summation.
@@ -70,13 +66,13 @@ inline VALUE_TYPE two_sum( VALUE_TYPE x,
     // 1974), respectively.
     if (fabs(x) < fabs(y))
     {
-        const VALUE_TYPE swap = x;
+        const T swap = x;
         x = y;
         y = swap;
     }
     sumk_err += (y - (sumk_s - x));
     // Original 6 FLOP 2Sum algorithm.
-    //VALUE_TYPE bp = sumk_s - x;
+    //T bp = sumk_s - x;
     //(*sumk_err) += ((x - (sumk_s - bp)) + (y - bp));
 #endif
     return sumk_s;
@@ -87,23 +83,24 @@ inline VALUE_TYPE two_sum( VALUE_TYPE x,
 // appropriate error. However, the EFT of an FMA is very expensive. As such,
 // if we are in EXTENDED_PRECISION mode, this function devolves into two_sum
 // with x_vals and x_vec inputs multiplied separately from the compensated add.
-inline VALUE_TYPE two_fma( const VALUE_TYPE x_vals,
-        const VALUE_TYPE x_vec,
-        VALUE_TYPE y,
-        VALUE_TYPE &sumk_err ) restrict(amp)
+template <typename T>
+inline T two_fma( const T x_vals,
+        const T x_vec,
+        T y,
+        T &sumk_err ) restrict(amp)
 {
 #ifdef EXTENDED_PRECISION
-    VALUE_TYPE x = x_vals * x_vec;
-    const VALUE_TYPE sumk_s = x + y;
+    T x = x_vals * x_vec;
+    const T sumk_s = x + y;
     if (fabs(x) < fabs(y))
     {
-        const VALUE_TYPE swap = x;
+        const T swap = x;
         x = y;
         y = swap;
     }
     sumk_err += (y - (sumk_s - x));
     // 2Sum in the FMA case. Poor performance on low-DPFP GPUs.
-    //const VALUE_TYPE bp = fma(-x_vals, x_vec, sumk_s);
+    //const T bp = fma(-x_vals, x_vec, sumk_s);
     //(*sumk_err) += (fma(x_vals, x_vec, -(sumk_s - bp)) + (y - bp));
     return sumk_s;
 #else
@@ -124,9 +121,10 @@ inline VALUE_TYPE two_fma( const VALUE_TYPE x_vals,
 //          thread_lane: The lane within this SUBWAVE for reduction.
 //          round: This parallel summation method operates in multiple rounds
 //                  to do a parallel reduction. See the blow comment for usage.
-inline VALUE_TYPE sum2_reduce( VALUE_TYPE cur_sum,
-        VALUE_TYPE &err,
-        VALUE_TYPE *partial,
+template <typename T>
+inline T sum2_reduce( T cur_sum,
+        T &err,
+        T *partial,
         const INDEX_TYPE lid,
         const INDEX_TYPE thread_lane,
         const INDEX_TYPE round,
@@ -168,19 +166,20 @@ inline VALUE_TYPE sum2_reduce( VALUE_TYPE cur_sum,
 // WAVE_SIZE  - "warp size", typically 64 (AMD) or 32 (NV)
 // WG_SIZE    - workgroup ("block") size, 1D representation assumed
 // INDEX_TYPE - typename for the type of integer data read by the kernel,  usually unsigned int
-// VALUE_TYPE - typename for the type of floating point data, usually double
+// T - typename for the type of floating point data, usually double
 // SUBWAVE_SIZE - the length of a "sub-wave", a power of 2, i.e. 1,2,4,...,WAVE_SIZE, assigned to process a single matrix row
+template <typename T>
 void csrmv_vector_kernel (const INDEX_TYPE num_rows,
-                          const Concurrency::array_view<VALUE_TYPE, 1> &alpha,
+                          const Concurrency::array_view<T, 1> &alpha,
                           const SIZE_TYPE off_alpha,
                           const Concurrency::array_view<INDEX_TYPE, 1> &row_offset,
                           const Concurrency::array_view<INDEX_TYPE, 1> &col,
-                          const Concurrency::array_view<VALUE_TYPE, 1> &val,
-                          const Concurrency::array_view<VALUE_TYPE, 1> &x,
+                          const Concurrency::array_view<T, 1> &val,
+                          const Concurrency::array_view<T, 1> &x,
                           const SIZE_TYPE off_x,
-                          const Concurrency::array_view<VALUE_TYPE, 1> &beta,
+                          const Concurrency::array_view<T, 1> &beta,
                           const SIZE_TYPE off_beta,
-                          Concurrency::array_view<VALUE_TYPE, 1> &y,
+                          Concurrency::array_view<T, 1> &y,
                           const SIZE_TYPE off_y,
                           const hcsparseControl *control)
 {
@@ -188,7 +187,7 @@ void csrmv_vector_kernel (const INDEX_TYPE num_rows,
     Concurrency::tiled_extent< WG_SIZE> t_ext(grdExt);
     Concurrency::parallel_for_each(control->accl_view, t_ext, [=] (Concurrency::tiled_index<WG_SIZE> tidx) restrict(amp)
     {
-        tile_static VALUE_TYPE sdata [WG_SIZE + SUBWAVE_SIZE / 2];
+        tile_static T sdata [WG_SIZE + SUBWAVE_SIZE / 2];
 
         //const int vectors_per_block = WG_SIZE/SUBWAVE_SIZE;
         const INDEX_TYPE global_id   = tidx.global[0];         // global workitem id
@@ -197,22 +196,22 @@ void csrmv_vector_kernel (const INDEX_TYPE num_rows,
         const INDEX_TYPE vector_id   = global_id / SUBWAVE_SIZE; // global vector id
         const INDEX_TYPE num_vectors = t_ext[0] / SUBWAVE_SIZE;
 
-        const VALUE_TYPE _alpha = alpha[off_alpha];
-        const VALUE_TYPE _beta = beta[off_beta];
+        const T _alpha = alpha[off_alpha];
+        const T _beta = beta[off_beta];
 
         for(INDEX_TYPE row = vector_id; row < num_rows; row += num_vectors)
         {
             const INDEX_TYPE row_start = row_offset[row];
             const INDEX_TYPE row_end   = row_offset[row+1];
-            VALUE_TYPE sum = 0.;
+            T sum = 0.;
 
-            VALUE_TYPE sumk_e = 0.;
+            T sumk_e = 0.;
             // It is about 5% faster to always multiply by alpha, rather than to
             // check whether alpha is 0, 1, or other and do different code paths.
             for(INDEX_TYPE j = row_start + thread_lane; j < row_end; j += SUBWAVE_SIZE)
-                sum = two_fma(_alpha * val[j], x[off_x + col[j]], sum, sumk_e);
-            VALUE_TYPE new_error = 0.;
-            sum = two_sum(sum, sumk_e, new_error);
+                sum = two_fma<T> (_alpha * val[j], x[off_x + col[j]], sum, sumk_e);
+            T new_error = 0.;
+            sum = two_sum<T> (sum, sumk_e, new_error);
 
             // Parallel reduction in shared memory.
            sdata[local_id] = sum;
@@ -228,7 +227,7 @@ void csrmv_vector_kernel (const INDEX_TYPE num_rows,
            for (int i = (WG_SIZE >> 1); i > 0; i >>= 1)
            {
                tidx.barrier.wait();
-               sum = sum2_reduce(sum, new_error, sdata, local_id, thread_lane, i, tidx);
+               sum = sum2_reduce<T> (sum, new_error, sdata, local_id, thread_lane, i, tidx);
            }
 
            if (thread_lane == 0)
@@ -237,7 +236,7 @@ void csrmv_vector_kernel (const INDEX_TYPE num_rows,
                     y[off_y + row] = sum + new_error;
                else
                {
-                   sum = two_fma(_beta, y[off_y + row], sum, new_error);
+                   sum = two_fma<T> (_beta, y[off_y + row], sum, new_error);
                    y[off_y + row] = sum + new_error;
                }
            }
@@ -284,17 +283,6 @@ csrmv_vector(const hcsparseScalar* pAlpha,
 #define SUBWAVE_SIZE 2
 }
 
-    if(typeid(T) == typeid(double))
-    {
-#undef VALUE_TYPE
-#define VALUE_TYPE double
-    }
-    else if(typeid(T) == typeid(float))
-    {
-#undef VALUE_TYPE
-#define VALUE_TYPE float
-    }
-
     // subwave takes care of each row in matrix;
     // predicted number of subwaves to be executed;
     uint predicted = SUBWAVE_SIZE * pMatx->num_rows;
@@ -310,15 +298,15 @@ csrmv_vector(const hcsparseScalar* pAlpha,
 #define GLOBAL_SIZE WG_SIZE
     }
 
-    Concurrency::array_view<VALUE_TYPE> *avAlpha = static_cast<Concurrency::array_view<VALUE_TYPE> *>(pAlpha->value);
+    Concurrency::array_view<T> *avAlpha = static_cast<Concurrency::array_view<T> *>(pAlpha->value);
     Concurrency::array_view<INDEX_TYPE> *avMatx_rowOffsets = static_cast<Concurrency::array_view<INDEX_TYPE> *>(pMatx->rowOffsets);
     Concurrency::array_view<INDEX_TYPE> *avMatx_colIndices = static_cast<Concurrency::array_view<INDEX_TYPE> *>(pMatx->colIndices);
-    Concurrency::array_view<VALUE_TYPE> *avMatx_values = static_cast<Concurrency::array_view<VALUE_TYPE> *>(pMatx->values);
-    Concurrency::array_view<VALUE_TYPE> *avX_values = static_cast<Concurrency::array_view<VALUE_TYPE> *>(pX->values);
-    Concurrency::array_view<VALUE_TYPE> *avBeta = static_cast<Concurrency::array_view<VALUE_TYPE> *>(pBeta->value);
-    Concurrency::array_view<VALUE_TYPE> *avY_values = static_cast<Concurrency::array_view<VALUE_TYPE> *>(pY->values);
+    Concurrency::array_view<T> *avMatx_values = static_cast<Concurrency::array_view<T> *>(pMatx->values);
+    Concurrency::array_view<T> *avX_values = static_cast<Concurrency::array_view<T> *>(pX->values);
+    Concurrency::array_view<T> *avBeta = static_cast<Concurrency::array_view<T> *>(pBeta->value);
+    Concurrency::array_view<T> *avY_values = static_cast<Concurrency::array_view<T> *>(pY->values);
 
-    csrmv_vector_kernel (pMatx->num_rows, *avAlpha, pAlpha->offset(),
+    csrmv_vector_kernel<T> (pMatx->num_rows, *avAlpha, pAlpha->offset(),
                          *avMatx_rowOffsets, *avMatx_colIndices, *avMatx_values,
                          *avX_values, pX->offset(), *avBeta,
                          pBeta->offset(), *avY_values, pY->offset(), control);
@@ -326,15 +314,16 @@ csrmv_vector(const hcsparseScalar* pAlpha,
     return hcsparseSuccess;
 }
 
+template <typename T>
 void
-csrmv_adaptive_kernel(const Concurrency::array_view<VALUE_TYPE, 1> &vals,
+csrmv_adaptive_kernel(const Concurrency::array_view<T, 1> &vals,
                       const Concurrency::array_view<INDEX_TYPE, 1> &cols,
                       const Concurrency::array_view<INDEX_TYPE, 1> &rowPtrs,
-                      const Concurrency::array_view<VALUE_TYPE, 1> &vec,
-                      Concurrency::array_view<VALUE_TYPE, 1> &out,
+                      const Concurrency::array_view<T, 1> &vec,
+                      Concurrency::array_view<T, 1> &out,
                       const Concurrency::array_view<INDEX_TYPE, 1> &rowBlocks,
-                      const Concurrency::array_view<VALUE_TYPE, 1> &pAlpha,
-                      const Concurrency::array_view<VALUE_TYPE, 1> &pBeta,
+                      const Concurrency::array_view<T, 1> &pAlpha,
+                      const Concurrency::array_view<T, 1> &pBeta,
                       const hcsparseControl *control)
 {
 }
@@ -348,17 +337,6 @@ csrmv_adaptive( const hcsparseScalar* pAlpha,
                 hcdenseVector* pY,
                 const hcsparseControl *control )
 {
-    if(typeid(T) == typeid(double))
-    {
-#undef VALUE_TYPE
-#define VALUE_TYPE double
-    }
-    else if(typeid(T) == typeid(float))
-    {
-#undef VALUE_TYPE
-#define VALUE_TYPE float
-    }
-
     //if(control->extended_precision)
     {
 //#define EXTENDED_PRECISION 1
@@ -377,16 +355,16 @@ csrmv_adaptive( const hcsparseScalar* pAlpha,
 #define GLOBAL_SIZE WG_SIZE
     }
 
-    Concurrency::array_view<VALUE_TYPE> *avCsrMatx_values = static_cast<Concurrency::array_view<VALUE_TYPE> *>(pCsrMatx->values);
+    Concurrency::array_view<T> *avCsrMatx_values = static_cast<Concurrency::array_view<T> *>(pCsrMatx->values);
     Concurrency::array_view<INDEX_TYPE> *avColIndices = static_cast<Concurrency::array_view<INDEX_TYPE> *>(pCsrMatx->colIndices);
     Concurrency::array_view<INDEX_TYPE> *avRowOffsets = static_cast<Concurrency::array_view<INDEX_TYPE> *>(pCsrMatx->rowOffsets);
-    Concurrency::array_view<VALUE_TYPE> *avX_values = static_cast<Concurrency::array_view<VALUE_TYPE> *>(pX->values);
-    Concurrency::array_view<VALUE_TYPE> *avY_values = static_cast<Concurrency::array_view<VALUE_TYPE> *>(pY->values);
+    Concurrency::array_view<T> *avX_values = static_cast<Concurrency::array_view<T> *>(pX->values);
+    Concurrency::array_view<T> *avY_values = static_cast<Concurrency::array_view<T> *>(pY->values);
     Concurrency::array_view<INDEX_TYPE> *avRowBlocks = static_cast<Concurrency::array_view<INDEX_TYPE> *>(pCsrMatx->rowBlocks);
-    Concurrency::array_view<VALUE_TYPE> *avAlpha = static_cast<Concurrency::array_view<VALUE_TYPE> *>(pAlpha->value);
-    Concurrency::array_view<VALUE_TYPE> *avBeta = static_cast<Concurrency::array_view<VALUE_TYPE> *>(pBeta->value);
+    Concurrency::array_view<T> *avAlpha = static_cast<Concurrency::array_view<T> *>(pAlpha->value);
+    Concurrency::array_view<T> *avBeta = static_cast<Concurrency::array_view<T> *>(pBeta->value);
 
-    csrmv_adaptive_kernel (*avCsrMatx_values, *avColIndices,
+    csrmv_adaptive_kernel<T> (*avCsrMatx_values, *avColIndices,
                            *avRowOffsets, *avX_values,
                            *avY_values, *avRowBlocks,
                            *avAlpha ,*avBeta, control);

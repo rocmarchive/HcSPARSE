@@ -729,7 +729,7 @@ hcsparseDCooMatrixfromFile( hcsparseCooMatrix* cooMatx, const char* filePath, hc
                 int tmp1 = y[i];
                 y[i] = y[i+1];
                 y[i+1] = tmp1;
-                float tmp2 = val[i];
+                double tmp2 = val[i];
                 val[i] = val[i+1];
                 val[i+1] = tmp2;
 
@@ -745,7 +745,7 @@ hcsparseDCooMatrixfromFile( hcsparseCooMatrix* cooMatx, const char* filePath, hc
                     int tmp1 = y[i];
                     y[i] = y[i+1];
                     y[i+1] = tmp1;
-                    float tmp2 = val[i];
+                    double tmp2 = val[i];
                     val[i] = val[i+1];
                     val[i+1] = tmp2;
 
@@ -913,7 +913,7 @@ hcsparseDCsrMatrixfromFile( hcsparseCsrMatrix* csrMatx, const char* filePath, hc
                 int tmp1 = y[i];
                 y[i] = y[i+1];
                 y[i+1] = tmp1;
-                float tmp2 = val[i];
+                double tmp2 = val[i];
                 val[i] = val[i+1];
                 val[i+1] = tmp2;
 
@@ -929,7 +929,7 @@ hcsparseDCsrMatrixfromFile( hcsparseCsrMatrix* csrMatx, const char* filePath, hc
                     int tmp1 = y[i];
                     y[i] = y[i+1];
                     y[i+1] = tmp1;
-                    float tmp2 = val[i];
+                    double tmp2 = val[i];
                     val[i] = val[i+1];
                     val[i+1] = tmp2;
 

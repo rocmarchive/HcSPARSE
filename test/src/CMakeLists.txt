@@ -26,6 +26,8 @@ SET (TESTSRCS
      nrm2_float_test.cpp
      dot_float_test.cpp
      dot_double_test.cpp
+     csrmv_float_test.cpp
+     csrmv_double_test.cpp
     )
 
 IF(WIN32)
