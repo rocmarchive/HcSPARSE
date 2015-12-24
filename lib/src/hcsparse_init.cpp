@@ -1,5 +1,6 @@
 #include "hcsparse.h"
 #include "blas2/csrmv.h"
+#include "blas3/csrmm.h"
 #include "blas1/hcdense-scale.h"
 #include "blas1/hcdense-axpby.h"
 #include "blas1/hcdense-axpy.h"
@@ -121,6 +122,50 @@ hcsparseStatus
     }
 
     return csrmv<double>(alpha, matx, x, beta, y, control);
+}
+
+hcsparseStatus
+hcsparseScsrmm( const hcsparseScalar* alpha,
+                const hcsparseCsrMatrix* sparseCsrA,
+                const hcdenseMatrix* denseB,
+                const hcsparseScalar* beta,
+                hcdenseMatrix* denseC,
+                const hcsparseControl *control )
+{
+    if( !hcsparseInitialized )
+    {
+        return hcsparseInvalid;
+    }
+
+    //check opencl elements
+    if( denseB->values == nullptr || denseC->values)
+    {
+        return hcsparseInvalid;
+    }
+
+    return csrmm<float> ( alpha, sparseCsrA, denseB, beta, denseC, control );
+}
+
+hcsparseStatus
+hcsparseDcsrmm( const hcsparseScalar* alpha,
+                const hcsparseCsrMatrix* sparseCsrA,
+                const hcdenseMatrix* denseB,
+                const hcsparseScalar* beta,
+                hcdenseMatrix* denseC,
+                const hcsparseControl *control )
+{
+    if( !hcsparseInitialized )
+    {
+        return hcsparseInvalid;
+    }
+
+    //check opencl elements
+    if( denseB->values == nullptr || denseC->values)
+    {
+        return hcsparseInvalid;
+    }
+
+    return csrmm<double> ( alpha, sparseCsrA, denseB, beta, denseC, control );
 }
 
 hcsparseStatus
