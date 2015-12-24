@@ -42,16 +42,16 @@ int main(int argc, char *argv[])
     srand (time(NULL));
     for (int i = 0; i < num_col; i++)
     {
-        host_X[i] = 1;
+        host_X[i] = rand()%100;
     }
 
     for (int i = 0; i < num_row; i++)
     {
-        host_res[i] = host_Y[i] = 1;
+        host_res[i] = host_Y[i] = rand()%100;
     }
     
-    host_alpha[0] = 1;
-    host_beta[0] = 0;
+    host_alpha[0] = rand()%100;
+    host_beta[0] = rand()%100;
 
     Concurrency::array_view<double> dev_X(num_col, host_X);
     Concurrency::array_view<double> dev_Y(num_row, host_Y);
