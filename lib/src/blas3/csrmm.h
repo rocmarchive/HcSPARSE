@@ -5,7 +5,7 @@
 
 template<typename T>
 void
-csrmv( const int num_rows,
+csrmv_kernel( const int num_rows,
         const int subwave_size,
         const Concurrency::array_view<T> &alpha,
         const long off_alpha,
@@ -47,11 +47,11 @@ csrmv( const int num_rows,
             for( int j = row_start + thread_lane; j < row_end; j += subwave_size )
             {
                 if( _alpha == 1 )
-                    sum = fma( val[ j ], x[ off_x + ( col[ j ] * ldx ) ], sum );
+                    sum = val[ j ] * x[ off_x + ( col[ j ] * ldx ) + curr_col ] + sum;
                 else if( _alpha == 0 )
                     sum = 0;
                 else
-                    sum = fma( _alpha * val[ j ], x[ off_x + ( col[ j ] * ldx ) ], sum );
+                    sum = _alpha * val[ j ] * x[ off_x + ( col[ j ] * ldx ) + curr_col ] + sum;
             }
 
             sdata[ local_id ] = sum;
@@ -67,15 +67,16 @@ csrmv( const int num_rows,
             if( subwave_size > 2 )  sdata[ local_id ] = sum += sdata[ local_id + 2 ];
             tidx.barrier.wait();
             if( subwave_size > 1 )                    sum += sdata[ local_id + 1 ];
+            tidx.barrier.wait();
 
             if( thread_lane == 0 )
             {
                 if( _beta == 1 )
-                    y[ off_y + ( row * ldy ) ] = sum + y[ off_y + ( row * ldy ) ];
+                    y[ off_y + ( row * ldy ) + curr_col ] = sum + y[ off_y + ( row * ldy ) + curr_col ];
                 else if( _beta == 0 )
-                    y[ off_y + ( row * ldy ) ] = sum;
+                    y[ off_y + ( row * ldy ) + curr_col ] = sum;
                 else
-                    y[ off_y + ( row * ldy ) ] = sum + _beta * y[ off_y + ( row * ldy ) ];
+                    y[ off_y + ( row * ldy ) + curr_col ] = sum + _beta * y[ off_y + ( row * ldy ) + curr_col ];
             }
         }
     });
@@ -120,7 +121,7 @@ void csrmv_batched( const int num_rows,
     //  the global pointers to the dense B and C matrices a column for each iteration.
     for( int curr_col = 0; curr_col < num_cols_C; ++curr_col )
     {
-        csrmv<T> (num_rows, subwave_size, alpha, off_alpha, rowOffsets, colInd, values, denseB, ldB, off_B, beta, off_beta, denseC, ldC, off_C, curr_col, control);
+        csrmv_kernel<T> (num_rows, subwave_size, alpha, off_alpha, rowOffsets, colInd, values, denseB, ldB, off_B, beta, off_beta, denseC, ldC, off_C, curr_col, control);
     }
 }
 

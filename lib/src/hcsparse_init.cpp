@@ -137,8 +137,7 @@ hcsparseScsrmm( const hcsparseScalar* alpha,
         return hcsparseInvalid;
     }
 
-    //check opencl elements
-    if( denseB->values == nullptr || denseC->values)
+    if( denseB->values == nullptr || denseC->values == nullptr)
     {
         return hcsparseInvalid;
     }
@@ -159,8 +158,7 @@ hcsparseDcsrmm( const hcsparseScalar* alpha,
         return hcsparseInvalid;
     }
 
-    //check opencl elements
-    if( denseB->values == nullptr || denseC->values)
+    if( denseB->values == nullptr || denseC->values == nullptr)
     {
         return hcsparseInvalid;
     }
