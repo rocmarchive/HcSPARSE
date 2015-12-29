@@ -28,6 +28,7 @@ SET (TESTSRCS
      dot_double_test.cpp
      csrmv_float_test.cpp
      csrmv_double_test.cpp
+     biconjugate-gradients-stabilized_test.cpp
     )
 
 IF(WIN32)
