@@ -54,8 +54,8 @@ template<typename T>
 class PreconditionerHandler
 {
 public:
-    virtual void operator()(const Concurrency::array_view<T>& x,
-                       Concurrency::array_view<T>& y,
+    virtual void operator()(const hcdenseVector *x,
+                       hcdenseVector *y,
                        hcsparseControl* control) = 0;
 
     virtual void notify(const hcsparseCsrMatrix* pA,

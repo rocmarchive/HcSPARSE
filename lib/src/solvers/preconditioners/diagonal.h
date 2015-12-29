@@ -19,7 +19,7 @@ class DiagonalPreconditioner
 {
 public:
     DiagonalPreconditioner(const hcsparseCsrMatrix* A,
-                           hcsparseControl control)
+                           hcsparseControl* control)
     {
 
         int status;
@@ -27,24 +27,25 @@ public:
         int size = std::min(A->num_rows, A->num_cols);
 
         invBuff = (T*) calloc ( size, sizeof(T));
-        Concurrency::array_view<T> inv_Buff(size, invBuff);
+        Concurrency::array_view<T> av_invBuff(size, invBuff);
 
-        invDiag_A = &inv_Buff;
+        invDiag_A.values = &av_invBuff;
+        invDiag_A.num_values = size;
+        invDiag_A.offValues = 0;
 
         // extract inverse diagonal from matrix A and store it in invDiag_A
         // easy to check with poisson matrix;
-        status = extract_diagonal<T, true>(invDiag_A, A, control);
-
+        status = extract_diagonal<T, true>(&invDiag_A, A, control);
     }
 
     // apply preconditioner
-    void operator ()(const Concurrency::array_view<T>& x,
-                     Concurrency::array_view<T>& y,
-                     hcsparseControl* control)
+    void operator ()(const hcdenseVector *x,
+                     hcdenseVector *y,
+                     hcsparseControl* control)    
     {
         //element wise multiply y = x*invDiag_A;
         hcsparseStatus status =
-                elementwise_transform<T, EW_MULTIPLY>(y, x, invDiag_A, control);
+                elementwise_transform<T, EW_MULTIPLY>(y, x, &invDiag_A, control);
     }
 
     ~DiagonalPreconditioner()
@@ -55,7 +56,7 @@ public:
 private:
     //inverse diagonal values of matrix A;
     T *invBuff;
-    Concurrency::array_view<T> *invDiag_A;
+    hcdenseVector invDiag_A;
 };
 
 
@@ -70,8 +71,8 @@ public:
     {
     }
 
-    void operator()(const Concurrency::array_view<T>& x,
-                    Concurrency::array_view<T>& y,
+    void operator()(const hcdenseVector *x,
+                    hcdenseVector *y,
                     hcsparseControl* control)
     {
         (*diagonal)(x, y, control);

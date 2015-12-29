@@ -82,4 +82,5 @@ extract_diagonal(hcdenseVector* pDiag,
 
     return hcsparseSuccess;
 }
+
 #endif
