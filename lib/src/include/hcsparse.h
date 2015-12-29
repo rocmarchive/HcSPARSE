@@ -9,14 +9,6 @@
 #define WGBITS 24
 #define ROWBITS 32
 
-    typedef enum hcsparseStatus_
-    {
-        /** @name Inherited OpenCL codes */
-        /**@{*/
-        hcsparseSuccess = 1,
-        hcsparseInvalid = 0,
-    } hcsparseStatus;
-
     /*!
     * \brief Initialize the hcsparse library
     * \note Must be called before any other hcsparse API function is invoked.
@@ -98,40 +90,6 @@
     hcsparseStatus hcdenseInitMatrix( hcdenseMatrix* denseMatx );
     /**@}*/
 
-    //typedef struct _hcsparseControl*  hcsparseControl;
-
-    /*! \brief Enumeration to *control the verbosity of the sparse iterative
-     * solver routines.  VERBOSE will print helpful diagnostic messages to
-     * console
-     *
-     * \ingroup SOLVER
-     */
-
-    typedef enum _print_mode
-    {
-        QUIET = 0,
-        NORMAL,
-        VERBOSE
-    } PRINT_MODE;
-
-    /*! \brief Enumeration to select the preconditioning algorithm used to precondition
-     * the sparse data before the iterative solver execution phase
-     *
-     * \ingroup SOLVER
-     */
-    typedef enum _precond
-    {
-        NOPRECOND = 0,
-        DIAGONAL
-    } PRECONDITIONER;
-
-    /*! \brief hcsparseSolverControl keeps state relevant for OpenCL operations
-     * like kernel execution, memory allocation and synchronization behavior,
-     * specifically for sparse iterative solvers
-     *
-     * \ingroup SOLVER
-     */
-    typedef struct _solverControl*  hcsparseSolverControl;
 
     /*!
     * \brief Create a hcsparseSolverControl object to *control hcsparse iterative
@@ -146,7 +104,7 @@
     *
     * \ingroup SOLVER
     */
-    hcsparseSolverControl
+    hcsparseSolverControl*
         hcsparseCreateSolverControl( PRECONDITIONER precond, int maxIters,
                                      double relTol, double absTol );
 
@@ -160,7 +118,7 @@
      * \ingroup SOLVER
      */
     hcsparseStatus
-        hcsparseReleaseSolverControl( hcsparseSolverControl solverControl );
+        hcsparseReleaseSolverControl( hcsparseSolverControl* solverControl );
 
     /*!
     * \brief Set hcsparseSolverControl state
@@ -176,7 +134,7 @@
     * \ingroup SOLVER
     */
     hcsparseStatus
-        hcsparseSetSolverParams( hcsparseSolverControl solverControl,
+        hcsparseSetSolverParams( hcsparseSolverControl* solverControl,
                                  PRECONDITIONER precond,
                                  int maxIters, double relTol, double absTol );
 
@@ -191,7 +149,7 @@
      * \ingroup SOLVER
      */
     hcsparseStatus
-        hcsparseSolverPrintMode( hcsparseSolverControl solverControl, PRINT_MODE mode );
+        hcsparseSolverPrintMode( hcsparseSolverControl* solverControl, PRINT_MODE mode );
 
     /*!
     * \brief Execute a single precision Conjugate Gradients solver
@@ -208,7 +166,7 @@
     */
     hcsparseStatus
         hcsparseScsrcg( hcdenseVector* x, const hcsparseCsrMatrix *A, const hcdenseVector *b,
-                        hcsparseSolverControl solverControl, hcsparseControl *control );
+                        hcsparseSolverControl* solverControl, hcsparseControl *control );
 
     /*!
     * \brief Execute a double precision Conjugate Gradients solver
@@ -225,7 +183,7 @@
     */
     hcsparseStatus
         hcsparseDcsrcg( hcdenseVector* x, const hcsparseCsrMatrix *A, const hcdenseVector *b,
-                        hcsparseSolverControl solverControl, hcsparseControl *control );
+                        hcsparseSolverControl* solverControl, hcsparseControl *control );
 
      /*!
      * \brief Execute a single precision Bi-Conjugate Gradients Stabilized solver
@@ -242,7 +200,7 @@
      */
     hcsparseStatus
         hcsparseScsrbicgStab( hcdenseVector* x, const hcsparseCsrMatrix *A, const hcdenseVector *b,
-                              hcsparseSolverControl solverControl, hcsparseControl *control );
+                              hcsparseSolverControl* solverControl, hcsparseControl *control );
 
     /*!
     * \brief Execute a double precision Bi-Conjugate Gradients Stabilized solver
@@ -259,7 +217,7 @@
     */
     hcsparseStatus
         hcsparseDcsrbicgStab( hcdenseVector* x, const hcsparseCsrMatrix *A, const hcdenseVector *b,
-                              hcsparseSolverControl solverControl, hcsparseControl *control );
+                              hcsparseSolverControl* solverControl, hcsparseControl *control );
     /**@}*/
 
     /*!

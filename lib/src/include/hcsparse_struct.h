@@ -8,11 +8,44 @@
 using namespace Concurrency;
 using namespace Concurrency::precise_math;
 
+typedef enum hcsparseStatus_
+{
+    /** @name Inherited OpenCL codes */
+    /**@{*/
+    hcsparseSuccess = 1,
+    hcsparseInvalid = 0,
+} hcsparseStatus;
+
 typedef enum _hcdenseMajor
 {
     rowMajor = 1,
     columnMajor
 } hcdenseMajor;
+
+/*! \brief Enumeration to *control the verbosity of the sparse iterative
+ * solver routines.  VERBOSE will print helpful diagnostic messages to
+ * console
+ *
+ * \ingroup SOLVER
+ */
+
+typedef enum _print_mode
+{
+    QUIET = 0,
+    NORMAL,
+    VERBOSE
+} PRINT_MODE;
+
+/*! \brief Enumeration to select the preconditioning algorithm used to precondition
+ * the sparse data before the iterative solver execution phase
+ *
+ * \ingroup SOLVER
+ */
+typedef enum _precond
+{
+    NOPRECOND = 0,
+    DIAGONAL
+} PRECONDITIONER;
 
 /*! \brief Structure to encapsulate scalar data to hcsparse API
  */
@@ -216,5 +249,98 @@ typedef struct hcdenseMatrix_
         values = nullptr;
     }
 } hcdenseMatrix;
+
+typedef struct _solverControl
+{
+
+    _solverControl() : nIters(0), maxIters(0), preconditioner(NOPRECOND),
+        relativeTolerance(0.0), absoluteTolerance(0.0),
+        initialResidual(0), currentResidual(0), printMode(VERBOSE)
+    {
+
+    }
+
+    bool finished(const double residuum)
+    {
+        return converged(residuum) || nIters >= maxIters;
+    }
+
+    bool converged(const double residuum)
+    {
+        currentResidual = residuum;
+        if(residuum <= relativeTolerance ||
+           residuum <= absoluteTolerance * initialResidual)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    void print()
+    {
+        if (printMode == VERBOSE)
+        {
+            std::cout << "Iteration: " << nIters
+                      << " Residuum: " << currentResidual
+                      << std::endl;
+        }
+    }
+
+    std::string printPreconditioner()
+    {
+
+        switch(preconditioner)
+        {
+        case NOPRECOND:
+            return "No preconditioner";
+        case DIAGONAL:
+            return "Diagonal";
+        }
+    }
+
+    void printSummary(hcsparseStatus status)
+    {
+        if (printMode == VERBOSE || printMode == NORMAL)
+        {
+            std::cout << "Solver constraints: \n"
+                      << "\trelative tolerance = " << relativeTolerance
+                      << "\n\tabsolute tolerance = " << absoluteTolerance
+                      << "\n\tmax iterations = " << maxIters
+                      << "\n\tPreconditioner: " << printPreconditioner()
+                      << std::endl;
+
+            std::cout << "Solver finished calculations with status "
+                      << status << std::endl;
+
+            std::cout << "\tfinal residual = " << currentResidual
+                      << "\titerations = " << nIters
+                      << std::endl;
+        }
+    }
+
+    // current solver iteration;
+    int nIters;
+
+    // maximum solver iterations;
+    int maxIters;
+
+    // preconditioner type
+    PRECONDITIONER preconditioner;
+
+    // required relative tolerance
+    double relativeTolerance;
+
+    // required absolute tolerance
+    double absoluteTolerance;
+
+    double initialResidual;
+
+    double currentResidual;
+
+    PRINT_MODE printMode;
+} hcsparseSolverControl;
 
 #endif
