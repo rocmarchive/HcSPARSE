@@ -12,6 +12,11 @@
 #include "blas1/elementwise-transform.h"
 #include "io/mm_reader.h"
 #include "blas2/csr_meta.h"
+#include "solvers/preconditioners/preconditioner.h"
+#include "solvers/preconditioners/diagonal.h"
+#include "solvers/preconditioners/void.h"
+#include "solvers/solver-control.h"
+#include "solvers/biconjugate-gradients-stabilized.h"
 
 int hcsparseInitialized = 0;
 
@@ -1032,4 +1037,46 @@ hcsparseCsrMetaCompute( hcsparseCsrMatrix* csrMatx, hcsparseControl *control )
     ComputeRowBlocks( dataRB, csrMatx->rowBlockSize, dataRO, csrMatx->num_rows, BLOCKSIZE, BLOCK_MULTIPLIER, ROWS_FOR_VECTOR, true );
 
     return hcsparseSuccess;
+}
+
+hcsparseStatus
+hcsparseScsrbicgStab(hcdenseVector* x, const hcsparseCsrMatrix *A, const hcdenseVector *b,
+               hcsparseSolverControl *solverControl, hcsparseControl *control)
+{
+    using T = float;
+
+    if (!hcsparseInitialized)
+    {
+        return hcsparseInvalid;
+    }
+
+    if (x->values == nullptr || b->values == nullptr)
+    {
+        return hcsparseInvalid;
+    }
+
+    if (solverControl == nullptr)
+    {
+        return hcsparseInvalid;
+    }
+
+    std::shared_ptr<PreconditionerHandler<T>> preconditioner;
+
+    if (solverControl->preconditioner == DIAGONAL)
+    {
+        preconditioner = std::shared_ptr<PreconditionerHandler<T>>(new DiagonalHandler<T>());
+        // call constructor of preconditioner class
+        preconditioner->notify(A, control);
+    }
+    else
+    {
+        preconditioner = std::shared_ptr<PreconditionerHandler<T>>(new VoidHandler<T>());
+        preconditioner->notify(A, control);
+    }
+
+    hcsparseStatus status = bicgStab<T>(x, A, b, *preconditioner, solverControl, control);
+
+    solverControl->printSummary(status);
+
+    return status;
 }

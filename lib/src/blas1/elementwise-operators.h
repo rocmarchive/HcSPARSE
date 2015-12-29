@@ -13,43 +13,43 @@ enum ElementWiseOperator
 };
 
 template<typename T>
-T add (T a, T b) restrict(amp)
+T add (T a, T b) restrict(amp, cpu)
 {
     return a + b;
 }
 
 template<typename T>
-T sub (T a, T b) restrict(amp)
+T sub (T a, T b) restrict(amp, cpu)
 {
     return a - b;
 }
 
 template<typename T>
-T multi (T a, T b) restrict(amp)
+T multi (T a, T b) restrict(amp, cpu)
 {
     return a * b;
 }
 
 template<typename T>
-T div (T a, T b) restrict(amp)
+T div (T a, T b) restrict(amp, cpu)
 {
     return a / b;
 }
 
 template<typename T>
-T min (T a, T b) restrict(amp)
+T min (T a, T b) restrict(amp, cpu)
 {
     return (a >= b) ? b : a;
 }
 
 template<typename T>
-T max (T a, T b) restrict(amp)
+T max (T a, T b) restrict(amp, cpu)
 {
     return (a >= b) ? a : b;
 }
 
 template<typename T>
-T dummy (T a, T b) restrict(amp)
+T dummy (T a, T b) restrict(amp, cpu)
 {
     return a;
 }
