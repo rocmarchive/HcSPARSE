@@ -1080,3 +1080,45 @@ hcsparseScsrbicgStab(hcdenseVector* x, const hcsparseCsrMatrix *A, const hcdense
 
     return status;
 }
+
+hcsparseStatus
+hcsparseDcsrbicgStab(hcdenseVector* x, const hcsparseCsrMatrix *A, const hcdenseVector *b,
+               hcsparseSolverControl *solverControl, hcsparseControl *control)
+{
+    using T = double;
+
+    if (!hcsparseInitialized)
+    {
+        return hcsparseInvalid;
+    }
+
+    if (x->values == nullptr || b->values == nullptr)
+    {
+        return hcsparseInvalid;
+    }
+
+    if (solverControl == nullptr)
+    {
+        return hcsparseInvalid;
+    }
+
+    std::shared_ptr<PreconditionerHandler<T>> preconditioner;
+
+    if (solverControl->preconditioner == DIAGONAL)
+    {
+        preconditioner = std::shared_ptr<PreconditionerHandler<T>>(new DiagonalHandler<T>());
+        // call constructor of preconditioner class
+        preconditioner->notify(A, control);
+    }
+    else
+    {
+        preconditioner = std::shared_ptr<PreconditionerHandler<T>>(new VoidHandler<T>());
+        preconditioner->notify(A, control);
+    }
+
+    hcsparseStatus status = bicgStab<T>(x, A, b, *preconditioner, solverControl, control);
+
+    solverControl->printSummary(status);
+
+    return status;
+}

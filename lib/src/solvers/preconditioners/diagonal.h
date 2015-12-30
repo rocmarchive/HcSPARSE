@@ -28,7 +28,7 @@ public:
 
         invBuff = (T*) calloc ( size, sizeof(T));
         Concurrency::array_view<T> av_invBuff(size, invBuff);
-
+ 
         invDiag_A.values = &av_invBuff;
         invDiag_A.num_values = size;
         invDiag_A.offValues = 0;
@@ -36,6 +36,11 @@ public:
         // extract inverse diagonal from matrix A and store it in invDiag_A
         // easy to check with poisson matrix;
         status = extract_diagonal<T, true>(&invDiag_A, A, control);
+
+        Concurrency::array_view<T> *avInvDiag = static_cast<Concurrency::array_view<T> *>(invDiag_A.values);         
+
+        for (int i = 0; i < size; i++)
+            invBuff[i] = (*avInvDiag)[i];
     }
 
     // apply preconditioner
@@ -43,6 +48,10 @@ public:
                      hcdenseVector *y,
                      hcsparseControl* control)    
     {
+
+        Concurrency::array_view<T> av_invBuff(invDiag_A.num_values, invBuff);
+        invDiag_A.values = &av_invBuff;
+
         //element wise multiply y = x*invDiag_A;
         hcsparseStatus status =
                 elementwise_transform<T, EW_MULTIPLY>(y, x, &invDiag_A, control);
