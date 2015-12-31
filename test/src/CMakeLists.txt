@@ -32,6 +32,10 @@ SET (TESTSRCS
      bicgStab_diagonal_double_test.cpp
      bicgStab_noprecond_float_test.cpp
      bicgStab_noprecond_double_test.cpp
+     cg_diagonal_float_test.cpp
+     cg_diagonal_double_test.cpp
+     cg_noprecond_float_test.cpp
+     cg_noprecond_double_test.cpp
     )
 
 IF(WIN32)
