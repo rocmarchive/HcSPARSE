@@ -53,8 +53,7 @@ public:
         invDiag_A.values = &av_invBuff;
 
         //element wise multiply y = x*invDiag_A;
-        hcsparseStatus status =
-                elementwise_transform<T, EW_MULTIPLY>(y, x, &invDiag_A, control);
+        elementwise_transform<T, EW_MULTIPLY>(y, x, &invDiag_A, control);
     }
 
     ~DiagonalPreconditioner()
