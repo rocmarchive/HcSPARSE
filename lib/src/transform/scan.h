@@ -7,7 +7,7 @@ hcsparseStatus
 scan(int size,
      Concurrency::array_view<T> &output, 
      const Concurrency::array_view<T> &input,
-     hcsparseControl* control, 
+     const hcsparseControl* control, 
      bool exclusive)
 {
     T* preSumArray_buff = (T*) calloc (size, sizeof(T));
@@ -49,7 +49,7 @@ scan(int size,
         if(exclusive && gloId == 0)
         {
             T start_val = input[0];
-            lds[locId] = operation(identity, start_val);
+            lds[locId] = operation<T, OP>(identity, start_val);
         }
         for (size_t start = wgSize>>1; start > 0; start >>= 1)
         {
@@ -60,7 +60,7 @@ scan(int size,
                 size_t temp2 = offset*(2*locId+2)-1;
                 T y = lds[temp2];
                 T y1 =lds[temp1];
-                lds[temp2] = operation(y, y1);
+                lds[temp2] = operation<T, OP>(y, y1);
             }
             offset *= 2;
         }
@@ -86,8 +86,8 @@ scan(int size,
         uint mapId  = gloId * workPerThread;
         // do offset of zero manually
         uint offset;
-        T workSum;
-        if (mapId < size)
+        T workSum = 0;
+         if (mapId < size)
         {
             // accumulate zeroth value manually
             offset = 0;
@@ -98,7 +98,7 @@ scan(int size,
                 if (mapId + offset < size)
                 {
                     T y = preSumArray[mapId+offset];
-                    workSum = operation(workSum,y);
+                    workSum = operation<T, OP>(workSum,y);
                 }
             }
         }
@@ -115,7 +115,7 @@ scan(int size,
                 if (locId >= offset)
                 {
                     T y = lds[ locId - offset ];
-                    scanSum = operation(scanSum, y);
+                    scanSum = operation<T, OP>(scanSum, y);
                 }
             }
             tidx.barrier.wait();
@@ -127,7 +127,7 @@ scan(int size,
         if (locId > 0)
         {
             T y = lds[locId-1];
-            workSum = operation(workSum, y);
+            workSum = operation<T, OP>(workSum, y);
             postSumArray[ mapId] = workSum;
         }
         else
@@ -140,14 +140,14 @@ scan(int size,
             if (mapId < size && locId > 0)
             {
                 T y  = preSumArray[ mapId + offset ] ;
-                T y1 = operation(y, workSum);
+                T y1 = operation<T, OP>(y, workSum);
                 postSumArray[ mapId + offset ] = y1;
                 workSum = y1;
             } // thread in bounds
             else
             {
                 T y  = preSumArray[ mapId + offset ] ;
-                postSumArray[ mapId + offset ] = operation(y, workSum);
+                postSumArray[ mapId + offset ] = operation<T, OP>(y, workSum);
                 workSum = postSumArray[ mapId + offset ];
             }
         } // for
@@ -198,12 +198,12 @@ scan(int size,
                 {
                     y = postSumArray[ groId/2 -1 ];
                     y1 = preSumArray[groId/2];
-                    postBlockSum = operation(y, y1);
+                    postBlockSum = operation<T, OP>(y, y1);
                 }
                 if (exclusive)
                     newResult = postBlockSum;
                 else
-                    newResult = operation(scanResult, postBlockSum);
+                    newResult = operation<T, OP>(scanResult, postBlockSum);
             }
             else
             {
@@ -219,7 +219,7 @@ scan(int size,
             if (locId >= offset)
             {
                 T y = lds[ locId - offset ];
-                sum = operation(sum, y);
+                sum = operation<T, OP>(sum, y);
             }
             tidx.barrier.wait();
             lds[ locId ] = sum;
@@ -233,22 +233,22 @@ scan(int size,
     return hcsparseSuccess;
 }
 
-template <ElementWiseOperator OP, typename T>
+template <typename T, ElementWiseOperator OP>
 hcsparseStatus
 exclusive_scan( int size, 
                 Concurrency::array_view<T> &output,
                 const Concurrency::array_view<T> &input,
-                hcsparseControl* control)
+                const hcsparseControl* control)
 {
    return scan<T, OP>(size, output, input, control, true);
 }
 
-template <ElementWiseOperator OP, typename T>
+template <typename T, ElementWiseOperator OP>
 hcsparseStatus
 inclusive_scan( int size,
                 Concurrency::array_view<T> &output,
                 const Concurrency::array_view<T> &input,
-                hcsparseControl* control)
+                const hcsparseControl* control)
 {
   return scan<T, OP>(size, output, input, control, false);
 }

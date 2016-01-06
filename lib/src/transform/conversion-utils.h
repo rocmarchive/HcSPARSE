@@ -16,8 +16,10 @@ indices_to_offsets (const int size,
     Concurrency::array_view<T> av_values(size, values);
     Concurrency::array_view<T> av_keys_output(size, keys_output);
 
-    reduce_by_key<T> (size, &av_keys_output, av_csrOffsets, av_cooIndices, &av_values, control);
+    reduce_by_key<T> (size, av_keys_output, av_csrOffsets, av_cooIndices, av_values, control);
 
     exclusive_scan<T, EW_PLUS> (size, av_csrOffsets, av_csrOffsets, control);
+
+    return hcsparseSuccess;
 }
 

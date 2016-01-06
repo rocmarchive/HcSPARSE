@@ -1217,3 +1217,41 @@ hcsparseDcsrcg(hcdenseVector *x,
 
     return status;
 }
+
+hcsparseStatus
+hcsparseScoo2csr (const hcsparseCooMatrix* coo,
+                  hcsparseCsrMatrix* csr,
+                  const hcsparseControl* control)
+{
+    if (!hcsparseInitialized)
+    {
+        return hcsparseInvalid;
+    }
+
+    //check opencl elements
+    if (coo->values == nullptr || csr->values == nullptr)
+    {
+        return hcsparseInvalid;
+    }
+
+    return coo2csr<float> (coo, csr, control);
+}
+
+hcsparseStatus
+hcsparseDcoo2csr (const hcsparseCooMatrix* coo,
+                  hcsparseCsrMatrix* csr,
+                  const hcsparseControl* control)
+{
+    if (!hcsparseInitialized)
+    {
+        return hcsparseInvalid;
+    }
+
+    //check opencl elements
+    if (coo->values == nullptr || csr->values == nullptr)
+    {
+        return hcsparseInvalid;
+    }
+
+    return coo2csr<double> (coo, csr, control);
+}

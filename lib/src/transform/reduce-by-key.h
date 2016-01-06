@@ -9,7 +9,7 @@ reduce_by_key( int size,
                Concurrency::array_view<T> &values_output,
                const Concurrency::array_view<T> &keys_input, 
                const Concurrency::array_view<T> &values_input,
-               hcsparseControl* control)
+               const hcsparseControl* control)
 {
     //this vector stores the places where input index is changing;
     T* offsetArray_buff = (T*) calloc (size, sizeof(T));
@@ -62,7 +62,7 @@ reduce_by_key( int size,
         size_t locId = tidx.local[0];
         size_t wgSize = tidx.tile_dim0;
         T key;
-        T val;
+        T val = 0;
         if(gloId < size)
         {
             key = offsetArray[ gloId ];
@@ -122,8 +122,8 @@ reduce_by_key( int size,
         uint mapId  = gloId * workPerThread;
         // do offset of zero manually
         int offset;
-        T key;
-        T workSum;
+        T key = 0;
+        T workSum = 0;
         if (mapId < size)
         {
             T prevKey;
