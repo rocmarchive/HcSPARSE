@@ -43,7 +43,7 @@ reduce_by_key( int size,
         }
     });
 
-//    inclusive_scan<EW_PLUS>(offsetArray, offsetArray, control);
+    inclusive_scan<T, EW_PLUS>(size, offsetArray, offsetArray, control);
 
     T* keySumArray_buff = (T*) calloc (numWrkGrp, sizeof(T));
     T* preSumArray_buff = (T*) calloc (numWrkGrp, sizeof(T));

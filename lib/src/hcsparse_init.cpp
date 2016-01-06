@@ -18,6 +18,7 @@
 #include "solvers/solver-control.h"
 #include "solvers/biconjugate-gradients-stabilized.h"
 #include "solvers/conjugate-gradients.h"
+#include "transform/scan.h"
 #include "transform/reduce-by-key.h"
 #include "transform/conversion-utils.h"
 #include "transform/hcsparse-coo2csr.h"
