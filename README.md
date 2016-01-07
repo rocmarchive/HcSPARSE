@@ -15,51 +15,27 @@ This repository hosts the HCC implementation of SPARSE subroutines. The followin
 ##Repository Structure: ##
 
 ##Prerequisites: ##
-* **dGPU**:  AMD firepro S9150
 * **OS** : Ubuntu 14.04 LTS
 * **Ubuntu Pack**: libc6-dev-i386
-* **AMD APP SDK** : Ver 2.9.1 launched on 18/8/2014 from [here](http://developer.amd.com/tools-and-sdks/opencl-zone/amd-accelerated-parallel-processing-app-sdk/)
-* **AMD Driver installer**: amd-driver-installer-14.301.1001-x86.x86_64
+   // TODO: Need to add more items 
+
 
 ## Installation Steps:    
 
 ### A. HCC Compiler Installation: 
-    
-** Build from source **
-
-  To build the compiler from source follow the steps given below,
- 
-  Make sure the parent directory chosen is say ~/ or any other folder of your choice. Lets take ~/ as an example
-
-  (a) Prepare a directory for work space
-
-       * mkdir ~/mcw_hcc
-
-       * cd ~/mcw_hcc 
    
-       * git clone https://bitbucket.org/multicoreware/hcc.git src
+**Install HCC compiler debian package:**
 
-       * cd ~/mcw_hcc/src/
+  Download the debian package from the link given below,
 
+  [Compiler-Debians](https://multicorewareinc.egnyte.com/dl/TD5IwsNEx3)
 
-  (b) Create a build directory and configure using CMake.
+  Install the package hcc-0.8.1544-a9f4d2f-ddba18d-Linux.deb
 
-       * mkdir ~/mcw_hcc/build
+  using the command,
 
-       * cd ~/mcw_hcc/build
+    sudo dpkg -i <package_name>
+      e.g. sudo dpkg -i  hcc-0.8.1544-a9f4d2f-ddba18d-Linux.deb
 
-       * export CLAMP_NOTILECHECK=ON
-       
-       * cmake ../src -DCMAKE_BUILD_TYPE=Release -DCXXAMP_ENABLE_BOLT=ON -DOPENCL_HEADER_DIR=<path to SDK's OpenCL headers> -DOPENCL_LIBRARY_DIR=<path to SDK's OpenCL library>, 
-
-       * for example cmake ../src -DCMAKE_BUILD_TYPE=Release -DCXXAMP_ENABLE_BOLT=ON  -DOPENCL_HEADER_DIR=/opt/AMDAPPSDK-2.9-1/include/CL/ -DOPENCL_LIBRARY_DIR=/opt/AMDAPPSDK-2.9-1/lib/x86_64/
-
-  (c) Build HCC
-
-       * cd ~/mcw_hcc/build
-
-       * make [-j#] world && make          (# is the number of parallel builds. Generally it is # of CPU cores)
-
-       * For example: make -j8 world && make
-
-With this the HCC Compiler installation is complete.
+  Note:
+      Ignore clamp-bolt, Bolt is not required for hcRNG.
