@@ -2,7 +2,7 @@
 
 ##Introduction: ##
 
-This repository hosts the C++ AMP implementation of SPARSE subroutines. The following are the sub-routines that are implemented
+This repository hosts the HCC implementation of SPARSE subroutines. The following are the sub-routines that are implemented
 
 1. csrmv  : Sparse Matrix - dense Vector multiply (SpM-dV)
 2. csrmm  : Sparse Matrix - dense Matrix multiply (SpM-dM)
@@ -23,7 +23,7 @@ This repository hosts the C++ AMP implementation of SPARSE subroutines. The foll
 
 ## Installation Steps:    
 
-### A. C++ AMP Compiler Installation: 
+### A. HCC Compiler Installation: 
     
 ** Build from source **
 
@@ -33,21 +33,20 @@ This repository hosts the C++ AMP implementation of SPARSE subroutines. The foll
 
   (a) Prepare a directory for work space
 
-       * mkdir ~/mcw_cppamp
+       * mkdir ~/mcw_hcc
 
-       * cd ~/mcw_cppamp 
+       * cd ~/mcw_hcc 
    
-       * git clone https://bitbucket.org/multicoreware/cppamp-driver-ng.git src
+       * git clone https://bitbucket.org/multicoreware/hcc.git src
 
-       * cd ~/mcw_cppamp/src/
+       * cd ~/mcw_hcc/src/
 
-       * git checkout origin/torch-specific
 
   (b) Create a build directory and configure using CMake.
 
-       * mkdir ~/mcw_cppamp/build
+       * mkdir ~/mcw_hcc/build
 
-       * cd ~/mcw_cppamp/build
+       * cd ~/mcw_hcc/build
 
        * export CLAMP_NOTILECHECK=ON
        
@@ -55,13 +54,12 @@ This repository hosts the C++ AMP implementation of SPARSE subroutines. The foll
 
        * for example cmake ../src -DCMAKE_BUILD_TYPE=Release -DCXXAMP_ENABLE_BOLT=ON  -DOPENCL_HEADER_DIR=/opt/AMDAPPSDK-2.9-1/include/CL/ -DOPENCL_LIBRARY_DIR=/opt/AMDAPPSDK-2.9-1/lib/x86_64/
 
-  (c) Build AMP
+  (c) Build HCC
 
-       * cd ~/mcw_cppamp/build
+       * cd ~/mcw_hcc/build
 
        * make [-j#] world && make          (# is the number of parallel builds. Generally it is # of CPU cores)
 
        * For example: make -j8 world && make
 
-With this the C++ AMP Compiler installation is complete.
-
+With this the HCC Compiler installation is complete.
