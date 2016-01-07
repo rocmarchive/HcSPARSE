@@ -26,16 +26,11 @@ This repository hosts the HCC implementation of SPARSE subroutines. The followin
    
 **Install HCC compiler debian package:**
 
-  Download the debian package from the link given below,
+ (i) Download the debian package from  [Compiler-Debians](https://multicorewareinc.egnyte.com/dl/TD5IwsNEx3)
 
-  [Compiler-Debians](https://multicorewareinc.egnyte.com/dl/TD5IwsNEx3)
-
-  Install the package hcc-0.8.1544-a9f4d2f-ddba18d-Linux.deb
-
-  using the command,
-
-    sudo dpkg -i <package_name>
-      e.g. sudo dpkg -i  hcc-0.8.1544-a9f4d2f-ddba18d-Linux.deb
+ (ii) Install the deb package 
+               
+                  sudo dpkg -i  hcc-0.8.1544-a9f4d2f-ddba18d-Linux.deb
 
   Note:
       Ignore clamp-bolt, Bolt is not required for hcRNG.
