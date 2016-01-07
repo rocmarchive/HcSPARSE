@@ -33,4 +33,4 @@ This repository hosts the HCC implementation of SPARSE subroutines. The followin
                   sudo dpkg -i  hcc-0.8.1544-a9f4d2f-ddba18d-Linux.deb
 
   Note:
-      Ignore clamp-bolt, Bolt is not required for hcRNG.
+      Ignore clamp-bolt, Bolt is not used in hcSparse.
