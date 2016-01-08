@@ -2,7 +2,8 @@
 
 template <typename T>
 hcsparseStatus
-indices_to_offsets (const int size,
+indices_to_offsets (const int num_rows,
+                    const int size,
                     Concurrency::array_view<T> &av_csrOffsets,
                     const Concurrency::array_view<T> &av_cooIndices,
                     const hcsparseControl* control)
@@ -18,7 +19,7 @@ indices_to_offsets (const int size,
 
     reduce_by_key<T> (size, av_keys_output, av_csrOffsets, av_cooIndices, av_values, control);
 
-    exclusive_scan<T, EW_PLUS> (size, av_csrOffsets, av_csrOffsets, control);
+    exclusive_scan<T, EW_PLUS> (num_rows, av_csrOffsets, av_csrOffsets, control);
 
     return hcsparseSuccess;
 }

@@ -43,8 +43,9 @@ coo2csr (const hcsparseCooMatrix* coo,
     Concurrency::array_view<T> *csr_values = static_cast<Concurrency::array_view<T> *>(csr->values);
 
     int size = coo->num_nonzeros;
+    int num_rows = coo->num_rows + 1;
  
     coo2csr_kernel<T> (*coo_colIndices, *coo_values, *csr_colIndices, *csr_values, size, control);
 
-    return indices_to_offsets<int> (size, *csr_rowOffsets, *coo_rowIndices, control); 
+    return indices_to_offsets<int> (num_rows, size, *csr_rowOffsets, *coo_rowIndices, control); 
 }

@@ -107,7 +107,7 @@ reduce_by_key( int size,
         }
     });
 
-    int workPerThread = size / BLOCK_SIZE;
+    int workPerThread = (numWrkGrp - 1) / BLOCK_SIZE + 1;
 
     Concurrency::extent<1> grdExt_blk(BLOCK_SIZE);
     Concurrency::tiled_extent<BLOCK_SIZE> t_ext_blk(grdExt_blk);
@@ -124,7 +124,7 @@ reduce_by_key( int size,
         int offset;
         T key = 0;
         T workSum = 0;
-        if (mapId < size)
+        if (mapId < numWrkGrp)
         {
             T prevKey;
             // accumulate zeroth value manually
@@ -137,7 +137,7 @@ reduce_by_key( int size,
             {
                 prevKey = key;
                 key = keySumArray[ mapId+offset ];
-                if (mapId+offset < size)
+                if (mapId+offset < numWrkGrp)
                 {
                     T y = preSumArray[ mapId+offset ];
                     if (key == prevKey)
@@ -162,7 +162,7 @@ reduce_by_key( int size,
         for( offset = offset*1; offset < wgSize; offset *= 2 )
         {
             tidx.barrier.wait();
-            if (mapId < size)
+            if (mapId < numWrkGrp)
             {
                 if (locId >= offset  )
                 {
@@ -185,7 +185,7 @@ reduce_by_key( int size,
         for( offset = 0; offset < workPerThread; offset += 1 )
         {
             tidx.barrier.wait();
-            if (mapId < size && locId > 0)
+            if (mapId < numWrkGrp && locId > 0)
             {
                 T y    = postSumArray[ mapId+offset ];
                 T key1 = keySumArray[ mapId+offset ]; // change me
@@ -217,7 +217,7 @@ reduce_by_key( int size,
             T scanResult = offsetValArray[ gloId ];
             T postBlockSum = postSumArray[ groId-1 ];
             T newResult = scanResult + postBlockSum;
-            postSumArray[ gloId ] = newResult;
+            offsetValArray[ gloId ] = newResult;
         }
     });
 
