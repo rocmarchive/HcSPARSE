@@ -4,18 +4,18 @@
 
 template <typename T, ReduceOperator G_OP, ReduceOperator F_OP>
 void global_reduce (const long size,
-                    Concurrency::array_view<T> &pR,
+                    hc::array_view<T> &pR,
                     const long pROffset,
-                    Concurrency::array_view<T> &pX,
+                    hc::array_view<T> &pX,
                     const long pXOffset,
-                    Concurrency::array_view<T> &partial,
+                    hc::array_view<T> &partial,
                     const int REDUCE_BLOCKS_NUMBER,
                     const hcsparseControl* control)
 {
 
-    Concurrency::extent<1> grdExt(REDUCE_BLOCKS_NUMBER * BLOCK_SIZE);
-    Concurrency::tiled_extent<BLOCK_SIZE> t_ext(grdExt);
-    Concurrency::parallel_for_each(control->accl_view, t_ext, [=] (Concurrency::tiled_index<BLOCK_SIZE> tidx) restrict(amp)
+    hc::extent<1> grdExt(REDUCE_BLOCKS_NUMBER * BLOCK_SIZE);
+    hc::tiled_extent<1> t_ext = grdExt.tile(BLOCK_SIZE);
+    hc::parallel_for_each(control->accl_view, t_ext, [=] (hc::tiled_index<1>& tidx) __attribute__((hc, cpu))
     {
         tile_static T buf_tmp[BLOCK_SIZE];
         int idx = tidx.global[0];
@@ -44,9 +44,9 @@ void global_reduce (const long size,
         }
     });
 
-    Concurrency::extent<1> grdExt1(1);
-    Concurrency::tiled_extent<1> t_ext1(grdExt1);
-    Concurrency::parallel_for_each(control->accl_view, t_ext1, [=] (Concurrency::tiled_index<1> tidx) restrict(amp)
+    hc::extent<1> grdExt1(1);
+    hc::tiled_extent<1> t_ext1 = grdExt1.tile(1);
+    hc::parallel_for_each(control->accl_view, t_ext1, [=] (hc::tiled_index<1>& tidx) __attribute__((hc, cpu))
     {
         T sum = 0;
         for (uint i = 0; i < REDUCE_BLOCKS_NUMBER; i++)
@@ -68,9 +68,9 @@ reduce(hcsparseScalar* pR,
 
     T *partial = (T*) calloc(REDUCE_BLOCKS_NUMBER, sizeof(T));
 
-    Concurrency::array_view<T> *avR = static_cast<Concurrency::array_view<T>*>(pR->value);
-    Concurrency::array_view<T> *avX = static_cast<Concurrency::array_view<T>*>(pX->values);
-    Concurrency::array_view<T> avPartial(REDUCE_BLOCKS_NUMBER, partial);
+    hc::array_view<T> *avR = static_cast<hc::array_view<T>*>(pR->value);
+    hc::array_view<T> *avX = static_cast<hc::array_view<T>*>(pX->values);
+    hc::array_view<T> avPartial(REDUCE_BLOCKS_NUMBER, partial);
 
     global_reduce<T, G_OP, F_OP> (size, *avR, pR->offValue, *avX, pX->offValues, avPartial, REDUCE_BLOCKS_NUMBER, control);
 

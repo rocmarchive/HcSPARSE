@@ -4,22 +4,22 @@
 
 template <typename  T, ElementWiseOperator OP>
 void axpby_kernel (const long size,
-              Concurrency::array_view<T> &pR,
+              hc::array_view<T> &pR,
               const long pROffset,
-              Concurrency::array_view<T> &pX,
+              hc::array_view<T> &pX,
               const long pXOffset,
-              const Concurrency::array_view<T> &pY,
+              const hc::array_view<T> &pY,
               const long pYOffset,
-              const Concurrency::array_view<T> &pAlpha,
+              const hc::array_view<T> &pAlpha,
               const long pAlphaOffset,
-              const Concurrency::array_view<T> &pBeta,
+              const hc::array_view<T> &pBeta,
               const long pBetaOffset,
               const int globalSize,
               const hcsparseControl* control)
 {
-    Concurrency::extent<1> grdExt( globalSize );
-    Concurrency::tiled_extent<BLOCK_SIZE> t_ext(grdExt);
-    Concurrency::parallel_for_each(control->accl_view, t_ext, [=] (Concurrency::tiled_index<BLOCK_SIZE> tidx) restrict(amp)
+    hc::extent<1> grdExt( globalSize );
+    hc::tiled_extent<1> t_ext = grdExt.tile(BLOCK_SIZE);
+    hc::parallel_for_each(control->accl_view, t_ext, [=] (hc::tiled_index<1>& tidx) __attribute__((hc, cpu))
     {
         int i = tidx.global[0];
         if (i < size)
@@ -44,11 +44,11 @@ axpby (hcdenseVector *r,
     int blocksNum = (size + BLOCK_SIZE - 1) / BLOCK_SIZE;
     int globalSize = blocksNum * BLOCK_SIZE;
 
-    Concurrency::array_view<T> *avR = static_cast<Concurrency::array_view<T>*>(r->values);
-    Concurrency::array_view<T> *avX = static_cast<Concurrency::array_view<T>*>(x->values);
-    Concurrency::array_view<T> *avY = static_cast<Concurrency::array_view<T>*>(y->values);
-    Concurrency::array_view<T> *avAlpha = static_cast<Concurrency::array_view<T>*>(alpha->value);
-    Concurrency::array_view<T> *avBeta = static_cast<Concurrency::array_view<T>*>(beta->value);
+    hc::array_view<T> *avR = static_cast<hc::array_view<T>*>(r->values);
+    hc::array_view<T> *avX = static_cast<hc::array_view<T>*>(x->values);
+    hc::array_view<T> *avY = static_cast<hc::array_view<T>*>(y->values);
+    hc::array_view<T> *avAlpha = static_cast<hc::array_view<T>*>(alpha->value);
+    hc::array_view<T> *avBeta = static_cast<hc::array_view<T>*>(beta->value);
 
     axpby_kernel<T, OP> (size, *avR, r->offValues, *avX, x->offValues, *avY, y->offValues, *avAlpha, alpha->offValue, *avBeta, beta->offValue, globalSize, control);
 

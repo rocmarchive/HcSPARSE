@@ -723,9 +723,9 @@ hcsparseSCooMatrixfromFile( hcsparseCooMatrix* cooMatx, const char* filePath, hc
         }
     }while(swap);
 
-    Concurrency::array_view<float> *values = static_cast<Concurrency::array_view<float> *>(cooMatx->values);
-    Concurrency::array_view<int> *rowIndices = static_cast<Concurrency::array_view<int> *>(cooMatx->rowIndices);
-    Concurrency::array_view<int> *colIndices = static_cast<Concurrency::array_view<int> *>(cooMatx->colIndices);
+    hc::array_view<float> *values = static_cast<hc::array_view<float> *>(cooMatx->values);
+    hc::array_view<int> *rowIndices = static_cast<hc::array_view<int> *>(cooMatx->rowIndices);
+    hc::array_view<int> *colIndices = static_cast<hc::array_view<int> *>(cooMatx->colIndices);
 
     for( int c = 0; c < cooMatx->num_nonzeros; ++c )
     {
@@ -808,9 +808,9 @@ hcsparseDCooMatrixfromFile( hcsparseCooMatrix* cooMatx, const char* filePath, hc
         }
     }while(swap);
 
-    Concurrency::array_view<double> *values = static_cast<Concurrency::array_view<double> *>(cooMatx->values);
-    Concurrency::array_view<int> *rowIndices = static_cast<Concurrency::array_view<int> *>(cooMatx->rowIndices);
-    Concurrency::array_view<int> *colIndices = static_cast<Concurrency::array_view<int> *>(cooMatx->colIndices);
+    hc::array_view<double> *values = static_cast<hc::array_view<double> *>(cooMatx->values);
+    hc::array_view<int> *rowIndices = static_cast<hc::array_view<int> *>(cooMatx->rowIndices);
+    hc::array_view<int> *colIndices = static_cast<hc::array_view<int> *>(cooMatx->colIndices);
 
     for( int c = 0; c < cooMatx->num_nonzeros; ++c )
     {
@@ -899,9 +899,9 @@ hcsparseSCsrMatrixfromFile(hcsparseCsrMatrix* csrMatx, const char* filePath, hcs
         }
     }while(swap);
 
-    Concurrency::array_view<float> *values = static_cast<Concurrency::array_view<float> *>(csrMatx->values);
-    Concurrency::array_view<int> *rowOffsets = static_cast<Concurrency::array_view<int> *>(csrMatx->rowOffsets);
-    Concurrency::array_view<int> *colIndices = static_cast<Concurrency::array_view<int> *>(csrMatx->colIndices);
+    hc::array_view<float> *values = static_cast<hc::array_view<float> *>(csrMatx->values);
+    hc::array_view<int> *rowOffsets = static_cast<hc::array_view<int> *>(csrMatx->rowOffsets);
+    hc::array_view<int> *colIndices = static_cast<hc::array_view<int> *>(csrMatx->colIndices);
 
     int current_row = 0;
     (*(rowOffsets))[ 0 ] = 0;
@@ -992,9 +992,9 @@ hcsparseDCsrMatrixfromFile( hcsparseCsrMatrix* csrMatx, const char* filePath, hc
         }
     }while(swap);
 
-    Concurrency::array_view<double> *values = static_cast<Concurrency::array_view<double> *>(csrMatx->values);
-    Concurrency::array_view<int> *rowOffsets = static_cast<Concurrency::array_view<int> *>(csrMatx->rowOffsets);
-    Concurrency::array_view<int> *colIndices = static_cast<Concurrency::array_view<int> *>(csrMatx->colIndices);
+    hc::array_view<double> *values = static_cast<hc::array_view<double> *>(csrMatx->values);
+    hc::array_view<int> *rowOffsets = static_cast<hc::array_view<int> *>(csrMatx->rowOffsets);
+    hc::array_view<int> *colIndices = static_cast<hc::array_view<int> *>(csrMatx->colIndices);
 
     int current_row = 1;
     (*(rowOffsets))[ 0 ] = 0;
@@ -1016,7 +1016,7 @@ hcsparseDCsrMatrixfromFile( hcsparseCsrMatrix* csrMatx, const char* filePath, hc
 hcsparseStatus
 hcsparseCsrMetaSize( hcsparseCsrMatrix* csrMatx, hcsparseControl *control )
 {
-    Concurrency::array_view<int> *rCsrRowOffsets = static_cast<Concurrency::array_view<int> *>(csrMatx->rowOffsets);
+    hc::array_view<int> *rCsrRowOffsets = static_cast<hc::array_view<int> *>(csrMatx->rowOffsets);
     int * dataRO = rCsrRowOffsets->data();
 
     csrMatx->rowBlockSize = ComputeRowBlocksSize( dataRO, csrMatx->num_rows, BLOCKSIZE, BLOCK_MULTIPLIER, ROWS_FOR_VECTOR );
@@ -1034,9 +1034,9 @@ hcsparseCsrMetaCompute( hcsparseCsrMatrix* csrMatx, hcsparseControl *control )
         return hcsparseInvalid;
     }
 
-    Concurrency::array_view<int> *rCsrRowOffsets = static_cast<Concurrency::array_view<int> *>(csrMatx->rowOffsets);
+    hc::array_view<int> *rCsrRowOffsets = static_cast<hc::array_view<int> *>(csrMatx->rowOffsets);
     int *dataRO = rCsrRowOffsets->data();
-    Concurrency::array_view<ulong> *rRowBlocks = static_cast<Concurrency::array_view<ulong> *>(csrMatx->rowBlocks);
+    hc::array_view<ulong> *rRowBlocks = static_cast<hc::array_view<ulong> *>(csrMatx->rowBlocks);
     ulong *dataRB = rRowBlocks->data();
 
     ComputeRowBlocks( dataRB, csrMatx->rowBlockSize, dataRO, csrMatx->num_rows, BLOCKSIZE, BLOCK_MULTIPLIER, ROWS_FOR_VECTOR, true );

@@ -7,17 +7,17 @@ template<typename T>
 void
 csrmv_kernel( const int num_rows,
         const int subwave_size,
-        const Concurrency::array_view<T> &alpha,
+        const hc::array_view<T> &alpha,
         const long off_alpha,
-        const Concurrency::array_view<int> &row_offset,
-        const Concurrency::array_view<int> &col,
-        const Concurrency::array_view<T> &val,
-        const Concurrency::array_view<T> &x,
+        const hc::array_view<int> &row_offset,
+        const hc::array_view<int> &col,
+        const hc::array_view<T> &val,
+        const hc::array_view<T> &x,
         const size_t ldx,
         const long off_x,
-        const Concurrency::array_view<T> &beta,
+        const hc::array_view<T> &beta,
         const long off_beta,
-        Concurrency::array_view<T> &y,
+        hc::array_view<T> &y,
         const size_t ldy,
         const long off_y,
         int curr_col,
@@ -27,9 +27,9 @@ csrmv_kernel( const int num_rows,
 
     int global_work_size = GROUP_SIZE * ( ( predicted + GROUP_SIZE - 1 ) / GROUP_SIZE );
 
-    Concurrency::extent<1> grdExt(global_work_size);
-    Concurrency::tiled_extent< GROUP_SIZE> t_ext(grdExt);
-    Concurrency::parallel_for_each(control->accl_view, t_ext, [=] (Concurrency::tiled_index<GROUP_SIZE> tidx) restrict(amp)
+    hc::extent<1> grdExt(global_work_size);
+    hc::tiled_extent<1> t_ext = grdExt.tile(GROUP_SIZE);
+    hc::parallel_for_each(control->accl_view, t_ext, [&] (hc::tiled_index<1>& tidx) __attribute__((hc, cpu))
     { 
         tile_static T sdata[GROUP_SIZE + WAVE_SIZE / 2];
         const int global_id = tidx.global[0];
@@ -85,17 +85,17 @@ csrmv_kernel( const int num_rows,
 template<typename T>
 void csrmv_batched( const int num_rows,
                     const int nnz_per_row,
-                    const Concurrency::array_view<T> &alpha,
+                    const hc::array_view<T> &alpha,
                     const long off_alpha,
-                    const Concurrency::array_view<int> &rowOffsets,
-                    const Concurrency::array_view<int> &colInd,
-                    const Concurrency::array_view<T> &values,
-                    const Concurrency::array_view<T> &denseB,
+                    const hc::array_view<int> &rowOffsets,
+                    const hc::array_view<int> &colInd,
+                    const hc::array_view<T> &values,
+                    const hc::array_view<T> &denseB,
                     const size_t ldB,
                     const long off_B,
-                    const Concurrency::array_view<T> &beta,
+                    const hc::array_view<T> &beta,
                     const long off_beta,
-                    Concurrency::array_view<T> &denseC,
+                    hc::array_view<T> &denseC,
                     const size_t num_rows_C,
                     const size_t num_cols_C,
                     const size_t ldC,
@@ -136,15 +136,15 @@ csrmm( const hcsparseScalar *pAlpha,
 {
    int nnz_per_row = pSparseCsrA->nnz_per_row();
 
-   Concurrency::array_view<T> *avCsrA_values = static_cast<Concurrency::array_view<T> *>(pSparseCsrA->values);
-   Concurrency::array_view<int> *avCsrA_colIndices = static_cast<Concurrency::array_view<int> *>(pSparseCsrA->colIndices);
-   Concurrency::array_view<int> *avCsrA_rowOffsets = static_cast<Concurrency::array_view<int> *>(pSparseCsrA->rowOffsets);
+   hc::array_view<T> *avCsrA_values = static_cast<hc::array_view<T> *>(pSparseCsrA->values);
+   hc::array_view<int> *avCsrA_colIndices = static_cast<hc::array_view<int> *>(pSparseCsrA->colIndices);
+   hc::array_view<int> *avCsrA_rowOffsets = static_cast<hc::array_view<int> *>(pSparseCsrA->rowOffsets);
  
-   Concurrency::array_view<T> *avDenseB_values = static_cast<Concurrency::array_view<T> *>(pDenseB->values);
-   Concurrency::array_view<T> *avDenseC_values = static_cast<Concurrency::array_view<T> *>(pDenseC->values);
+   hc::array_view<T> *avDenseB_values = static_cast<hc::array_view<T> *>(pDenseB->values);
+   hc::array_view<T> *avDenseC_values = static_cast<hc::array_view<T> *>(pDenseC->values);
 
-   Concurrency::array_view<T> *avAlpha_value = static_cast<Concurrency::array_view<T> *>(pAlpha->value);
-   Concurrency::array_view<T> *avBeta_value = static_cast<Concurrency::array_view<T> *>(pBeta->value);
+   hc::array_view<T> *avAlpha_value = static_cast<hc::array_view<T> *>(pAlpha->value);
+   hc::array_view<T> *avBeta_value = static_cast<hc::array_view<T> *>(pBeta->value);
 
     csrmv_batched<T> (pSparseCsrA->num_rows, nnz_per_row, *avAlpha_value, pAlpha->offValue, *avCsrA_rowOffsets, *avCsrA_colIndices, 
                       *avCsrA_values, *avDenseB_values, pDenseB->lead_dim, pDenseB->offValues, *avBeta_value, pBeta->offValue, 

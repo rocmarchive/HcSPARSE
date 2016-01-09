@@ -11,37 +11,37 @@ enum ReduceOperator
 };
 
 template<typename T>
-T plus (T a, T b) restrict(amp)
+T plus (T a, T b) __attribute__((hc, cpu))
 {
     return a + b;
 }
 
 template<typename T>
-T sqr (T a, T b) restrict(amp)
+T sqr (T a, T b) __attribute__((hc, cpu))
 {
     return a + b * b;
 }
 
 template<typename T>
-T fabs (T a, T b) restrict(amp)
+T fabs (T a, T b) __attribute__((hc, cpu))
 {
-    return a + Concurrency::fast_math::fabs(b);
+    return a + hc::fast_math::fabs(b);
 }
 
 template<typename T>
-T sqrt (T a) restrict(amp)
+T sqrt (T a) __attribute__((hc, cpu))
 {
-    return Concurrency::fast_math::sqrt(a);
+    return hc::fast_math::sqrt(a);
 }
 
 template<typename T>
-T reduce_dummy (T a) restrict(amp)
+T reduce_dummy (T a) __attribute__((hc, cpu))
 {
     return a;
 }
 
 template<typename T, ReduceOperator OP>
-T reduceOperation (T a, T b) restrict(amp)
+T reduceOperation (T a, T b) __attribute__((hc, cpu))
 {
     if (OP == RO_PLUS)
         return plus<T>(a, b);
@@ -52,10 +52,10 @@ T reduceOperation (T a, T b) restrict(amp)
 }
 
 template<typename T, ReduceOperator OP>
-T reduceOperation (T a) restrict(amp)
+T reduceOperation (T a) __attribute__((hc, cpu))
 {
     if (OP == RO_SQRT)
-        return sqrt<T>(a);
+        return 0; //std::sqrt<T>(a);
     else
         return reduce_dummy<T>(a);
 }

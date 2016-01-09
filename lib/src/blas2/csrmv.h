@@ -42,7 +42,7 @@
 template <typename T>
 inline T two_sum( T x,
         T y,
-        T &sumk_err) restrict(amp)
+        T &sumk_err) __attribute__((hc, cpu))
 {
     const T sumk_s = x + y;
 #ifdef EXTENDED_PRECISION
@@ -64,7 +64,7 @@ inline T two_sum( T x,
     // and "Rundungsfehleranalyse einiger Verfahren zur Summation endlicher
     // Summen (ZAMM Z. Angewandte Mathematik und Mechanik 54(1) pp. 39-51,
     // 1974), respectively.
-    if (fabs(x) < fabs(y))
+    if (hc::fast_math::fabs(x) < hc::fast_math::fabs(y))
     {
         const T swap = x;
         x = y;
@@ -87,12 +87,12 @@ template <typename T>
 inline T two_fma( const T x_vals,
         const T x_vec,
         T y,
-        T &sumk_err ) restrict(amp)
+        T &sumk_err ) __attribute__((hc, cpu))
 {
 #ifdef EXTENDED_PRECISION
     T x = x_vals * x_vec;
     const T sumk_s = x + y;
-    if (fabs(x) < fabs(y))
+    if (hc::fast_math::fabs(x) < hc::fast_math::fabs(y))
     {
         const T swap = x;
         x = y;
@@ -128,7 +128,7 @@ inline T sum2_reduce( T cur_sum,
         const INDEX_TYPE lid,
         const INDEX_TYPE thread_lane,
         const INDEX_TYPE round,
-        Concurrency::tiled_index<WG_SIZE> tidx) restrict(amp)
+        hc::tiled_index<1>& tidx) __attribute__((hc, cpu))
 {
     if (SUBWAVE_SIZE > round)
     {
@@ -170,22 +170,22 @@ inline T sum2_reduce( T cur_sum,
 // SUBWAVE_SIZE - the length of a "sub-wave", a power of 2, i.e. 1,2,4,...,WAVE_SIZE, assigned to process a single matrix row
 template <typename T>
 void csrmv_vector_kernel (const INDEX_TYPE num_rows,
-                          const Concurrency::array_view<T, 1> &alpha,
+                          const hc::array_view<T, 1> &alpha,
                           const SIZE_TYPE off_alpha,
-                          const Concurrency::array_view<INDEX_TYPE, 1> &row_offset,
-                          const Concurrency::array_view<INDEX_TYPE, 1> &col,
-                          const Concurrency::array_view<T, 1> &val,
-                          const Concurrency::array_view<T, 1> &x,
+                          const hc::array_view<INDEX_TYPE, 1> &row_offset,
+                          const hc::array_view<INDEX_TYPE, 1> &col,
+                          const hc::array_view<T, 1> &val,
+                          const hc::array_view<T, 1> &x,
                           const SIZE_TYPE off_x,
-                          const Concurrency::array_view<T, 1> &beta,
+                          const hc::array_view<T, 1> &beta,
                           const SIZE_TYPE off_beta,
-                          Concurrency::array_view<T, 1> &y,
+                          hc::array_view<T, 1> &y,
                           const SIZE_TYPE off_y,
                           const hcsparseControl *control)
 {
-    Concurrency::extent<1> grdExt( WG_SIZE );
-    Concurrency::tiled_extent< WG_SIZE> t_ext(grdExt);
-    Concurrency::parallel_for_each(control->accl_view, t_ext, [=] (Concurrency::tiled_index<WG_SIZE> tidx) restrict(amp)
+    hc::extent<1> grdExt( WG_SIZE );
+    hc::tiled_extent<1> t_ext = grdExt.tile(WG_SIZE);
+    hc::parallel_for_each(control->accl_view, t_ext, [&] (hc::tiled_index<1>& tidx) __attribute__((hc, cpu))
     {
         tile_static T sdata [WG_SIZE + SUBWAVE_SIZE / 2];
 
@@ -298,13 +298,13 @@ csrmv_vector(const hcsparseScalar* pAlpha,
 #define GLOBAL_SIZE WG_SIZE
     }
 
-    Concurrency::array_view<T> *avAlpha = static_cast<Concurrency::array_view<T> *>(pAlpha->value);
-    Concurrency::array_view<INDEX_TYPE> *avMatx_rowOffsets = static_cast<Concurrency::array_view<INDEX_TYPE> *>(pMatx->rowOffsets);
-    Concurrency::array_view<INDEX_TYPE> *avMatx_colIndices = static_cast<Concurrency::array_view<INDEX_TYPE> *>(pMatx->colIndices);
-    Concurrency::array_view<T> *avMatx_values = static_cast<Concurrency::array_view<T> *>(pMatx->values);
-    Concurrency::array_view<T> *avX_values = static_cast<Concurrency::array_view<T> *>(pX->values);
-    Concurrency::array_view<T> *avBeta = static_cast<Concurrency::array_view<T> *>(pBeta->value);
-    Concurrency::array_view<T> *avY_values = static_cast<Concurrency::array_view<T> *>(pY->values);
+    hc::array_view<T> *avAlpha = static_cast<hc::array_view<T> *>(pAlpha->value);
+    hc::array_view<INDEX_TYPE> *avMatx_rowOffsets = static_cast<hc::array_view<INDEX_TYPE> *>(pMatx->rowOffsets);
+    hc::array_view<INDEX_TYPE> *avMatx_colIndices = static_cast<hc::array_view<INDEX_TYPE> *>(pMatx->colIndices);
+    hc::array_view<T> *avMatx_values = static_cast<hc::array_view<T> *>(pMatx->values);
+    hc::array_view<T> *avX_values = static_cast<hc::array_view<T> *>(pX->values);
+    hc::array_view<T> *avBeta = static_cast<hc::array_view<T> *>(pBeta->value);
+    hc::array_view<T> *avY_values = static_cast<hc::array_view<T> *>(pY->values);
 
     csrmv_vector_kernel<T> (pMatx->num_rows, *avAlpha, pAlpha->offset(),
                          *avMatx_rowOffsets, *avMatx_colIndices, *avMatx_values,
@@ -316,14 +316,14 @@ csrmv_vector(const hcsparseScalar* pAlpha,
 
 template <typename T>
 void
-csrmv_adaptive_kernel(const Concurrency::array_view<T, 1> &vals,
-                      const Concurrency::array_view<INDEX_TYPE, 1> &cols,
-                      const Concurrency::array_view<INDEX_TYPE, 1> &rowPtrs,
-                      const Concurrency::array_view<T, 1> &vec,
-                      Concurrency::array_view<T, 1> &out,
-                      const Concurrency::array_view<INDEX_TYPE, 1> &rowBlocks,
-                      const Concurrency::array_view<T, 1> &pAlpha,
-                      const Concurrency::array_view<T, 1> &pBeta,
+csrmv_adaptive_kernel(const hc::array_view<T, 1> &vals,
+                      const hc::array_view<INDEX_TYPE, 1> &cols,
+                      const hc::array_view<INDEX_TYPE, 1> &rowPtrs,
+                      const hc::array_view<T, 1> &vec,
+                      hc::array_view<T, 1> &out,
+                      const hc::array_view<INDEX_TYPE, 1> &rowBlocks,
+                      const hc::array_view<T, 1> &pAlpha,
+                      const hc::array_view<T, 1> &pBeta,
                       const hcsparseControl *control)
 {
 }
@@ -355,14 +355,14 @@ csrmv_adaptive( const hcsparseScalar* pAlpha,
 #define GLOBAL_SIZE WG_SIZE
     }
 
-    Concurrency::array_view<T> *avCsrMatx_values = static_cast<Concurrency::array_view<T> *>(pCsrMatx->values);
-    Concurrency::array_view<INDEX_TYPE> *avColIndices = static_cast<Concurrency::array_view<INDEX_TYPE> *>(pCsrMatx->colIndices);
-    Concurrency::array_view<INDEX_TYPE> *avRowOffsets = static_cast<Concurrency::array_view<INDEX_TYPE> *>(pCsrMatx->rowOffsets);
-    Concurrency::array_view<T> *avX_values = static_cast<Concurrency::array_view<T> *>(pX->values);
-    Concurrency::array_view<T> *avY_values = static_cast<Concurrency::array_view<T> *>(pY->values);
-    Concurrency::array_view<INDEX_TYPE> *avRowBlocks = static_cast<Concurrency::array_view<INDEX_TYPE> *>(pCsrMatx->rowBlocks);
-    Concurrency::array_view<T> *avAlpha = static_cast<Concurrency::array_view<T> *>(pAlpha->value);
-    Concurrency::array_view<T> *avBeta = static_cast<Concurrency::array_view<T> *>(pBeta->value);
+    hc::array_view<T> *avCsrMatx_values = static_cast<hc::array_view<T> *>(pCsrMatx->values);
+    hc::array_view<INDEX_TYPE> *avColIndices = static_cast<hc::array_view<INDEX_TYPE> *>(pCsrMatx->colIndices);
+    hc::array_view<INDEX_TYPE> *avRowOffsets = static_cast<hc::array_view<INDEX_TYPE> *>(pCsrMatx->rowOffsets);
+    hc::array_view<T> *avX_values = static_cast<hc::array_view<T> *>(pX->values);
+    hc::array_view<T> *avY_values = static_cast<hc::array_view<T> *>(pY->values);
+    hc::array_view<INDEX_TYPE> *avRowBlocks = static_cast<hc::array_view<INDEX_TYPE> *>(pCsrMatx->rowBlocks);
+    hc::array_view<T> *avAlpha = static_cast<hc::array_view<T> *>(pAlpha->value);
+    hc::array_view<T> *avBeta = static_cast<hc::array_view<T> *>(pBeta->value);
 
     csrmv_adaptive_kernel<T> (*avCsrMatx_values, *avColIndices,
                            *avRowOffsets, *avX_values,

@@ -1,7 +1,7 @@
 #include <iostream>
 #include "../hcsparse.h"
-#include <amp.h>
-using namespace Concurrency;
+#include <hc.hpp>
+using namespace hc;
 
 int main(int argc, char *argv[])
 {
@@ -46,13 +46,13 @@ int main(int argc, char *argv[])
     matx.num_cols = n_cols;
     matx.num_nonzeros = n_vals;
 
-    Concurrency::array_view<double ,1> arr(matx.num_nonzeros);
+    array_view<double ,1> arr(matx.num_nonzeros);
     matx.values = &arr;
 
-    Concurrency::array_view<int ,1> arr1(matx.num_nonzeros);
+    array_view<int ,1> arr1(matx.num_nonzeros);
     matx.colIndices = &arr1;
 
-    Concurrency::array_view<int ,1> arr2(matx.num_rows + 1);
+    array_view<int ,1> arr2(matx.num_rows + 1);
     matx.rowOffsets = &arr2;
 
     status = hcsparseDCsrMatrixfromFile( &matx, (const char*)filePath.c_str( ), &control, no_zeroes );
@@ -61,7 +61,7 @@ int main(int argc, char *argv[])
 
     hcsparseCsrMetaSize( &matx, &control );
 
-    Concurrency::array_view<ulong ,1> arr0(matx.rowBlockSize);
+    array_view<ulong ,1> arr0(matx.rowBlockSize);
     matx.rowBlocks =  &arr0;
 
     hcsparseCsrMetaCompute( &matx, &control );
@@ -70,7 +70,7 @@ int main(int argc, char *argv[])
     if ( status != hcsparseSuccess )
         std::cout << " hcsparseInitScalar( alpha ) failed "<<std::endl;
 
-    Concurrency::array_view<double ,1> arr3(1);
+    array_view<double ,1> arr3(1);
     arr3[0] = alpha;
     halpha.value = &arr3;
 
@@ -78,7 +78,7 @@ int main(int argc, char *argv[])
     if ( status != hcsparseSuccess )
         std::cout << " hcsparseInitScalar( beta ) failed "<<std::endl;
 
-    Concurrency::array_view<double ,1> arr4(1);
+    array_view<double ,1> arr4(1);
     arr4[0] = beta;
     hbeta.value = &arr4;
 
@@ -86,7 +86,7 @@ int main(int argc, char *argv[])
     if ( status != hcsparseSuccess )
         std::cout << " hcsparseInitVector( x ) failed "<<std::endl;
 
-    Concurrency::array_view<double ,1> arr5(n_cols);
+    array_view<double ,1> arr5(n_cols);
     x.values = &arr5;
 
     x.num_values = n_cols;
@@ -95,7 +95,7 @@ int main(int argc, char *argv[])
     if ( status != hcsparseSuccess )
         std::cout << " hcsparseInitVector( y ) failed "<<std::endl;
 
-    Concurrency::array_view<double ,1> arr6(n_rows);
+    array_view<double ,1> arr6(n_rows);
     y.values = &arr6;
 
     y.num_values = n_rows;
@@ -104,7 +104,7 @@ int main(int argc, char *argv[])
     if ( status != hcsparseSuccess )
         std::cout << " hcsparseScsrmv failed "<<std::endl;
 
-    Concurrency::array_view<double ,1> *ydum = static_cast<Concurrency::array_view<double ,1 > *>(y.values);
+    array_view<double ,1> *ydum = static_cast<array_view<double ,1 > *>(y.values);
 
     ydum->synchronize();
 
