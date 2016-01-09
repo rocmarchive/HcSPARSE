@@ -22,6 +22,7 @@
 #include "transform/reduce-by-key.h"
 #include "transform/conversion-utils.h"
 #include "transform/hcsparse-coo2csr.h"
+#include "transform/hcsparse-csr2coo.h"
 
 int hcsparseInitialized = 0;
 
@@ -1228,7 +1229,6 @@ hcsparseScoo2csr (const hcsparseCooMatrix* coo,
         return hcsparseInvalid;
     }
 
-    //check opencl elements
     if (coo->values == nullptr || csr->values == nullptr)
     {
         return hcsparseInvalid;
@@ -1247,11 +1247,46 @@ hcsparseDcoo2csr (const hcsparseCooMatrix* coo,
         return hcsparseInvalid;
     }
 
-    //check opencl elements
     if (coo->values == nullptr || csr->values == nullptr)
     {
         return hcsparseInvalid;
     }
 
     return coo2csr<double> (coo, csr, control);
+}
+
+hcsparseStatus
+hcsparseScsr2coo(const hcsparseCsrMatrix* csr,
+                 hcsparseCooMatrix* coo,
+                 const hcsparseControl* control)
+{
+    if (!hcsparseInitialized)
+    {
+        return hcsparseInvalid;
+    }
+
+    if (csr->values == nullptr || coo->values == nullptr)
+    {
+        return hcsparseInvalid;
+    }
+    
+    return csr2coo<float> (csr, coo, control);
+}
+
+hcsparseStatus
+hcsparseDcsr2coo(const hcsparseCsrMatrix* csr,
+                 hcsparseCooMatrix* coo,
+                 const hcsparseControl* control)
+{
+    if (!hcsparseInitialized)
+    {
+        return hcsparseInvalid;
+    }
+
+    if (csr->values == nullptr || coo->values == nullptr)
+    {
+        return hcsparseInvalid;
+    }
+    
+    return csr2coo<double> (csr, coo, control);
 }
