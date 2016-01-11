@@ -1,6 +1,8 @@
 #include <hcsparse.h>
 #include <iostream>
-int main()
+#include "gtest/gtest.h"
+
+TEST(dot_float_test, func_check)
 {
     hcsparseScalar gR;
     hcdenseVector gX;
@@ -53,16 +55,9 @@ int main()
         host_res[0] += host_X[i] * host_Y[i];
     }
 
-    bool ispassed = 1;
     array_view<float> *av_res = static_cast<array_view<float> *>(gR.value);
-    if (host_res[0] != (*av_res)[0])
-    {
-        ispassed = 0;
-    }
-
-    std::cout << (ispassed?"TEST PASSED":"TEST FAILED") << std::endl;
+     
+    EXPECT_EQ(host_res[0], (*av_res)[0]);
 
     hcsparseTeardown();
-
-    return 0; 
 }

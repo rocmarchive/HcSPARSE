@@ -1,6 +1,8 @@
 #include <hcsparse.h>
 #include <iostream>
-int main(int argc, char *argv[])
+#include "gtest/gtest.h"
+
+TEST(csrmv_double_test, func_check)
 {
     hcsparseCsrMatrix gCsrMat;
     hcdenseVector gX;
@@ -13,13 +15,7 @@ int main(int argc, char *argv[])
 
     hcsparseControl control(accl_view);
 
-    if (argc != 2)
-    {
-        std::cout<<"Required mtx input file"<<std::endl;
-        return 0;
-    }
-
-    const char* filename = argv[1];
+    const char* filename = "input.mtx";
 
     int num_nonzero, num_row, num_col;
 
@@ -27,12 +23,6 @@ int main(int argc, char *argv[])
 
     status = hcsparseHeaderfromFile(&num_nonzero, &num_row, &num_col, filename);
     
-    if (status != hcsparseSuccess)
-    {
-        std::cout<<"The input file should be in mtx format"<<std::endl;
-        return 0;
-    }
- 
     double *host_res = (double*) calloc(num_row, sizeof(double));
     double *host_X = (double*) calloc(num_col, sizeof(double));
     double *host_Y = (double*) calloc(num_row, sizeof(double));
@@ -99,7 +89,7 @@ int main(int argc, char *argv[])
     if (status != hcsparseSuccess)
     {
         std::cout<<"The input file should be in mtx format"<<std::endl;
-        return 0;
+        exit (1);
     }
  
     hcsparseDcsrmv(&gAlpha, &gCsrMat, &gX, &gBeta, &gY, &control); 
@@ -120,20 +110,10 @@ int main(int argc, char *argv[])
 
     array_view<double> *av_res = static_cast<array_view<double> *>(gY.values);
 
-    bool isPassed = 1;  
-
     for (int i = 0; i < num_row; i++)
     {
-        if (host_res[i] != (*av_res)[i])
-        {
-            isPassed = 0;
-            break;
-        }
+        EXPECT_EQ(host_res[i], (*av_res)[i]);
     }
 
-    std::cout << (isPassed?"TEST PASSED":"TEST FAILED") << std::endl;
-
     hcsparseTeardown();
-
-    return 0; 
 }

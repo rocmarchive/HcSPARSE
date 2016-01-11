@@ -1,6 +1,8 @@
 #include <hcsparse.h>
 #include <iostream>
-int main(int argc, char *argv[])
+#include "gtest/gtest.h"
+
+TEST(cg_diagonal_float_test, func_check)
 {
     hcsparseCsrMatrix gA;
     hcdenseVector gX;
@@ -11,25 +13,13 @@ int main(int argc, char *argv[])
 
     hcsparseControl control(accl_view);
 
-    if (argc != 2)
-    {
-        std::cout<<"Required mtx input file"<<std::endl;
-        return 0;
-    }
-
-    const char* filename = argv[1];
+    const char* filename = "input.mtx";
 
     int num_nonzero, num_row, num_col;
 
     hcsparseStatus status;
 
     status = hcsparseHeaderfromFile(&num_nonzero, &num_row, &num_col, filename);
-
-    if (status != hcsparseSuccess)
-    {
-        std::cout<<"The input file should be in mtx format"<<std::endl;
-        return 0;
-    } 
 
     float *host_X = (float*) calloc(num_col, sizeof(float));
     float *host_B = (float*) calloc(num_row, sizeof(float));
@@ -83,7 +73,7 @@ int main(int argc, char *argv[])
     if (status != hcsparseSuccess)
     {
         std::cout<<"The input file should be in mtx format"<<std::endl;
-        return 0;
+        exit (1);
     }
 
     int maxIter = 1000;
@@ -97,6 +87,4 @@ int main(int argc, char *argv[])
     hcsparseScsrcg(&gX, &gA, &gB, solver_control, &control); 
 
     hcsparseTeardown();
-
-    return 0; 
 }

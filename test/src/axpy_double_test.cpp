@@ -1,6 +1,8 @@
 #include <hcsparse.h>
 #include <iostream>
-int main()
+#include "gtest/gtest.h"
+
+TEST(axpy_double_test, func_check)
 {
     hcsparseScalar gAlpha;
     hcdenseVector gR;
@@ -63,20 +65,10 @@ int main()
         host_res[i] = host_alpha[0] * host_X[i] + host_Y[i];
     }
 
-    bool ispassed = 1;
     array_view<double> *av_res = static_cast<array_view<double> *>(gR.values);
     for (int i = 0; i < num_elements; i++)
     {
-        if (host_res[i] != (*av_res)[i])
-        {
-            ispassed = 0;
-            break;
-        }
+        EXPECT_EQ(host_res[i], (*av_res)[i]);
     }
-
-    std::cout << (ispassed?"TEST PASSED":"TEST FAILED") << std::endl;
-
     hcsparseTeardown();
-
-    return 0; 
 }

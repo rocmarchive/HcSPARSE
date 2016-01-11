@@ -1,9 +1,8 @@
 #include <iostream>
-#include "../hcsparse.h"
-#include <hc.hpp>
-using namespace hc;
+#include "hcsparse.h"
+#include "gtest/gtest.h"
 
-int main(int argc, char *argv[])
+TEST(csrmv_test, func_check)
 {
     double alpha = 1.0;
     double beta = 1.0;
@@ -20,8 +19,10 @@ int main(int argc, char *argv[])
     hcsparseStatus status;
 
     status = hcsparseSetup();
-    if ( status != hcsparseSuccess )
+    if ( status != hcsparseSuccess ) {
         std::cout << " hcsparseSetup() failed "<<std::endl;
+        exit(1);
+    }
 
     accelerator acc = accelerator(accelerator::default_accelerator);
 
@@ -39,8 +40,10 @@ int main(int argc, char *argv[])
     status = hcsparseHeaderfromFile( &n_vals, &n_rows, &n_cols, filePath.c_str( ) );
 
     status = hcsparseInitCsrMatrix( &matx );
-    if ( status != hcsparseSuccess )
+    if ( status != hcsparseSuccess ) {
         std::cout << " hcsparseInitCsrMatrix( matx ) failed "<<std::endl;
+        exit(1);
+    }
 
     matx.num_rows = n_rows;
     matx.num_cols = n_cols;
@@ -112,5 +115,4 @@ int main(int argc, char *argv[])
     if ( status != hcsparseSuccess )
         std::cout << " hcsparseTeardown() "<<std::endl;
 
-    return 1;
 }

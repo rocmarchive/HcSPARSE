@@ -1,6 +1,8 @@
 #include <hcsparse.h>
 #include <iostream>
-int main(int argc, char *argv[])
+#include "gtest/gtest.h"
+
+TEST(bicgStab_noprecond_float_test, func_check)
 {
     hcsparseCsrMatrix gA;
     hcdenseVector gX;
@@ -11,13 +13,7 @@ int main(int argc, char *argv[])
 
     hcsparseControl control(accl_view);
 
-    if (argc != 2)
-    {
-        std::cout<<"Required mtx input file"<<std::endl;
-        return 0;
-    }
-
-    const char* filename = argv[1];
+    const char* filename = "input.mtx";
 
     int num_nonzero, num_row, num_col;
 
@@ -28,7 +24,7 @@ int main(int argc, char *argv[])
     if (status != hcsparseSuccess)
     {
         std::cout<<"The input file should be in mtx format"<<std::endl;
-        return 0;
+        exit (1);
     } 
 
     float *host_X = (float*) calloc(num_col, sizeof(float));
@@ -83,7 +79,7 @@ int main(int argc, char *argv[])
     if (status != hcsparseSuccess)
     {
         std::cout<<"The input file should be in mtx format"<<std::endl;
-        return 0;
+        exit (1);
     }
 
     int maxIter = 100;
@@ -98,5 +94,4 @@ int main(int argc, char *argv[])
 
     hcsparseTeardown();
 
-    return 0; 
 }

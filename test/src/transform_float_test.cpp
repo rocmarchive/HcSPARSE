@@ -1,6 +1,8 @@
 #include <hcsparse.h>
 #include <iostream>
-int main()
+#include "gtest/gtest.h"
+
+TEST(transform_float_test, func_check)
 {
     hcdenseVector gR;
     hcdenseVector gX;
@@ -91,33 +93,9 @@ int main()
         array_view<float> *av_res = static_cast<array_view<float> *>(gR.values);
         for (int i = 0; i < num_elements; i++)
         {
-            if (host_res[i] != (*av_res)[i])
-            {
-                switch(j)
-                {
-                    case 0:
-                        std::cout << "ADD TEST FAILED" << std::endl;
-                        break;
-                    case 1:
-                        std::cout << "SUB TEST FAILED" << std::endl;
-                        break;
-                    case 2:
-                        std::cout << "MUL TEST FAILED" << std::endl;
-                        break;
-                    case 3:
-                        std::cout << "DIV TEST FAILED" << std::endl;
-                        break;
-                }
-                ispassed = 0;
-                break;
-            }
+             EXPECT_EQ(host_res[i], (*av_res)[i]);
         }
     }
 
-    if (ispassed)
-        std::cout << "TEST PASSED" << std::endl;
-
     hcsparseTeardown();
-
-    return 0; 
 }
