@@ -23,6 +23,7 @@
 #include "transform/conversion-utils.h"
 #include "transform/hcsparse-coo2csr.h"
 #include "transform/hcsparse-csr2coo.h"
+#include "transform/hcsparse-csr2dense.h"
 
 int hcsparseInitialized = 0;
 
@@ -1289,4 +1290,22 @@ hcsparseDcsr2coo(const hcsparseCsrMatrix* csr,
     }
     
     return csr2coo<double> (csr, coo, control);
+}
+
+hcsparseStatus
+hcsparseScsr2dense(const hcsparseCsrMatrix* csr,
+                   hcdenseMatrix* A,
+                   const hcsparseControl* control)
+{
+    if (!hcsparseInitialized)
+    {
+        return hcsparseInvalid;
+    }
+
+    if (csr->values == nullptr)
+    {
+        return hcsparseInvalid;
+    }
+
+    return csr2dense<float> (csr, A, control);
 }
