@@ -981,7 +981,7 @@
     hcsparseStatus
         hcsparseDcsr2dense( const hcsparseCsrMatrix* csr,
                             hcdenseMatrix* A,
-                            hcsparseControl *control );
+                            const hcsparseControl *control );
 
     /*!
      * \brief Convert a single precision dense matrix into a CSR encoded sparse matrix

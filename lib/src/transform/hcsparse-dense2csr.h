@@ -37,7 +37,7 @@ dense2csr(const hcdenseMatrix* A,
 
     int* colInd_buf = (int*) calloc (num_nonzeros, sizeof(int));
     int* rowInd_buf = (int*) calloc (num_nonzeros, sizeof(int));
-    T* val_buf = (T*) calloc (num_nonzeros, sizeof(int));
+    T* val_buf = (T*) calloc (num_nonzeros, sizeof(T));
 
     Concurrency::array_view<int> colInd(num_nonzeros, colInd_buf);
     Concurrency::array_view<int> rowInd(num_nonzeros, rowInd_buf);
