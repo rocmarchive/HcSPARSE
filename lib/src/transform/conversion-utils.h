@@ -58,9 +58,9 @@ offsets_to_indices(const int num_rows,
     int global_work_size = GROUP_SIZE * ((predicted + GROUP_SIZE - 1 ) / GROUP_SIZE);
 
     Concurrency::extent<1> grdExt(global_work_size);
-    Concurrency::tiled_extent<BLOCK_SIZE> t_ext(grdExt);
+    Concurrency::tiled_extent<GROUP_SIZE> t_ext(grdExt);
 
-    Concurrency::parallel_for_each(control->accl_view, t_ext, [=] (Concurrency::tiled_index<BLOCK_SIZE> tidx) restrict(amp)
+    Concurrency::parallel_for_each(control->accl_view, t_ext, [=] (Concurrency::tiled_index<GROUP_SIZE> tidx) restrict(amp)
     {
         const int global_id   = tidx.global[0];         
         const int local_id    = tidx.local[0];          
@@ -113,9 +113,9 @@ transform_csr_2_dense(int size,
     int global_work_size = GROUP_SIZE * ((predicted + GROUP_SIZE - 1 ) / GROUP_SIZE);
 
     Concurrency::extent<1> grdExt(global_work_size);
-    Concurrency::tiled_extent<BLOCK_SIZE> t_ext(grdExt);
+    Concurrency::tiled_extent<GROUP_SIZE> t_ext(grdExt);
 
-    Concurrency::parallel_for_each(control->accl_view, t_ext, [=] (Concurrency::tiled_index<BLOCK_SIZE> tidx) restrict(amp)
+    Concurrency::parallel_for_each(control->accl_view, t_ext, [=] (Concurrency::tiled_index<GROUP_SIZE> tidx) restrict(amp)
     {
         const int global_id   = tidx.global[0];
         const int local_id    = tidx.local[0]; 
@@ -128,6 +128,100 @@ transform_csr_2_dense(int size,
             const int row_end   = row_offsets[row+1];
             for(int j = row_start + thread_lane; j < row_end; j += subwave_size)
                 A[row * num_cols + col_indices[j]] = values[j];
+        }
+    });
+
+    return hcsparseSuccess;
+}
+
+template <typename T>
+hcsparseStatus
+calculate_num_nonzeros(int dense_size,
+                       const Concurrency::array_view<T> &A,
+                       Concurrency::array_view<int> &nnz_locations,
+                       int& num_nonzeros,
+                       const hcsparseControl* control)
+{
+    int global_work_size = 0;
+
+    if (dense_size % GROUP_SIZE == 0)
+        global_work_size = dense_size;
+    else
+        global_work_size = dense_size / GROUP_SIZE * GROUP_SIZE + GROUP_SIZE;
+
+    if (dense_size < GROUP_SIZE) global_work_size = GROUP_SIZE;
+
+    Concurrency::extent<1> grdExt(global_work_size);
+    Concurrency::tiled_extent<GROUP_SIZE> t_ext(grdExt);
+
+    Concurrency::parallel_for_each(control->accl_view, t_ext, [=] (Concurrency::tiled_index<GROUP_SIZE> tidx) restrict(amp)
+    {
+        int index = tidx.global[0];
+        if (index < dense_size)
+        {
+            if (A[index] != 0)
+                nnz_locations[index] = 1;
+            else
+                nnz_locations[index] = 0;
+        }
+    });
+
+    int* nnz_buf = (int*) calloc (1, sizeof(int));
+    Concurrency::array_view<int> av_nnz(1, nnz_buf);
+ 
+    hcsparseScalar nnz;
+    nnz.value = &av_nnz;
+    nnz.offValue = 0;
+
+    hcdenseVector nnz_location_vec;
+    nnz_location_vec.num_values = dense_size;
+    nnz_location_vec.values = &nnz_locations;
+    nnz_location_vec.offValues = 0;
+
+    reduce<int, RO_PLUS>(&nnz, &nnz_location_vec, control);
+
+    num_nonzeros = av_nnz[0];
+
+    free(nnz_buf);
+    return hcsparseSuccess;
+}
+
+
+template<typename T>
+hcsparseStatus
+dense_to_coo(int dense_size,
+             int num_cols,
+             Concurrency::array_view<int> &row_indices,
+             Concurrency::array_view<int> &col_indices,
+             Concurrency::array_view<T> &values,
+             const Concurrency::array_view<T> &A,
+             const Concurrency::array_view<int> &nnz_locations,
+             const Concurrency::array_view<int> &coo_indexes,
+             const hcsparseControl* control)
+{
+    int global_work_size = 0;
+
+    if (dense_size % GROUP_SIZE == 0)
+        global_work_size = dense_size;
+    else
+        global_work_size = dense_size / GROUP_SIZE * GROUP_SIZE + GROUP_SIZE;
+
+    if (dense_size < GROUP_SIZE) global_work_size = GROUP_SIZE;
+
+    Concurrency::extent<1> grdExt(global_work_size);
+    Concurrency::tiled_extent<GROUP_SIZE> t_ext(grdExt);
+
+    Concurrency::parallel_for_each(control->accl_view, t_ext, [=] (Concurrency::tiled_index<GROUP_SIZE> tidx) restrict(amp)
+    {
+        int index = tidx.global[0];
+        if (nnz_locations[index] == 1 && index < dense_size)
+        {
+            int row_index = index / num_cols;
+            int col_index = index % num_cols; 
+            int location = coo_indexes[index];
+            row_indices[ location ] = row_index;
+            col_indices[ location ] = col_index;
+            values [ location ] = A[index];
         }
     });
 

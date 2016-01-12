@@ -24,6 +24,7 @@
 #include "transform/hcsparse-coo2csr.h"
 #include "transform/hcsparse-csr2coo.h"
 #include "transform/hcsparse-csr2dense.h"
+#include "transform/hcsparse-dense2csr.h"
 
 int hcsparseInitialized = 0;
 
@@ -1308,4 +1309,58 @@ hcsparseScsr2dense(const hcsparseCsrMatrix* csr,
     }
 
     return csr2dense<float> (csr, A, control);
+}
+
+hcsparseStatus
+hcsparseDcsr2dense(const hcsparseCsrMatrix* csr,
+                   hcdenseMatrix* A,
+                   const hcsparseControl* control)
+{
+    if (!hcsparseInitialized)
+    {
+        return hcsparseInvalid;
+    }
+
+    if (csr->values == nullptr)
+    {
+        return hcsparseInvalid;
+    }
+
+    return csr2dense<double> (csr, A, control);
+}
+
+hcsparseStatus
+hcsparseSdense2csr(const hcdenseMatrix* A, 
+                   hcsparseCsrMatrix* csr,
+                   const hcsparseControl* control)
+{
+    if (!hcsparseInitialized)
+    {
+        return hcsparseInvalid;
+    }
+
+    if (csr->values == nullptr)
+    {
+        return hcsparseInvalid;
+    }
+
+    return dense2csr<float> (A, csr, control);
+}
+
+hcsparseStatus
+hcsparseDdense2csr(const hcdenseMatrix* A, 
+                   hcsparseCsrMatrix* csr,
+                   const hcsparseControl* control)
+{
+    if (!hcsparseInitialized)
+    {
+        return hcsparseInvalid;
+    }
+
+    if (csr->values == nullptr)
+    {
+        return hcsparseInvalid;
+    }
+ 
+    return dense2csr<double> (A, csr, control);
 }
