@@ -36,8 +36,8 @@ SET (TESTSRCS
      cg_diagonal_double_test.cpp
      cg_noprecond_float_test.cpp
      cg_noprecond_double_test.cpp
-     dense2csr_float_test.cpp
-     dense2csr_double_test.cpp
+     csr_dense_conv_float_test.cpp
+     csr_dense_conv_double_test.cpp
     )
 
 IF(WIN32)
