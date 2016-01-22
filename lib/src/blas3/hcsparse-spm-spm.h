@@ -11,8 +11,490 @@
 #define MERGEPATH_GLOBAL    2
 #define MERGELIST_INITSIZE 256
 #define BHSPARSE_SUCCESS 0
+#define mergebuffer_size_local 2304
  
 int statistics(int *_h_csrRowPtrCt, int *_h_counter, int *_h_counter_one, int *_h_counter_sum, int *_h_queue_one, int _m);
+
+template <typename T>
+inline
+void binarysearch(int   *s_key,
+                  T     *s_val,
+                  int   key_input,
+                  T     val_input,
+                  int   merged_size,
+                  bool  *is_new_col) restrict (amp)
+{
+    int start = 0;
+    int stop  = merged_size - 1;
+    int median;
+    int key_median;
+    while (stop >= start)
+    {
+        median = (stop + start) / 2;
+        key_median = s_key[median];
+        
+        if (key_input > key_median)
+            start = median + 1;
+        else if (key_input < key_median)
+            stop = median - 1;
+        else
+        {
+            // atomicAdd is not needed since duplicate is not existed in each input row
+            s_val[median] += val_input;
+            *is_new_col = 0;
+            break;
+        }
+    }
+}
+
+template <typename T>
+inline
+void binarysearch_sub(int   *s_key,
+                      T     *s_val,
+                      int   key_input,
+                      T     val_input,
+                      int   merged_size) restrict (amp)
+{
+    int start = 0;
+    int stop  = merged_size - 1;
+    int median;
+    int key_median;
+    while (stop >= start)
+    {
+        median = (stop + start) / 2;
+        key_median = s_key[median];
+        if (key_input > key_median)
+            start = median + 1;
+        else if (key_input < key_median)
+            stop = median - 1;
+        else
+        {
+            // atomicAdd is not needed since duplicate is not existed in each input row
+            s_val[median] -= val_input;
+            break;
+        }
+    }
+}
+
+template <typename T>
+inline
+void binarysearch_global(Concurrency::array_view<int> &d_key,
+                         Concurrency::array_view<T> &d_val,
+                         int            key_input,
+                         T          val_input,
+                         int            merged_size,
+                         bool          *is_new_col) restrict (amp)
+{
+    int start = 0;
+    int stop  = merged_size - 1;
+    int median;
+    int key_median;
+    while (stop >= start)
+    {
+        median = (stop + start) / 2;
+        key_median = d_key[median];
+        if (key_input > key_median)
+            start = median + 1;
+        else if (key_input < key_median)
+            stop = median - 1;
+        else
+        {
+            // atomicAdd is not needed since duplicate is not existed in each input row
+            d_val[median] += val_input;
+            *is_new_col = 0;
+            break;
+        }
+    }
+}
+
+template <typename T>
+inline
+void binarysearch_global_sub(Concurrency::array_view<int> &d_key,
+                             Concurrency::array_view<T> &d_val,
+                             int            key_input,
+                             T          val_input,
+                             int            merged_size) restrict (amp)
+{
+    int start = 0;
+    int stop  = merged_size - 1;
+    int median;
+    int key_median;
+    while (stop >= start)
+    {
+        median = (stop + start) / 2;
+        key_median = d_key[median];
+        if (key_input > key_median)
+            start = median + 1;
+        else if (key_input < key_median)
+            stop = median - 1;
+        else
+        {
+            // atomicAdd is not needed since duplicate is not existed in each input row
+            d_val[median] -= val_input;
+            break;
+        }
+    }
+}
+
+inline
+void scan_256(Concurrency::tiled_index<GROUPSIZE_256> &tidx,
+              int  *s_scan,
+              const int      local_id) restrict (amp)
+{
+    int ai, bi;
+    int baseai = 1 + 2 * local_id;
+    int basebi = baseai + 1;
+    int temp;
+    if (local_id < 128) { ai = baseai - 1;     bi = basebi - 1;     s_scan[bi] += s_scan[ai]; }
+    tidx.barrier.wait();
+    if (local_id < 64) { ai =  2 * baseai - 1;  bi =  2 * basebi - 1;   s_scan[bi] += s_scan[ai]; }
+    tidx.barrier.wait();
+    if (local_id < 32) { ai =  4 * baseai - 1;  bi =  4 * basebi - 1;   s_scan[bi] += s_scan[ai]; }
+    tidx.barrier.wait();
+    if (local_id < 16) { ai =  8 * baseai - 1;  bi =  8 * basebi - 1;   s_scan[bi] += s_scan[ai]; }
+    tidx.barrier.wait();
+    if (local_id < 8)  { ai = 16 * baseai - 1;  bi = 16 * basebi - 1;   s_scan[bi] += s_scan[ai]; }
+    tidx.barrier.wait();
+    if (local_id < 4)  { ai = 32 * baseai - 1;  bi = 32 * basebi - 1;   s_scan[bi] += s_scan[ai]; }
+    if (local_id < 2)  { ai = 64 * baseai - 1;  bi = 64 * basebi - 1;   s_scan[bi] += s_scan[ai]; }
+    if (local_id == 0) { s_scan[255] += s_scan[127]; s_scan[256] = s_scan[255]; s_scan[255] = 0; temp = s_scan[127]; s_scan[127] = 0; s_scan[255] += temp; }
+    if (local_id < 2)  { ai = 64 * baseai - 1;  bi = 64 * basebi - 1;   temp = s_scan[ai]; s_scan[ai] = s_scan[bi]; s_scan[bi] += temp;}
+    if (local_id < 4)  { ai = 32 * baseai - 1;  bi = 32 * basebi - 1;   temp = s_scan[ai]; s_scan[ai] = s_scan[bi]; s_scan[bi] += temp;}
+    if (local_id < 8)  { ai = 16 * baseai - 1;  bi = 16 * basebi - 1;   temp = s_scan[ai]; s_scan[ai] = s_scan[bi]; s_scan[bi] += temp;}
+    tidx.barrier.wait();
+    if (local_id < 16) { ai =  8 * baseai - 1;  bi =  8 * basebi - 1;   temp = s_scan[ai]; s_scan[ai] = s_scan[bi]; s_scan[bi] += temp;}
+    tidx.barrier.wait();
+    if (local_id < 32) { ai =  4 * baseai - 1;  bi =  4 * basebi - 1;   temp = s_scan[ai]; s_scan[ai] = s_scan[bi]; s_scan[bi] += temp;}
+    tidx.barrier.wait();
+    if (local_id < 64) { ai =  2 * baseai - 1;  bi =  2 * basebi - 1;   temp = s_scan[ai]; s_scan[ai] = s_scan[bi]; s_scan[bi] += temp;}
+    tidx.barrier.wait();
+    if (local_id < 128) { ai = baseai - 1;   bi = basebi - 1;   temp = s_scan[ai]; s_scan[ai] = s_scan[bi]; s_scan[bi] += temp; }
+}
+
+inline
+int y_pos(const int x_pos,
+          const int b_length,
+          const int offset)
+{
+    int pos = b_length - (x_pos + b_length - offset);
+    return pos > b_length ? b_length : pos;
+}
+
+inline
+int mergepath_partition_liu(int   *s_a_key,
+                            const int      a_length,
+                            int   *s_b_key,
+                            const int      b_length,
+                            const int      offset)
+{
+    int x_start = offset > b_length ? offset - b_length : 0;
+    int x_stop  = offset > a_length ? a_length : offset;
+    
+    int x_median;
+    
+    while (x_stop >= x_start)
+    {
+        x_median = (x_stop + x_start) / 2;
+        
+        if (s_a_key[x_median] > s_b_key[y_pos(x_median, b_length, offset) - 1])
+        {
+            if (s_a_key[x_median - 1] < s_b_key[y_pos(x_median, b_length, offset)])
+            {
+                break;
+            }
+            else
+            {
+                x_stop = x_median - 1;
+            }
+        }
+        else
+        {
+            x_start = x_median + 1;
+        }
+    }
+    
+    return x_median;
+}
+
+template <typename T>
+inline
+void mergepath_serialmerge_liu(int          *s_a_key,
+                               T           *s_a_val,
+                               const int             a_length,
+                               int          *s_b_key,
+                               T           *s_b_val,
+                               const int             b_length,
+                               int                  *reg_key,
+                               T                   *reg_val)
+{
+    int a_pointer = 0;
+    int b_pointer = 0;
+    
+    for (int c_pointer = 0; c_pointer < a_length + b_length; c_pointer++)
+    {
+        if (a_pointer < a_length && (b_pointer >= b_length || s_a_key[a_pointer] <= s_b_key[b_pointer]))
+        {
+            reg_key[c_pointer] = s_a_key[a_pointer];
+            reg_val[c_pointer] = s_a_val[a_pointer];
+            a_pointer += 1;
+        }
+        else
+        {
+            reg_key[c_pointer] = s_b_key[b_pointer];
+            reg_val[c_pointer] = s_b_val[b_pointer];
+            b_pointer += 1;
+        }
+    }
+}
+
+template <typename T>
+inline
+void mergepath_liu(Concurrency::tiled_index<GROUPSIZE_256> &tidx,
+                   int          *s_a_key,
+                   T               *s_a_val,
+                   const int                 a_length,
+                   int              *s_b_key,
+                   T               *s_b_val,
+                   const int                 b_length,
+                   int             *s_a_border,
+                   int             *s_b_border,
+                   int                      *reg_key,
+                   T                       *reg_val) restrict (amp)
+{
+    if (b_length == 0)
+        return;
+    if (s_a_key[a_length-1] < s_b_key[0])
+        return;
+    int local_id = tidx.local[0];
+    int local_size = tidx.tile_dim0;
+    int delta = Concurrency::fast_math::ceil((float)(a_length + b_length) / (float)local_size);
+    int active_threads = Concurrency::fast_math::ceil((float)(a_length + b_length) / (float)delta);
+    int offset = delta * local_id;
+    int a_start, a_stop, b_start, b_stop;
+    if (!local_id)
+    {
+        s_a_border[active_threads] = a_length;
+        s_b_border[active_threads] = b_length;
+    }
+    if (local_id < active_threads)
+    {
+        s_a_border[local_id] = a_start = mergepath_partition_liu(s_a_key, a_length, s_b_key, b_length, offset);
+        s_b_border[local_id] = b_start = y_pos(s_a_border[local_id], b_length, offset);
+    }
+    tidx.barrier.wait();
+    if (local_id < active_threads)
+    {
+        a_stop = s_a_border[local_id+1];
+        b_stop = s_b_border[local_id+1];
+    }
+    if (local_id < active_threads)
+    {
+        mergepath_serialmerge_liu<T> (&s_a_key[a_start],
+                                  &s_a_val[a_start],
+                                  a_stop - a_start,
+                                  &s_b_key[b_start],
+                                  &s_b_val[b_start],
+                                  b_stop - b_start,
+                                  reg_key, reg_val);
+    }
+    tidx.barrier.wait();
+    if (local_id < active_threads)
+    {
+        for (int is = 0; is < (a_stop - a_start) + (b_stop - b_start); is++)
+        {
+            s_a_key[offset + is] = reg_key[is];
+            s_a_val[offset + is] = reg_val[is];
+        }
+    }
+    tidx.barrier.wait();
+}
+
+inline
+int mergepath_partition_global_liu(Concurrency::array_view<int> &s_a_key,
+                                   const int      a_length,
+                                   Concurrency::array_view<int> &s_b_key,
+                                   const int      b_length,
+                                   const int      offset) restrict (amp)
+{
+    int x_start = offset > b_length ? offset - b_length : 0;
+    int x_stop  = offset > a_length ? a_length : offset;
+    int x_median;
+    while (x_stop >= x_start)
+    {
+        x_median = (x_stop + x_start) / 2;
+        
+        if (s_a_key[x_median] > s_b_key[y_pos(x_median, b_length, offset) - 1])
+        {
+            if (s_a_key[x_median - 1] < s_b_key[y_pos(x_median, b_length, offset)])
+            {
+                break;
+            }
+            else
+            {
+                x_stop = x_median - 1;
+            }
+        }
+        else
+        {
+            x_start = x_median + 1;
+        }
+    }
+    return x_median;
+}
+
+template <typename T>
+inline
+void mergepath_global_2level_liu(Concurrency::tiled_index<GROUPSIZE_256> &tidx,
+                                 Concurrency::array_view<int> &s_a_key,
+                                 Concurrency::array_view<T> &s_a_val,
+                                 const int                 a_length,
+                                 Concurrency::array_view<int> &s_b_key,
+                                 Concurrency::array_view<T> &s_b_val,
+                                 const int                 b_length,
+                                 int             *s_a_border,
+                                 int             *s_b_border,
+                                 int                      *reg_key,
+                                 T                       *reg_val,
+                                 int             *s_key,
+                                 T              *s_val,
+                                 Concurrency::array_view<int> &d_temp_key,
+                                 Concurrency::array_view<T> &d_temp_val) restrict (amp)
+{
+    if (b_length == 0)
+        return;
+    if (s_a_key[a_length-1] < s_b_key[0])
+        return;
+    int local_id = tidx.local[0];
+    int local_size = tidx.tile_dim0;
+    int delta_2level = local_size * 9;
+    int loop_2level = Concurrency::fast_math::ceil((float)(a_length + b_length) / (float)delta_2level);
+    int a_border_2level_l, b_border_2level_l, a_border_2level_r, b_border_2level_r;
+    for (int i = 0; i < loop_2level; i++)
+    {
+        // compute `big' borders
+        int offset_2level = delta_2level * i;
+        a_border_2level_l = i == 0 ? 0 : a_border_2level_r;
+        b_border_2level_l = i == 0 ? 0 : b_border_2level_r;
+        int offset_2level_next = delta_2level * (i + 1);
+        if (i == (loop_2level - 1)){
+            a_border_2level_r = a_length;
+            b_border_2level_r = b_length;
+        }
+        else
+        {
+           s_a_border[local_id] = a_border_2level_r = local_id < 64 ? mergepath_partition_global_liu(s_a_key, a_length, s_b_key, b_length, offset_2level_next) : 0;
+           tidx.barrier.wait();
+           a_border_2level_r = local_id < 64 ? a_border_2level_r : s_a_border[local_id % 64];
+           b_border_2level_r = y_pos(a_border_2level_r, b_length, offset_2level_next);
+        }
+        //barrier(CLK_GLOBAL_MEM_FENCE);
+        // load entries in the borders
+        int a_size = a_border_2level_r - a_border_2level_l;
+        int b_size = b_border_2level_r - b_border_2level_l;
+        for (int j = local_id; j < a_size; j += local_size)
+        {
+            s_key[j] = s_a_key[a_border_2level_l + j];
+            s_val[j] = s_a_val[a_border_2level_l + j];
+        }
+        for (int j = local_id; j < b_size; j += local_size)
+        {
+            s_key[a_size + j] = s_b_key[b_border_2level_l + j];
+            s_val[a_size + j] = s_b_val[b_border_2level_l + j];
+        }
+        tidx.barrier.wait();
+        // merge path in local mem
+        mergepath_liu<T> (tidx, s_key, s_val, a_size,
+                      &s_key[a_size], &s_val[a_size], b_size,
+                      s_a_border, s_b_border, reg_key, reg_val);
+        tidx.barrier.wait();
+        // dump the merged part to device mem (temp)
+        for (int j = local_id; j < a_size + b_size; j += local_size)
+        {
+            d_temp_key[offset_2level + j] = s_key[j];
+            d_temp_val[offset_2level + j] = s_val[j];
+        }
+        tidx.barrier.wait();
+    }
+    // dump the temp data to the target place, both in device mem
+    for (int j = local_id; j < a_length + b_length; j += local_size)
+    {
+        s_a_key[j] = d_temp_key[j];
+        s_a_val[j] = d_temp_val[j];
+    }
+    tidx.barrier.wait();
+}
+
+template <typename T>
+inline
+void readwrite_mergedlist_global(Concurrency::tiled_index<GROUPSIZE_256> &tidx,
+                                 const Concurrency::array_view<int> &d_csrColIndCt,
+                                 const Concurrency::array_view<T> &d_csrValCt,
+                                 Concurrency::array_view<int> &d_key_merged,
+                                 Concurrency::array_view<T> &d_val_merged,
+                                 const int       merged_size,
+                                 const int       row_offset,
+                                 const bool      is_write) restrict (amp)
+{
+    int local_id = tidx.local[0];
+    int local_size = tidx.tile_dim0;
+    int stride, offset_local_id, global_offset;
+    int loop = Concurrency::fast_math::ceil((float)merged_size / (float)local_size);
+    for (int i = 0; i < loop; i++)
+    {
+        stride = i != loop - 1 ? local_size : merged_size - i * local_size;
+        offset_local_id = i * local_size + local_id;
+        global_offset = row_offset + offset_local_id;
+        if (local_id < stride)
+        {
+            if (is_write)
+            {
+                d_csrColIndCt[global_offset] = d_key_merged[offset_local_id];
+                d_csrValCt[global_offset]    = d_val_merged[offset_local_id];
+            }
+            else
+            {
+                d_key_merged[offset_local_id] = d_csrColIndCt[global_offset];
+                d_val_merged[offset_local_id] = d_csrValCt[global_offset];
+            }
+        }
+    }
+}
+
+template <typename T>
+inline
+void readwrite_mergedlist(Concurrency::tiled_index<GROUPSIZE_256> &tidx, 
+                          Concurrency::array_view<int> &d_csrColIndCt,
+                          Concurrency::array_view<T> &d_csrValCt,
+                          int *s_key_merged,
+                          T *s_val_merged,
+                          const int       merged_size,
+                          const int       row_offset,
+                          const bool      is_write) restrict (amp)
+{
+    int local_id = tidx.local[0];
+    int local_size = tidx.tile_dim0;
+    int stride, offset_local_id, global_offset;
+    int loop = Concurrency::fast_math::ceil((float)merged_size / (float)local_size);
+    for (int i = 0; i < loop; i++)
+    {
+        stride = i != loop - 1 ? local_size : merged_size - i * local_size;
+        offset_local_id = i * local_size + local_id;
+        global_offset = row_offset + offset_local_id;
+        if (local_id < stride)
+        {
+            if (is_write)
+            {
+                d_csrColIndCt[global_offset] = s_key_merged[offset_local_id];
+                d_csrValCt[global_offset]    = s_val_merged[offset_local_id];
+            }
+            else
+            {
+                s_key_merged[offset_local_id] = d_csrColIndCt[global_offset];
+                s_val_merged[offset_local_id] = d_csrValCt[global_offset];
+            }
+        }
+    }
+}
 
 template <typename T>
 inline
@@ -220,11 +702,31 @@ void bitonicsort(Concurrency::tiled_index<GROUPSIZE_256> &tidx,
     }
 }
 
+template <typename T>
 inline
-void scan_512(Concurrency::tiled_index<GROUPSIZE_256> &tidx,
-              int *s_scan)
+void compression_scan(Concurrency::tiled_index<GROUPSIZE_256> &tidx,
+                      int *s_scan,
+                      int *s_key,
+                      T   *s_val,
+                      const int       local_counter,
+                      const int       local_size,
+                      const int       local_id,
+                      const int       local_id_halfwidth) restrict (amp)
 {
-    int local_id = tidx.local[0];
+    // compression - prefix sum
+    bool duplicate = 1;
+    bool duplicate_halfwidth = 1;
+    // generate bool value in registers
+    if (local_id < local_counter && local_id > 0)
+        duplicate = (s_key[local_id] != s_key[local_id - 1]);
+    if (local_id_halfwidth < local_counter)
+        duplicate_halfwidth = (s_key[local_id_halfwidth] != s_key[local_id_halfwidth - 1]);
+    // copy bool values from register to local memory (s_scan)
+    s_scan[local_id]                    = duplicate;
+    s_scan[local_id_halfwidth]          = duplicate_halfwidth;
+    tidx.barrier.wait();
+
+    // in-place exclusive prefix-sum scan on s_scan
     int ai, bi;
     int baseai = 1 + 2 * local_id;
     int basebi = baseai + 1;
@@ -253,34 +755,8 @@ void scan_512(Concurrency::tiled_index<GROUPSIZE_256> &tidx,
     if (local_id < 128) { ai =  2 * baseai - 1;  bi =  2 * basebi - 1;   temp = s_scan[ai]; s_scan[ai] = s_scan[bi]; s_scan[bi] += temp;}
     tidx.barrier.wait();
     ai = baseai - 1;   bi = basebi - 1;   temp = s_scan[ai]; s_scan[ai] = s_scan[bi]; s_scan[bi] += temp;
-}
+    tidx.barrier.wait();
 
-template <typename T>
-inline
-void compression_scan(Concurrency::tiled_index<GROUPSIZE_256> &tidx,
-                      int *s_scan,
-                      int *s_key,
-                      T   *s_val,
-                      const int       local_counter,
-                      const int       local_size,
-                      const int       local_id,
-                      const int       local_id_halfwidth) restrict (amp)
-{
-    // compression - prefix sum
-    bool duplicate = 1;
-    bool duplicate_halfwidth = 1;
-    // generate bool value in registers
-    if (local_id < local_counter && local_id > 0)
-        duplicate = (s_key[local_id] != s_key[local_id - 1]);
-    if (local_id_halfwidth < local_counter)
-        duplicate_halfwidth = (s_key[local_id_halfwidth] != s_key[local_id_halfwidth - 1]);
-    // copy bool values from register to local memory (s_scan)
-    s_scan[local_id]                    = duplicate;
-    s_scan[local_id_halfwidth]          = duplicate_halfwidth;
-    tidx.barrier.wait();
-    // in-place exclusive prefix-sum scan on s_scan
-//    scan_512(tidx, s_scan);
-    tidx.barrier.wait();
     // compute final position and final value in registers
     int   move_pointer;
     int   final_position, final_position_halfwidth;
@@ -640,27 +1116,166 @@ hcsparseStatus compute_nnzC_Ct_mergepath(int num_blocks, int j, int mergebuffer_
                                          int *_nnzCt, int m, int *_h_queue_one, 
                                          const hcsparseControl* control)
 {
-    //cl::Kernel kernel1  = KernelCache::get(control->queue,"SpGEMM_EM_kernels", "EM_mergepath", params);
-    //cl::Kernel kernel2  = KernelCache::get(control->queue,"SpGEMM_EM_kernels", "EM_mergepath_global", params);
-    
     size_t szLocalWorkSize;
     size_t szGlobalWorkSize;
     
     szLocalWorkSize  = GROUPSIZE_256;
     szGlobalWorkSize = num_blocks * szLocalWorkSize;
     
-       //int mergebuffer_size_local = 2304;
-    
-       //kWrapper2 << queue_one << csrRowPtrA << csrColIndA << csrValA << csrRowPtrB << csrColIndB << csrValB << csrRowPtrC
-         //                 << csrRowPtrCt << *csrColIndCt <<  *csrValCt << cl::__local((mergebuffer_size_local) * sizeof(int)) << cl::__local((mergebuffer_size_local) * sizeof(float)) << cl::__local(( num_threads+1) * sizeof(short)) << position << mergebuffer_size_local << cl::__local(sizeof(cl_int)   * (num_threads + 1)) << cl::__local(sizeof(cl_int)   * (num_threads + 1));
-
-
-/*    Concurrency::extent<1> grdExt(szGlobalWorkSize);
+    Concurrency::extent<1> grdExt(szGlobalWorkSize);
     Concurrency::tiled_extent<GROUPSIZE_256> t_ext(grdExt);
     Concurrency::parallel_for_each(control->accl_view, t_ext, [=] (Concurrency::tiled_index<GROUPSIZE_256> tidx) restrict(amp)
     {
+        tile_static int s_key_merged_l1[mergebuffer_size_local];
+        tile_static T s_val_merged_l1[mergebuffer_size_local];
+        tile_static int s_scan[GROUPSIZE_256+1];
+        tile_static int s_a_border[GROUPSIZE_256+1];
+        tile_static int s_b_border[GROUPSIZE_256+1];
+
+        int queue_id = TUPLE_QUEUE * (position + tidx.tile[0]);
+        // if merged size equals -1, kernel return since this row is done
+        int merged_size_l2 = queue_one[queue_id + 2];
+        int merged_size_l1 = 0;
+        int local_id = tidx.local[0]; //threadIdx.x;
+        int row_id = queue_one[queue_id];
+        int   local_size = tidx.tile_dim0;
+        float local_size_float = local_size;
+        int stride, loop;
+        int reg_reuse1;
+        int   col_Ct;      // index_type
+        T val_Ct;      // value_type
+        T val_A;       // value_type
+        int start_col_index_A, stop_col_index_A;  // index_type
+        int start_col_index_B, stop_col_index_B;  // index_type
+        int k;
+        bool  is_new_col;
+        bool  is_last;
+        int   reg_key[9];
+        T reg_val[9];
+        start_col_index_A = csrRowPtrA[row_id];
+        stop_col_index_A  = csrRowPtrA[row_id + 1];
+        is_last = true;
+        start_col_index_A = queue_one[queue_id + 3];
+        // load existing merged list
+        reg_reuse1 = queue_one[queue_id + 1];
+
+        Concurrency::array_view<int> *d_key_merged = static_cast<Concurrency::array_view<int> *>((void *)&csrColIndCt[reg_reuse1]);
+        Concurrency::array_view<T> *d_val_merged = static_cast<Concurrency::array_view<T> *>((void *)&csrValCt[reg_reuse1]);
+        reg_reuse1 = queue_one[queue_id + 5];
+        readwrite_mergedlist_global<T> (tidx, csrColIndCt, csrValCt, *d_key_merged, *d_val_merged, merged_size_l2, reg_reuse1, 0);
+        tidx.barrier.wait();
+        // merge the rest of sets of current nnzCt row to the merged list
+        while (start_col_index_A < stop_col_index_A)
+        {
+            reg_reuse1 = csrColIndA[start_col_index_A];                      // reg_reuse1 = row_id_B
+	    val_A    = csrValA[start_col_index_A];
+            start_col_index_B = is_last ? queue_one[queue_id + 4] : csrRowPtrB[reg_reuse1];      // reg_reuse1 = row_id_B
+            is_last = false;
+            stop_col_index_B  = csrRowPtrB[reg_reuse1 + 1];  // reg_reuse1 = row_id_B
+            stride = stop_col_index_B - start_col_index_B;
+            loop  = Concurrency::fast_math::ceil(stride / local_size_float); //ceil((float)stride / (float)local_size);
+            start_col_index_B += local_id;
+            for (k = 0; k < loop; k++)
+            {
+                tidx.barrier.wait();
+                is_new_col = 0;
+                if (start_col_index_B < stop_col_index_B)
+                {
+                    col_Ct = csrColIndB[start_col_index_B];
+                    val_Ct = csrValB[start_col_index_B] * val_A;
+                    // binary search on existing sorted list
+                    // if the column is existed, add the value to the position
+                    // else, set scan value to 1, and wait for scan
+                    is_new_col = 1;
+                    // search on l2
+                    binarysearch_global<T> (*d_key_merged, *d_val_merged, col_Ct, val_Ct, merged_size_l2, &is_new_col);
+                    // search on l1
+                    if (is_new_col == 1)
+                        binarysearch<T>(s_key_merged_l1, s_val_merged_l1, col_Ct, val_Ct, merged_size_l1, &is_new_col);
+                }
+                s_scan[local_id] = is_new_col;
+                tidx.barrier.wait();
+                // scan with half-local_size work-items
+                // s_scan[local_size] is the size of input non-duplicate array
+                scan_256(tidx, s_scan, local_id);
+                tidx.barrier.wait();
+                // if all elements are absorbed into merged list,
+                // the following work in this inner-loop is not needed any more
+                if (s_scan[local_size] == 0)
+                {
+                    start_col_index_B += local_size;
+                    continue;
+                }
+                // check if the total size is larger than the capicity of merged list
+                if (merged_size_l1 + s_scan[local_size] > mergebuffer_size)
+                {
+                    if (start_col_index_B < stop_col_index_B)
+                    {
+                        // rollback on l2
+                        binarysearch_global_sub<T> (*d_key_merged, *d_val_merged, col_Ct, val_Ct, merged_size_l2);
+                        // rollback on l1
+                        binarysearch_sub<T> (s_key_merged_l1, s_val_merged_l1, col_Ct, val_Ct, merged_size_l1);
+                    }
+                    tidx.barrier.wait();
+                    // write a signal to some place, not equals -1 means next round is needed
+                    if (local_id == 0)
+                    {
+                        queue_one[queue_id + 2] = merged_size_l2 + merged_size_l1;
+                        queue_one[queue_id + 3] = start_col_index_A;
+                        queue_one[queue_id + 4] = start_col_index_B;
+                    }
+                    // dump l1 to global
+                    readwrite_mergedlist<T> (tidx, *d_key_merged, *d_val_merged, s_key_merged_l1, s_val_merged_l1,
+                                         merged_size_l1, merged_size_l2, 1);
+                    tidx.barrier.wait();
+                
+                    mergepath_global_2level_liu<T> (tidx, *d_key_merged, *d_val_merged, merged_size_l2,
+                                                d_key_merged[merged_size_l2], d_val_merged[merged_size_l2], merged_size_l1,
+                                                s_a_border, s_b_border,
+                                                reg_key, reg_val,
+                                                s_key_merged_l1, s_val_merged_l1,
+                                                d_key_merged[merged_size_l2 + merged_size_l1],
+                                                d_val_merged[merged_size_l2 + merged_size_l1]);
+                    return;
+                }
+                // write compact input to free place in merged list
+                if(is_new_col)
+                {
+                    reg_reuse1 = merged_size_l1 + s_scan[local_id];
+                    s_key_merged_l1[reg_reuse1] = col_Ct;
+                    s_val_merged_l1[reg_reuse1] = val_Ct;
+                }
+                tidx.barrier.wait();
+                // merge path partition on l1
+                reg_reuse1 = s_scan[local_size]; // reg_reuse1 = size_b;
+                mergepath_liu<T> (tidx, s_key_merged_l1, s_val_merged_l1, merged_size_l1, 
+                              &s_key_merged_l1[merged_size_l1], &s_val_merged_l1[merged_size_l1], reg_reuse1,
+                              s_a_border, s_b_border, reg_key, reg_val);
+                merged_size_l1 += reg_reuse1; // reg_reuse1 = size_b = s_scan[local_size];
+                start_col_index_B += local_size;
+            }
+            start_col_index_A++;
+        }
+        tidx.barrier.wait();
+        if (local_id == 0)
+        {
+            csrRowPtrC[row_id] = merged_size_l2 + merged_size_l1;
+            queue_one[queue_id + 2] = -1;
+        }
+        // dump l1 to global
+        readwrite_mergedlist<T> (tidx, *d_key_merged, *d_val_merged, s_key_merged_l1, s_val_merged_l1,
+                             merged_size_l1, merged_size_l2, 1);
+       tidx.barrier.wait(); 
+    
+        mergepath_global_2level_liu<T> (tidx, *d_key_merged, *d_val_merged, merged_size_l2,
+                                    d_key_merged[merged_size_l2], d_val_merged[merged_size_l2], merged_size_l1,
+                                    s_a_border, s_b_border,
+                                    reg_key, reg_val,
+                                    s_key_merged_l1, s_val_merged_l1,
+                                    d_key_merged[merged_size_l2 + merged_size_l1],
+                                    d_val_merged[merged_size_l2 + merged_size_l1]);
     });
-*/
+
     int temp_queue [6] = {0, 0, 0, 0, 0, 0};
     int counter = 0;
     int temp_num = 0;
@@ -670,32 +1285,8 @@ hcsparseStatus compute_nnzC_Ct_mergepath(int num_blocks, int j, int mergebuffer_
         if (queue_one[TUPLE_QUEUE * i + 2] != -1)
         {
             temp_queue[0] = queue_one[TUPLE_QUEUE * i]; // row id
-            if (mergepath_location == MERGEPATH_LOCAL || mergepath_location == MERGEPATH_LOCAL_L2)
-            {
-                int accum = 0;
-                switch (mergebuffer_size)
-                {
-                case 256:
-                    accum = 512;
-                    break;
-                case 512:
-                    accum = 1024;
-                    break;
-                case 1024:
-                    accum = 2048;
-                    break;
-                case 2048:
-                    accum = 2304;
-                    break;
-                case 2304:
-                    accum = 2 * (2304 * 2);
-                    break;
-                }
+            temp_queue[1] = *_nnzCt + counter * (2 * (mergebuffer_size + 2304)); 
 
-                temp_queue[1] = *_nnzCt + counter * accum; // new start address
-            }
-            else if (mergepath_location == MERGEPATH_GLOBAL)
-                temp_queue[1] = *_nnzCt + counter * (2 * (mergebuffer_size + 2304)); 
             temp_queue[2] = queue_one[TUPLE_QUEUE * i + 2]; // merged size
             temp_queue[3] = queue_one[TUPLE_QUEUE * i + 3]; // i
             temp_queue[4] = queue_one[TUPLE_QUEUE * i + 4]; // k
@@ -723,31 +1314,6 @@ hcsparseStatus compute_nnzC_Ct_mergepath(int num_blocks, int j, int mergebuffer_
     if (counter > 0)
     {
         int nnzCt_new = 0;
-        if (mergepath_location == MERGEPATH_LOCAL || mergepath_location == MERGEPATH_LOCAL_L2)
-        {
-            int accum = 0;
-            switch (mergebuffer_size)
-            {
-            case 256:
-                accum = 512;
-                break;
-            case 512:
-                accum = 1024;
-                break;
-            case 1024:
-                accum = 2048;
-                break;
-            case 2048:
-                accum = 2304;
-                break;
-            case 2304:
-                accum = 2 * (2304 * 2);
-                break;
-            }
-
-            nnzCt_new = *_nnzCt + counter * accum;
-        }
-        else if (mergepath_location == MERGEPATH_GLOBAL)
         nnzCt_new = *_nnzCt + counter * (2 * (mergebuffer_size + 2304));
 
         *_nnzCt = nnzCt_new;
@@ -828,7 +1394,7 @@ hcsparseStatus compute_nnzC_Ct_general(int *_h_counter_one,
 
             }
       
-        if (run_status != hcsparseSuccess)
+            if (run_status != hcsparseSuccess)
             {
                return hcsparseInvalid;
             }
