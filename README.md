@@ -15,9 +15,21 @@ This repository hosts the HCC implementation of SPARSE subroutines. The followin
 ##Repository Structure: ##
 
 ##Prerequisites: ##
-* **OS** : Ubuntu 14.04 LTS
-* **Ubuntu Pack**: libc6-dev-i386
-   // TODO: Need to add more items 
+
+**Hardware Requirements:**
+
+* CPU: mainstream brand, Better if with >=4 Cores Intel Haswell based CPU 
+
+
+**GPU SDK and driver Requirements:**
+
+* AMD R9 Fury X, R9 Fur, R9 Nano + Boltzmann driver
+* AMD APU Kaveri or Carrizo + HSA driver
+
+**System software requirements:**
+
+* Ubuntu 14.04 trusty
+* GCC 4.6 and later
 
 
 ## Installation Steps:    
@@ -26,11 +38,31 @@ This repository hosts the HCC implementation of SPARSE subroutines. The followin
    
 **Install HCC compiler debian package:**
 
- (i) Download the debian package from  [Compiler-Debians](https://multicorewareinc.egnyte.com/dl/TD5IwsNEx3)
+ (i) Download the debian package from  [Compiler-Debians](https://bitbucket.org/multicoreware/hcc/downloads/hcc-0.8.16024-6617a6a-a152a36-5a1009a-Linux.deb)
 
  (ii) Install the deb package 
                
-                  sudo dpkg -i  hcc-0.8.1544-a9f4d2f-ddba18d-Linux.deb
-
-  Note:
-      Ignore clamp-bolt, Bolt is not used in hcSparse.
+                  sudo dpkg -i  hcc-0.8.16024-6617a6a-a152a36-5a1009a-Linux.deb
+                  
+   Note: The hcc compiler binaries and libraries gets installed under /opt/hcc path
+   
+** Build and Install HcSparse
+ 
+ (i) Clone the hcsparse repo 
+                   git clone https://bitbucket.org/multicoreware/hcsparse.git
+                   
+ (ii) Install hcsparse library
+                    
+                    a. cd hcsparse/lib/build/linux
+                    
+                    b. sh build.sh
+                    
+                    c. sudo make install
+                    
+ (iii) Build tests
+ 
+                    a. cd hcsparse/test/build/linux
+                     
+                    b. sh build.sh
+                    
+                    c. make
