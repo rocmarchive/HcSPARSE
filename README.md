@@ -12,8 +12,6 @@ This repository hosts the HCC implementation of SPARSE subroutines. The followin
 6. clsparse-coo2csr : COO to CSR conversions 
 7. mm-reader : Functions to read matrix market files in COO or CSR format
 
-##Repository Structure: ##
-
 ##Prerequisites: ##
 
 **Hardware Requirements:**
