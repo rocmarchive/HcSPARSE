@@ -46,9 +46,10 @@ This repository hosts the HCC implementation of SPARSE subroutines. The followin
                   
    Note: The hcc compiler binaries and libraries gets installed under /opt/hcc path
    
-** Build and Install HcSparse
+** Build and Install HcSparse: **
  
  (i) Clone the hcsparse repo 
+ 
                    git clone https://bitbucket.org/multicoreware/hcsparse.git
                    
  (ii) Install hcsparse library
