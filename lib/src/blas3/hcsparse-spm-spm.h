@@ -949,8 +949,8 @@ hcsparseStatus compute_nnzC_Ct_2heap_noncoalesced_local(int num_blocks, int j,
     Concurrency::tiled_extent<GROUPSIZE_256> t_ext(grdExt);
     Concurrency::parallel_for_each(control->accl_view, t_ext, [=] (Concurrency::tiled_index<GROUPSIZE_256> tidx) restrict(amp)
     {
-        tile_static int s_key[32*GROUPSIZE_256];
-        tile_static T s_val[32*GROUPSIZE_256];
+        tile_static int s_key[GROUPSIZE_256];
+        tile_static T s_val[GROUPSIZE_256];
         const int local_id = tidx.local[0];
         const int group_id = tidx.tile[0];
         const int global_id = tidx.global[0];

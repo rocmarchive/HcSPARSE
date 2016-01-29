@@ -1,6 +1,7 @@
 #include "hcsparse.h"
 #include "blas2/csrmv.h"
 #include "blas3/csrmm.h"
+#include "blas3/hcsparse-spm-spm.h"
 #include "blas1/hcdense-scale.h"
 #include "blas1/hcdense-axpby.h"
 #include "blas1/hcdense-axpy.h"
@@ -1363,4 +1364,23 @@ hcsparseDdense2csr(const hcdenseMatrix* A,
     }
  
     return dense2csr<double> (A, csr, control);
+}
+
+hcsparseStatus
+hcsparseScsrSpGemm(const hcsparseCsrMatrix* sparseMatA,
+                   const hcsparseCsrMatrix* sparseMatB,
+                   hcsparseCsrMatrix* sparseMatC,
+                   const hcsparseControl* control )
+{
+    if (!hcsparseInitialized)
+    {
+       return hcsparseInvalid;
+    }
+
+    if (sparseMatA->values == nullptr || sparseMatB->values == nullptr || sparseMatC->values == nullptr)
+    {
+       return hcsparseInvalid;
+    }
+   
+    return csrSpGemm<float> (sparseMatA, sparseMatB, sparseMatC, control);  
 }
