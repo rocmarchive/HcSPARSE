@@ -1037,13 +1037,10 @@ hcsparseCsrMetaCompute( hcsparseCsrMatrix* csrMatx, hcsparseControl *control )
         printf( "Number of Rows in the Sparse Matrix is greater than what is supported at present ((64-WG_BITS) bits) !" );
         return hcsparseInvalid;
     }
-
     Concurrency::array_view<int> *rCsrRowOffsets = static_cast<Concurrency::array_view<int> *>(csrMatx->rowOffsets);
-    int *dataRO = rCsrRowOffsets->data();
     Concurrency::array_view<ulong> *rRowBlocks = static_cast<Concurrency::array_view<ulong> *>(csrMatx->rowBlocks);
-    ulong *dataRB = rRowBlocks->data();
 
-    ComputeRowBlocks( dataRB, csrMatx->rowBlockSize, dataRO, csrMatx->num_rows, BLOCKSIZE, BLOCK_MULTIPLIER, ROWS_FOR_VECTOR, true );
+    ComputeRowBlocks(rRowBlocks->data(), csrMatx->rowBlockSize, rCsrRowOffsets->data(), csrMatx->num_rows, BLOCKSIZE, BLOCK_MULTIPLIER, ROWS_FOR_VECTOR, true );
 
     return hcsparseSuccess;
 }
