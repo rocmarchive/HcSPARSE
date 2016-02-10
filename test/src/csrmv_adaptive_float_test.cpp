@@ -50,8 +50,8 @@ int main(int argc, char *argv[])
         host_res[i] = host_Y[i] = rand()%100;
     }
 
-    host_alpha[0] = rand()%100;
-    host_beta[0] = rand()%100;
+    host_alpha[0] = 1;
+    host_beta[0] = 0;
 
     Concurrency::array_view<float> dev_X(num_col, host_X);
     Concurrency::array_view<float> dev_Y(num_row, host_Y);
@@ -85,14 +85,17 @@ int main(int argc, char *argv[])
     float *values = (float*)calloc(num_nonzero, sizeof(float));
     int *rowIndices = (int*)calloc(num_row+1, sizeof(int));
     int *colIndices = (int*)calloc(num_nonzero, sizeof(int));
+    ulong *rowBlocks = (ulong*)calloc(num_nonzero, sizeof(ulong));
 
     Concurrency::array_view<float> av_values(num_nonzero, values);
     Concurrency::array_view<int> av_rowOff(num_row+1, rowIndices);
     Concurrency::array_view<int> av_colIndices(num_nonzero, colIndices);
+    Concurrency::array_view<ulong> av_rowBlocks(num_nonzero, rowBlocks);
 
     gCsrMat.values = &av_values;
     gCsrMat.rowOffsets = &av_rowOff;
     gCsrMat.colIndices = &av_colIndices;
+    gCsrMat.rowBlocks = &av_rowBlocks;
 
     status = hcsparseSCsrMatrixfromFile(&gCsrMat, filename, &control, false);
    
@@ -101,6 +104,10 @@ int main(int argc, char *argv[])
         std::cout<<"The input file should be in mtx format"<<std::endl;
         return 0;
     }
+
+    hcsparseCsrMetaSize(&gCsrMat, &control);
+
+    hcsparseCsrMetaCompute(&gCsrMat, &control);
  
     hcsparseScsrmv(&gAlpha, &gCsrMat, &gX, &gBeta, &gY, &control); 
 
