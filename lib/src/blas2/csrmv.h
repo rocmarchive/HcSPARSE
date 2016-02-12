@@ -3,10 +3,10 @@
 #define WAVE_SIZE 64
 #define SUBWAVE_SIZE 64
 #define WG_SIZE 256
-#define INDEX_TYPE uint
+#define INDEX_TYPE int
 #define SIZE_TYPE ulong
 #define GLOBAL_SIZE WG_SIZE
-#define EXTENDED_PRECISION 0
+#define EXTENDED_PRECISION 1
 
 #define WG_BITS 24
 #define ROW_BITS 32
@@ -78,12 +78,12 @@ T atomic_add_float_extended(T *ptr,
                                   const T temp,
                                   T *old_sum ) restrict (amp)
 {
-	unsigned int newVal;
-	unsigned int prevVal;
+	unsigned long newVal;
+	unsigned long prevVal;
 	do
 	{
-		prevVal = (unsigned int)(*ptr);
-		newVal = (unsigned int)(temp + *ptr);
+		prevVal = (unsigned long)(*ptr);
+		newVal = (unsigned long)(temp + *ptr);
 	} while (hcsparse_atomic_cmpxchg((unsigned long *)ptr, prevVal, newVal) != prevVal);
     if (old_sum != 0)
         *old_sum = (T)(prevVal);
