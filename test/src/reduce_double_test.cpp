@@ -2,6 +2,8 @@
 #include <iostream>
 #include "gtest/gtest.h"
 
+#define TOLERANCE 0.01
+
 TEST(reduce_double_test, func_check)
 {
     hcsparseScalar gR;
@@ -48,7 +50,9 @@ TEST(reduce_double_test, func_check)
     }
 
     array_view<double> *av_res = static_cast<array_view<double> *>(gR.value);
-    EXPECT_EQ(host_res[0], (*av_res)[0]);
+ 
+    double diff = std::abs(host_res[0] - (*av_res)[0]);
+    EXPECT_LT(diff, TOLERANCE);
 
     hcsparseTeardown();
 }

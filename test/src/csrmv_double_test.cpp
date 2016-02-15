@@ -2,6 +2,8 @@
 #include <iostream>
 #include "gtest/gtest.h"
 
+#define TOLERANCE 0.01
+
 TEST(csrmv_double_test, func_check)
 {
     hcsparseCsrMatrix gCsrMat;
@@ -112,7 +114,8 @@ TEST(csrmv_double_test, func_check)
 
     for (int i = 0; i < num_row; i++)
     {
-        EXPECT_EQ(host_res[i], (*av_res)[i]);
+        double diff = std::abs(host_res[i] - (*av_res)[i]);
+        EXPECT_LT(diff, TOLERANCE);
     }
 
     hcsparseTeardown();

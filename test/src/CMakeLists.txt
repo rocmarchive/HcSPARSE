@@ -10,7 +10,25 @@ SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/../../cma
 FIND_PACKAGE(HC++ 1.0 REQUIRED)
 
 #Setting a variable for source files
-FILE(GLOB TESTSRCS *.cpp)
+FILE(GLOB TESTSRCS 
+          axpy_float_test.cpp
+          axpy_double_test.cpp
+          axpby_float_test.cpp
+          axpby_double_test.cpp
+          dot_float_test.cpp
+          dot_double_test.cpp
+          scale_float_test.cpp
+          scale_double_test.cpp
+          reduce_float_test.cpp
+          reduce_double_test.cpp
+          reduce_int_test.cpp
+          transform_float_test.cpp
+          transform_double_test.cpp
+#          nrm2_float_test.cpp
+          nrm1_float_test.cpp
+          csrmv_float_test.cpp
+          csrmv_double_test.cpp
+          )
 
 
 # MCW HCC Specific. Version >= 0.3 is Must

@@ -181,11 +181,12 @@ void csrmv_vector_kernel (const INDEX_TYPE num_rows,
                           const SIZE_TYPE off_beta,
                           hc::array_view<T, 1> &y,
                           const SIZE_TYPE off_y,
+                          const uint global_work_size,
                           const hcsparseControl *control)
 {
-    hc::extent<1> grdExt( WG_SIZE );
+    hc::extent<1> grdExt(global_work_size);
     hc::tiled_extent<1> t_ext = grdExt.tile(WG_SIZE);
-    hc::parallel_for_each(control->accl_view, t_ext, [&] (hc::tiled_index<1>& tidx) __attribute__((hc, cpu))
+    hc::parallel_for_each(control->accl_view, t_ext, [=] (hc::tiled_index<1>& tidx) __attribute__((hc, cpu))
     {
         tile_static T sdata [WG_SIZE + SUBWAVE_SIZE / 2];
 
@@ -194,7 +195,7 @@ void csrmv_vector_kernel (const INDEX_TYPE num_rows,
         const INDEX_TYPE local_id    = tidx.local[0];          // local workitem id
         const INDEX_TYPE thread_lane = local_id & (SUBWAVE_SIZE - 1);
         const INDEX_TYPE vector_id   = global_id / SUBWAVE_SIZE; // global vector id
-        const INDEX_TYPE num_vectors = t_ext[0] / SUBWAVE_SIZE;
+        const INDEX_TYPE num_vectors = grdExt[0] / SUBWAVE_SIZE;
 
         const T _alpha = alpha[off_alpha];
         const T _beta = beta[off_beta];
@@ -241,7 +242,7 @@ void csrmv_vector_kernel (const INDEX_TYPE num_rows,
                }
            }
        }
-    });
+    }).wait();
 }
 
 template<typename T>
@@ -295,7 +296,7 @@ csrmv_vector(const hcsparseScalar* pAlpha,
 
     if( global_work_size < WG_SIZE)
     {
-#define GLOBAL_SIZE WG_SIZE
+        global_work_size = WG_SIZE;
     }
 
     hc::array_view<T> *avAlpha = static_cast<hc::array_view<T> *>(pAlpha->value);
@@ -309,7 +310,7 @@ csrmv_vector(const hcsparseScalar* pAlpha,
     csrmv_vector_kernel<T> (pMatx->num_rows, *avAlpha, pAlpha->offset(),
                          *avMatx_rowOffsets, *avMatx_colIndices, *avMatx_values,
                          *avX_values, pX->offset(), *avBeta,
-                         pBeta->offset(), *avY_values, pY->offset(), control);
+                         pBeta->offset(), *avY_values, pY->offset(), global_work_size, control);
 
     return hcsparseSuccess;
 }

@@ -2,6 +2,8 @@
 #include <iostream>
 #include "gtest/gtest.h"
 
+#define TOLERANCE 0.01
+
 TEST(axpby_float_test, func_check)
 {
     hcsparseScalar gAlpha;
@@ -75,7 +77,8 @@ TEST(axpby_float_test, func_check)
     array_view<float> *av_res = static_cast<array_view<float> *>(gR.values);
     for (int i = 0; i < num_elements; i++)
     {
-        EXPECT_EQ(host_res[i], (*av_res)[i]);
+        float diff = std::abs(host_res[i] - (*av_res)[i]);
+        EXPECT_LT(diff, TOLERANCE);
     }
 
     hcsparseTeardown();

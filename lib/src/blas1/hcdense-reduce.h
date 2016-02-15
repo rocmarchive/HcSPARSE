@@ -42,7 +42,7 @@ void global_reduce (const long size,
             }
             partial[block_idx] = sum;
         }
-    });
+    }).wait();
 
     hc::extent<1> grdExt1(1);
     hc::tiled_extent<1> t_ext1 = grdExt1.tile(1);
@@ -54,7 +54,7 @@ void global_reduce (const long size,
             sum += partial[i];
         }
         pR[pROffset] = reduceOperation<T, F_OP>(sum);
-    });
+    }).wait();
 }
 
 template<typename T, ReduceOperator G_OP, ReduceOperator F_OP = RO_DUMMY>
