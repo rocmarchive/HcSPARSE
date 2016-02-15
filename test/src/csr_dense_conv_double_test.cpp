@@ -88,8 +88,10 @@ int main(int argc, char *argv[])
 
     for (int i = 0; i < num_nonzero; i++)
     {
-        if (av_csr_values[i] != av_csr_res_values[i])
+        float diff = std::abs(av_csr_values[i] - av_csr_res_values[i]);
+        if (diff > 0.1)
         {
+            std::cout << i << " " << av_csr_values[i] << " " << av_csr_res_values[i] << std::endl;
             ispassed = 0;
             break;
         }
@@ -99,6 +101,7 @@ int main(int argc, char *argv[])
     {
         if (av_csr_colIndices[i] != av_csr_res_colIndices[i])
         {
+            std::cout << i << " " << av_csr_colIndices[i] << " " << av_csr_res_colIndices[i] << std::endl;
             ispassed = 0;
             break;
         }
@@ -108,6 +111,7 @@ int main(int argc, char *argv[])
     {
         if (av_csr_rowOff[i] != av_csr_res_rowOff[i])
         {
+            std::cout << i << " " << av_csr_rowOff[i] << " " << av_csr_res_rowOff[i] << std::endl;
             ispassed = 0;
             break;
         }
