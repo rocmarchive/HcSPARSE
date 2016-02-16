@@ -24,7 +24,6 @@ bicgStab(hcdenseVector *pX,
     hc::array_view<T> *b = static_cast<hc::array_view<T> *>(pB->values);
 
     int status;
-
     T *norm_b_buff = (T*)calloc(1, sizeof(T));
     hc::array_view<T> av_norm_b(1, norm_b_buff);
     hcsparseScalar norm_b;
@@ -48,7 +47,6 @@ bicgStab(hcdenseVector *pX,
 
         return hcsparseSuccess;
     }
-
 
 
     //n == number of rows;

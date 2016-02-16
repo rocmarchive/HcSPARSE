@@ -28,6 +28,8 @@ FILE(GLOB TESTSRCS
           nrm1_float_test.cpp
           csrmv_float_test.cpp
           csrmv_double_test.cpp
+          bicgStab_noprecond_float_test.cpp
+          bicgStab_noprecond_double_test.cpp
           )
 
 
