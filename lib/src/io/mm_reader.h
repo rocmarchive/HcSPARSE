@@ -83,9 +83,7 @@ class MatrixMarketReader
     int nCols;
     int isSymmetric;
     int isDoubleMem;
-    int *x;
-    int *y;
-    FloatType *val;
+    Coordinate<FloatType> *unsym_coords;
 
 public:
     MatrixMarketReader( ): nNZ( 0 ), nRows( 0 ), nCols( 0 ), isSymmetric( 0 ), isDoubleMem( 0 )
@@ -93,9 +91,7 @@ public:
         for( auto c : Typecode )
             c = '\0';
 
-        x = NULL;
-        y = NULL;
-        val = NULL;
+        unsym_coords = NULL;
     }
 
     bool MMReadHeader( FILE* infile );
@@ -130,26 +126,14 @@ public:
         return Typecode;
     }
 
-    int *GetXCoordinates( )
+    Coordinate<FloatType> *GetUnsymCoordinates( )
     {
-        return x;
-    }
-
-    int *GetYCoordinates( )
-    {
-        return y;
-    }
-
-    FloatType *GetValCoordinates( )
-    {
-        return val;
+        return unsym_coords;
     }
 
     ~MatrixMarketReader( )
     {
-        delete[ ] x;
-        delete[ ] y;
-        delete[ ] val;
+        delete[ ] unsym_coords;
     }
 };
 
@@ -325,9 +309,7 @@ int MatrixMarketReader<FloatType>::MMReadMtxCrdSize( FILE *infile )
 
 template<typename FloatType>
 void FillCoordData( char Typecode[ ],
-                    int *x,
-                    int *y,
-                    FloatType *val,
+                    Coordinate<FloatType> *unsym_coords,
                     int &unsym_actual_nnz,
                     int ir,
                     int ic,
@@ -335,23 +317,23 @@ void FillCoordData( char Typecode[ ],
 {
     if( mm_is_symmetric( Typecode ) )
     {
-        x[ unsym_actual_nnz ] = ir - 1;
-        y[ unsym_actual_nnz ] = ic - 1;
-        val[ unsym_actual_nnz++ ] = value;
+        unsym_coords[ unsym_actual_nnz ].x = ir - 1;
+        unsym_coords[ unsym_actual_nnz ].y = ic - 1;
+        unsym_coords[ unsym_actual_nnz++ ].val = value;
 
-        if( x[ unsym_actual_nnz - 1 ] != y[ unsym_actual_nnz - 1 ] )
+        if( unsym_coords[ unsym_actual_nnz - 1 ].x != unsym_coords[ unsym_actual_nnz - 1 ].y )
         {
-            x[ unsym_actual_nnz ] = y[ unsym_actual_nnz - 1 ];
-            y[ unsym_actual_nnz ] = x[ unsym_actual_nnz - 1 ];
-            val[ unsym_actual_nnz ] = val[ unsym_actual_nnz - 1 ];
+            unsym_coords[ unsym_actual_nnz ].x = unsym_coords[ unsym_actual_nnz - 1 ].y;
+            unsym_coords[ unsym_actual_nnz ].y = unsym_coords[ unsym_actual_nnz - 1 ].x;
+            unsym_coords[ unsym_actual_nnz ].val = unsym_coords[ unsym_actual_nnz - 1 ].val;
             unsym_actual_nnz++;
         }
     }
     else
     {
-        x[ unsym_actual_nnz ] = ir - 1;
-        y[ unsym_actual_nnz ] = ic - 1;
-        val[ unsym_actual_nnz++ ] = value;
+        unsym_coords[ unsym_actual_nnz ].x = ir - 1;
+        unsym_coords[ unsym_actual_nnz ].y = ic - 1;
+        unsym_coords[ unsym_actual_nnz++ ].val = value;
     }
 }
 
@@ -379,7 +361,7 @@ void MatrixMarketReader<FloatType>::MMGenerateCOOFromFile( FILE *infile, bool re
             if( exp_zeroes == 0 && value == 0 )
                 continue;
             else
-                FillCoordData( Typecode, x, y, val, unsym_actual_nnz, ir, ic, value );
+                FillCoordData( Typecode, unsym_coords, unsym_actual_nnz, ir, ic, value );
         }
         else if( mm_is_integer( Typecode ) )
         {
@@ -391,7 +373,7 @@ void MatrixMarketReader<FloatType>::MMGenerateCOOFromFile( FILE *infile, bool re
             if( exp_zeroes == 0 && value == 0 )
                 continue;
             else
-                FillCoordData( Typecode, x, y, val, unsym_actual_nnz, ir, ic, value );
+                FillCoordData( Typecode, unsym_coords, unsym_actual_nnz, ir, ic, value );
 
         }
         else if( mm_is_pattern( Typecode ) )
@@ -402,7 +384,7 @@ void MatrixMarketReader<FloatType>::MMGenerateCOOFromFile( FILE *infile, bool re
             if( exp_zeroes == 0 && value == 0 )
                 continue;
             else
-                FillCoordData( Typecode, x, y, val, unsym_actual_nnz, ir, ic, value );
+                FillCoordData( Typecode, unsym_coords, unsym_actual_nnz, ir, ic, value );
         }
     }
     nNZ = unsym_actual_nnz;
@@ -425,17 +407,9 @@ bool MatrixMarketReader<FloatType>::MMReadFormat( const std::string &filename, b
     }
 
     if( mm_is_symmetric( Typecode ) )
-    {
-        x = new int[ 2 * nNZ ];
-        y = new int[ 2 * nNZ ];
-        val = new FloatType[ 2 * nNZ ];
-    }
+        unsym_coords = new Coordinate<FloatType>[ 2 * nNZ ];
     else
-    {
-        x = new int[ nNZ ];
-        y = new int[ nNZ ];
-        val = new FloatType[ nNZ ];
-    }
+        unsym_coords = new Coordinate<FloatType>[ nNZ ];
 
     MMGenerateCOOFromFile( mm_file, read_explicit_zeroes );
     ::fclose( mm_file );

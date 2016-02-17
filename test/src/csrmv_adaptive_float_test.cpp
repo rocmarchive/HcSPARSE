@@ -132,7 +132,7 @@ int main(int argc, char *argv[])
     for (int i = 0; i < num_row; i++)
     {
         float diff = std::abs(host_res[i] - (*av_res)[i]);
-        if (diff > 0.01)
+        if (diff > 0.1)
         {
         std::cout<<i<<" "<<host_res[i]<<" "<<(*av_res)[i]<<" "<<diff<<std::endl;
             isPassed = 0;

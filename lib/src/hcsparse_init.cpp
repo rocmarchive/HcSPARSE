@@ -652,6 +652,16 @@ hcsparseHeaderfromFile( int* nnz, int* row, int* col, const char* filePath )
     return hcsparseSuccess;
 }
 
+
+template<typename T>
+bool CoordinateCompare( const Coordinate<T> &c1, const Coordinate<T> &c2 )
+{
+    if( c1.x != c2.x )
+        return ( c1.x < c2.x );
+    else
+        return ( c1.y < c2.y );
+}
+
 // This function reads the file at the given filepath, and returns the sparse
 // matrix in the COO struct.  All matrix data is written to device memory
 // Pre-condition: This function assumes that the device memory buffers have been
@@ -680,52 +690,9 @@ hcsparseSCooMatrixfromFile( hcsparseCooMatrix* cooMatx, const char* filePath, hc
     cooMatx->num_cols = mm_reader.GetNumCols( );
     cooMatx->num_nonzeros = mm_reader.GetNumNonZeroes( );
 
-    int *x = mm_reader.GetXCoordinates( );
-    int *y = mm_reader.GetYCoordinates( );
-    float *val = mm_reader.GetValCoordinates( );
+    Coordinate<float>* coords = mm_reader.GetUnsymCoordinates( );
 
-    //JPA:: Coo matrix is need to be sorted as well because we need to have matrix
-    // which is sorted by row and then column, in the mtx files usually is opposite.
-    bool swap;
-
-    do
-    {
-        swap = 0;
-        for(int i = 0 ;i < cooMatx->num_nonzeros; i++)
-        {
-            if(x[i] > x[i+1])
-            {
-                int tmp = x[i];
-                x[i] = x[i+1];
-                x[i+1] = tmp;
-                int tmp1 = y[i];
-                y[i] = y[i+1];
-                y[i+1] = tmp1;
-                float tmp2 = val[i];
-                val[i] = val[i+1];
-                val[i+1] = tmp2;
-
-                swap = 1;
-            }
-            else if ( x[i] == x[i + 1])
-            {
-                if ( y[i] > y[i+1])
-                {
-                    int tmp = x[i];
-                    x[i] = x[i+1];
-                    x[i+1] = tmp;
-                    int tmp1 = y[i];
-                    y[i] = y[i+1];
-                    y[i+1] = tmp1;
-                    float tmp2 = val[i];
-                    val[i] = val[i+1];
-                    val[i+1] = tmp2;
-
-                    swap = 1;
-                }
-            }
-        }
-    }while(swap);
+    std::sort( coords, coords + cooMatx->num_nonzeros, CoordinateCompare< float > );
 
     Concurrency::array_view<float> *values = static_cast<Concurrency::array_view<float> *>(cooMatx->values);
     Concurrency::array_view<int> *rowIndices = static_cast<Concurrency::array_view<int> *>(cooMatx->rowIndices);
@@ -733,9 +700,9 @@ hcsparseSCooMatrixfromFile( hcsparseCooMatrix* cooMatx, const char* filePath, hc
 
     for( int c = 0; c < cooMatx->num_nonzeros; ++c )
     {
-        (*(rowIndices))[ c ] = x[ c ];
-        (*(colIndices))[ c ] = y[ c ];
-        (*(values))[ c ] = val[ c ];
+        (*(rowIndices))[ c ] = coords[c].x;
+        (*(colIndices))[ c ] = coords[c].y;
+        (*(values))[ c ] = coords[c].val;
     }
 
     return hcsparseSuccess;
@@ -765,52 +732,9 @@ hcsparseDCooMatrixfromFile( hcsparseCooMatrix* cooMatx, const char* filePath, hc
     cooMatx->num_cols = mm_reader.GetNumCols( );
     cooMatx->num_nonzeros = mm_reader.GetNumNonZeroes( );
 
-    int *x = mm_reader.GetXCoordinates( );
-    int *y = mm_reader.GetYCoordinates( );
-    double *val = mm_reader.GetValCoordinates( );
+    Coordinate<double>* coords = mm_reader.GetUnsymCoordinates( );
 
-    //JPA:: Coo matrix is need to be sorted as well because we need to have matrix
-    // which is sorted by row and then column, in the mtx files usually is opposite.
-    bool swap;
-
-    do
-    {
-        swap = 0;
-        for(int i = 0 ;i < cooMatx->num_nonzeros; i++)
-        {
-            if(x[i] > x[i+1])
-            {
-                int tmp = x[i];
-                x[i] = x[i+1];
-                x[i+1] = tmp;
-                int tmp1 = y[i];
-                y[i] = y[i+1];
-                y[i+1] = tmp1;
-                double tmp2 = val[i];
-                val[i] = val[i+1];
-                val[i+1] = tmp2;
-
-                swap = 1;
-            }
-            else if ( x[i] == x[i + 1])
-            {
-                if ( y[i] > y[i+1])
-                {
-                    int tmp = x[i];
-                    x[i] = x[i+1];
-                    x[i+1] = tmp;
-                    int tmp1 = y[i];
-                    y[i] = y[i+1];
-                    y[i+1] = tmp1;
-                    double tmp2 = val[i];
-                    val[i] = val[i+1];
-                    val[i+1] = tmp2;
-
-                    swap = 1;
-                }
-            }
-        }
-    }while(swap);
+    std::sort( coords, coords + cooMatx->num_nonzeros, CoordinateCompare<double> );
 
     Concurrency::array_view<double> *values = static_cast<Concurrency::array_view<double> *>(cooMatx->values);
     Concurrency::array_view<int> *rowIndices = static_cast<Concurrency::array_view<int> *>(cooMatx->rowIndices);
@@ -818,9 +742,9 @@ hcsparseDCooMatrixfromFile( hcsparseCooMatrix* cooMatx, const char* filePath, hc
 
     for( int c = 0; c < cooMatx->num_nonzeros; ++c )
     {
-        (*(rowIndices))[ c ] = x[ c ];
-        (*(colIndices))[ c ] = y[ c ];
-        (*(values))[ c ] = val[ c ];
+        (*(rowIndices))[ c ] = coords[c].x;
+        (*(colIndices))[ c ] = coords[c].y;
+        (*(values))[ c ] = coords[c].val;
     }
 
     return hcsparseSuccess;
@@ -857,51 +781,9 @@ hcsparseSCsrMatrixfromFile(hcsparseCsrMatrix* csrMatx, const char* filePath, hcs
     csrMatx->num_cols = mm_reader.GetNumCols( );
     csrMatx->num_nonzeros = mm_reader.GetNumNonZeroes( );
 
-    //  The following section of code converts the sparse format from COO to CSR
-    int *x = mm_reader.GetXCoordinates( );
-    int *y = mm_reader.GetYCoordinates( );
-    float *val = mm_reader.GetValCoordinates( );
+    Coordinate<float>* coords = mm_reader.GetUnsymCoordinates( );
 
-    bool swap;
-
-    do
-    {
-        swap = 0;
-        for(int i = 0 ;i < csrMatx->num_nonzeros; i++)
-        {
-            if(x[i] > x[i+1])
-            {
-                int tmp = x[i];
-                x[i] = x[i+1];
-                x[i+1] = tmp;
-                int tmp1 = y[i];
-                y[i] = y[i+1];
-                y[i+1] = tmp1;
-                float tmp2 = val[i];
-                val[i] = val[i+1];
-                val[i+1] = tmp2;
-
-                swap = 1;
-            }
-            else if ( x[i] == x[i + 1])
-            {
-                if ( y[i] > y[i+1])
-                {
-                    int tmp = x[i];
-                    x[i] = x[i+1];
-                    x[i+1] = tmp;
-                    int tmp1 = y[i];
-                    y[i] = y[i+1];
-                    y[i+1] = tmp1;
-                    float tmp2 = val[i];
-                    val[i] = val[i+1];
-                    val[i+1] = tmp2;
-
-                    swap = 1;
-                }
-            }
-        }
-    }while(swap);
+    std::sort( coords, coords + csrMatx->num_nonzeros, CoordinateCompare< float > );
 
     Concurrency::array_view<float> *values = static_cast<Concurrency::array_view<float> *>(csrMatx->values);
     Concurrency::array_view<int> *rowOffsets = static_cast<Concurrency::array_view<int> *>(csrMatx->rowOffsets);
@@ -911,10 +793,10 @@ hcsparseSCsrMatrixfromFile(hcsparseCsrMatrix* csrMatx, const char* filePath, hcs
     (*(rowOffsets))[ 0 ] = 0;
     for( int i = 0; i < csrMatx->num_nonzeros; i++ )
     {
-        (*(colIndices))[ i ] = y[ i ];
-        (*(values))[ i ] = val[ i ];
+        (*(colIndices))[ i ] = coords[i].y;
+        (*(values))[ i ] = coords[i].val;
 
-        while( x[ i ] >= current_row )
+        while( coords[i].x >= current_row )
             (*(rowOffsets))[ current_row++ ] = i;
     }
     (*(rowOffsets))[ current_row ] = csrMatx->num_nonzeros;
@@ -950,51 +832,9 @@ hcsparseDCsrMatrixfromFile( hcsparseCsrMatrix* csrMatx, const char* filePath, hc
     csrMatx->num_cols = mm_reader.GetNumCols( );
     csrMatx->num_nonzeros = mm_reader.GetNumNonZeroes( );
 
-    //  The following section of code converts the sparse format from COO to CSR
-    int *x = mm_reader.GetXCoordinates( );
-    int *y = mm_reader.GetYCoordinates( );
-    double *val = mm_reader.GetValCoordinates( );
+    Coordinate<double>* coords = mm_reader.GetUnsymCoordinates( );
 
-    bool swap;
-
-    do
-    {
-        swap = 0;
-        for(int i = 0 ;i < csrMatx->num_nonzeros; i++)
-        {
-            if(x[i] > x[i+1])
-            {
-                int tmp = x[i];
-                x[i] = x[i+1];
-                x[i+1] = tmp;
-                int tmp1 = y[i];
-                y[i] = y[i+1];
-                y[i+1] = tmp1;
-                double tmp2 = val[i];
-                val[i] = val[i+1];
-                val[i+1] = tmp2;
-
-                swap = 1;
-            }
-            else if ( x[i] == x[i + 1])
-            {
-                if ( y[i] > y[i+1])
-                {
-                    int tmp = x[i];
-                    x[i] = x[i+1];
-                    x[i+1] = tmp;
-                    int tmp1 = y[i];
-                    y[i] = y[i+1];
-                    y[i+1] = tmp1;
-                    double tmp2 = val[i];
-                    val[i] = val[i+1];
-                    val[i+1] = tmp2;
-
-                    swap = 1;
-                }
-            }
-        }
-    }while(swap);
+    std::sort( coords, coords + csrMatx->num_nonzeros, CoordinateCompare<double> );
 
     Concurrency::array_view<double> *values = static_cast<Concurrency::array_view<double> *>(csrMatx->values);
     Concurrency::array_view<int> *rowOffsets = static_cast<Concurrency::array_view<int> *>(csrMatx->rowOffsets);
@@ -1004,10 +844,10 @@ hcsparseDCsrMatrixfromFile( hcsparseCsrMatrix* csrMatx, const char* filePath, hc
     (*(rowOffsets))[ 0 ] = 0;
     for( int i = 0; i < csrMatx->num_nonzeros; i++ )
     {
-        (*(colIndices))[ i ] = y[ i ];
-        (*(values))[ i ] = val[ i ];
+        (*(colIndices))[ i ] = coords[i].y;
+        (*(values))[ i ] = coords[i].val;
 
-        while( x[ i ] >= current_row )
+        while( coords[i].x >= current_row )
             (*(rowOffsets))[ current_row++ ] = i;
     }
     (*(rowOffsets))[ current_row ] = csrMatx->num_nonzeros;

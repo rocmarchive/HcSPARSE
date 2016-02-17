@@ -8,6 +8,14 @@
 using namespace Concurrency;
 using namespace Concurrency::precise_math;
 
+template<typename T>
+struct Coordinate
+{
+    int x;
+    int y;
+    T val;
+};
+
 typedef enum hcsparseStatus_
 {
     /** @name Inherited OpenCL codes */
