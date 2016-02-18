@@ -40,8 +40,11 @@ SET (TESTSRCS
      csr_dense_conv_double_test.cpp
      spcsrmm_float_test.cpp
      csrmv_adaptive_float_test.cpp
+     csrmv_adaptive_double_test.cpp
      csrmm_float_test.cpp
      csrmm_double_test.cpp
+     coo2csr_float_test.cpp
+     csr2coo_float_test.cpp
     )
 
 IF(WIN32)

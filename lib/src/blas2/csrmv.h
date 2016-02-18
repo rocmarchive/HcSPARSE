@@ -8,11 +8,11 @@
 #define GLOBAL_SIZE WG_SIZE
 #define EXTENDED_PRECISION 1
 
-#define WG_BITS 24
-#define ROW_BITS 32
-#define BLKSIZE 1024
-#define BLOCK_MULTIPLIER 3
 #define ROWS_FOR_VECTOR 1
+#define BLOCK_MULTIPLIER 3
+#define BLOCKSIZE 256
+#define WGBITS 24
+#define ROWBITS 32
 
 #ifndef INDEX_TYPE
 #error "INDEX_TYPE undefined!"
@@ -128,7 +128,7 @@ inline T two_sum( T x,
     // and "Rundungsfehleranalyse einiger Verfahren zur Summation endlicher
     // Summen (ZAMM Z. Angewandte Mathematik und Mechanik 54(1) pp. 39-51,
     // 1974), respectively.
-    if (fabs(x) < fabs(y))
+    if (Concurrency::fast_math::fabs(x) < Concurrency::fast_math::fabs(y))
     {
         const T swap = x;
         x = y;
@@ -156,7 +156,7 @@ inline T two_fma( const T x_vals,
 #ifdef EXTENDED_PRECISION
     T x = x_vals * x_vec;
     const T sumk_s = x + y;
-    if (fabs(x) < fabs(y))
+    if (Concurrency::fast_math::fabs(x) < Concurrency::fast_math::fabs(y))
     {
         const T swap = x;
         x = y;
@@ -406,8 +406,8 @@ csrmv_vector(const hcsparseScalar* pAlpha,
 template <typename T>
 void
 csrmv_adaptive_kernel(const Concurrency::array_view<T, 1> &vals,
-                      const Concurrency::array_view<INDEX_TYPE, 1> &cols,
-                      const Concurrency::array_view<INDEX_TYPE, 1> &rowPtrs,
+                      const Concurrency::array_view<int, 1> &cols,
+                      const Concurrency::array_view<int, 1> &rowPtrs,
                       const Concurrency::array_view<T, 1> &vec,
                       Concurrency::array_view<T, 1> &out,
                       const Concurrency::array_view<unsigned long, 1> &rowBlocks,
@@ -459,7 +459,8 @@ csrmv_adaptive_kernel(const Concurrency::array_view<T, 1> &vals,
         unsigned int vecStart = (wg * (unsigned int)(BLOCK_MULTIPLIER*BLOCKSIZE)) + rowPtrs[row];
         unsigned int vecEnd = (rowPtrs[row + 1] > vecStart + BLOCK_MULTIPLIER*BLOCKSIZE) ? vecStart + BLOCK_MULTIPLIER*BLOCKSIZE : rowPtrs[row + 1];
 
-#if (defined(DOUBLE) || defined(LONG)) && !defined(ATOM64)
+        if (1)//(typeid(T) == typeid(double))
+        {
         // In here because we don't support 64-bit atomics while working on 64-bit data.
         // As such, we can't use CSR-LongRows. Time to do a fixup -- first WG does the
         // entire row with CSR-Vector. Other rows immediately exit.
@@ -469,7 +470,7 @@ csrmv_adaptive_kernel(const Concurrency::array_view<T, 1> &vals,
            stop_row = wg ? row : (row + 1);
            wg = 0;
         }
-#endif
+        }
 
         T temp_sum = 0.;
         T sumk_e = 0.;
@@ -775,7 +776,7 @@ csrmv_adaptive_kernel(const Concurrency::array_view<T, 1> &vals,
                    // Otherwise, increment the low order bits of the first thread in this
                    // coop. We're using this to tell how many workgroups in a coop are done.
                    // Do this with an atomic, since other threads may be doing this too.
-                   //const unsigned long no_warn = hcsparse_atomic_inc(&rowBlocks[first_wg_in_row]);
+                   hcsparse_atomic_inc(&rowBlocks[first_wg_in_row]);
                }
 #endif
            }
@@ -792,11 +793,6 @@ csrmv_adaptive( const hcsparseScalar* pAlpha,
                 hcdenseVector* pY,
                 const hcsparseControl *control )
 {
-    //if(control->extended_precision)
-    {
-//#define EXTENDED_PRECISION 1
-    }
-
     // if NVIDIA is used it does not allow to run the group size
     // which is not a multiplication of WG_SIZE. Don't know if that
     // have an impact on performance
@@ -811,8 +807,8 @@ csrmv_adaptive( const hcsparseScalar* pAlpha,
     }
 
     Concurrency::array_view<T> *avCsrMatx_values = static_cast<Concurrency::array_view<T> *>(pCsrMatx->values);
-    Concurrency::array_view<INDEX_TYPE> *avColIndices = static_cast<Concurrency::array_view<INDEX_TYPE> *>(pCsrMatx->colIndices);
-    Concurrency::array_view<INDEX_TYPE> *avRowOffsets = static_cast<Concurrency::array_view<INDEX_TYPE> *>(pCsrMatx->rowOffsets);
+    Concurrency::array_view<int> *avColIndices = static_cast<Concurrency::array_view<int> *>(pCsrMatx->colIndices);
+    Concurrency::array_view<int> *avRowOffsets = static_cast<Concurrency::array_view<int> *>(pCsrMatx->rowOffsets);
     Concurrency::array_view<T> *avX_values = static_cast<Concurrency::array_view<T> *>(pX->values);
     Concurrency::array_view<T> *avY_values = static_cast<Concurrency::array_view<T> *>(pY->values);
     Concurrency::array_view<unsigned long> *avRowBlocks = static_cast<Concurrency::array_view<unsigned long> *>(pCsrMatx->rowBlocks);
