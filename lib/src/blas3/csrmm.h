@@ -29,14 +29,14 @@ csrmv_kernel( const int num_rows,
 
     hc::extent<1> grdExt(global_work_size);
     hc::tiled_extent<1> t_ext = grdExt.tile(GROUP_SIZE);
-    hc::parallel_for_each(control->accl_view, t_ext, [&] (hc::tiled_index<1>& tidx) __attribute__((hc, cpu))
+    hc::parallel_for_each(control->accl_view, t_ext, [=] (hc::tiled_index<1> tidx) restrict(amp)
     { 
         tile_static T sdata[GROUP_SIZE + WAVE_SIZE / 2];
         const int global_id = tidx.global[0];
         const int local_id = tidx.local[0];
         const int thread_lane = local_id & ( subwave_size - 1 );
         const int vector_id = global_id / subwave_size;
-        const int num_vectors = t_ext[0] / subwave_size;
+        const int num_vectors = grdExt[0] / subwave_size;
         const T _alpha = alpha[ off_alpha ];
         const T _beta = beta[ off_beta ];
         for( int row = vector_id; row < num_rows; row += num_vectors )

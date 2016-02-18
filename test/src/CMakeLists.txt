@@ -34,6 +34,10 @@ FILE(GLOB TESTSRCS
           bicgStab_noprecond_double_test.cpp
           csr2coo_float_test.cpp
           coo2csr_float_test.cpp
+          csr_dense_conv_float_test.cpp
+          csr_dense_conv_double_test.cpp
+          csrmm_float_test.cpp
+          csrmm_double_test.cpp
           )
 
 
