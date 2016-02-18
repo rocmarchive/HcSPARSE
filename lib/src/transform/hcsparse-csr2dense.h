@@ -4,7 +4,7 @@
 
 template <typename T>
 void
-fill_zero (int size,
+fill_zero (ulong size,
            Concurrency::array_view<T> &values,
            const hcsparseControl* control)
 {
@@ -13,7 +13,8 @@ fill_zero (int size,
     Concurrency::parallel_for_each(control->accl_view, t_ext, [=] (Concurrency::tiled_index<BLOCK_SIZE> tidx) restrict(amp)
     {
         int i = tidx.global[0];
-        values[i] = 0;
+        if (i < size)
+            values[i] = 0;
     });
 }
 
@@ -23,8 +24,7 @@ csr2dense(const hcsparseCsrMatrix* csr,
           hcdenseMatrix* A,
           const hcsparseControl* control)
 {
-    int dense_size = csr->num_cols * csr->num_rows;
-
+    ulong dense_size = csr->num_cols * csr->num_rows;
     assert(csr->num_cols == A->num_cols && csr->num_rows == A->num_rows);
 
     Concurrency::array_view<int> *offsets = static_cast<Concurrency::array_view<int> *>(csr->rowOffsets);
@@ -35,6 +35,6 @@ csr2dense(const hcsparseCsrMatrix* csr,
 
     fill_zero<T> (dense_size, *Avalues, control);
 
-    return transform_csr_2_dense<T> (dense_size, *offsets, *indices, *values,
+    return transform_csr_2_dense<T> (csr->num_nonzeros, *offsets, *indices, *values,
                                      csr->num_rows, csr->num_cols, *Avalues, control);
 }

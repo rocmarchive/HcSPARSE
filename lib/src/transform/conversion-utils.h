@@ -81,7 +81,7 @@ offsets_to_indices(const int num_rows,
 
 template<typename T>
 hcsparseStatus
-transform_csr_2_dense(int size,
+transform_csr_2_dense(const int size,
                       const Concurrency::array_view<int> &row_offsets,
                       const Concurrency::array_view<int> &col_indices,
                       const Concurrency::array_view<T> &values,
