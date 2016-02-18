@@ -2,9 +2,7 @@
 #include <iostream>
 #include "gtest/gtest.h"
 
-#define TOLERANCE 0.1
-
-TEST(csrmv_float_test, func_check)
+TEST(csrmv_adaptive_double_test, func_check)
 {
     hcsparseCsrMatrix gCsrMat;
     hcdenseVector gX;
@@ -28,33 +26,33 @@ TEST(csrmv_float_test, func_check)
     if (status != hcsparseSuccess)
     {
         std::cout<<"The input file should be in mtx format"<<std::endl;
-        exit (1);
+        exit(1);
     } 
 
-    float *host_res = (float*) calloc(num_row, sizeof(float));
-    float *host_X = (float*) calloc(num_col, sizeof(float));
-    float *host_Y = (float*) calloc(num_row, sizeof(float));
-    float *host_alpha = (float*) calloc(1, sizeof(float));
-    float *host_beta = (float*) calloc(1, sizeof(float));
+    double *host_res = (double*) calloc(num_row, sizeof(double));
+    double *host_X = (double*) calloc(num_col, sizeof(double));
+    double *host_Y = (double*) calloc(num_row, sizeof(double));
+    double *host_alpha = (double*) calloc(1, sizeof(double));
+    double *host_beta = (double*) calloc(1, sizeof(double));
 
     srand (time(NULL));
     for (int i = 0; i < num_col; i++)
     {
-       host_X[i] = rand()%100;
+       host_X[i] = 1;//rand()%100;
     } 
 
     for (int i = 0; i < num_row; i++)
     {
-        host_res[i] = host_Y[i] = rand()%100;
+        host_res[i] = host_Y[i] = 1;//rand()%100;
     }
 
-    host_alpha[0] = rand()%100;
-    host_beta[0] = rand()%100;
+    host_alpha[0] = 1;
+    host_beta[0] = 0;
 
-    array_view<float> dev_X(num_col, host_X);
-    array_view<float> dev_Y(num_row, host_Y);
-    array_view<float> dev_alpha(1, host_alpha);
-    array_view<float> dev_beta(1, host_beta);
+    array_view<double> dev_X(num_col, host_X);
+    array_view<double> dev_Y(num_row, host_Y);
+    array_view<double> dev_alpha(1, host_alpha);
+    array_view<double> dev_beta(1, host_beta);
 
     hcsparseSetup();
     hcsparseInitCsrMatrix(&gCsrMat);
@@ -80,29 +78,36 @@ TEST(csrmv_float_test, func_check)
     gCsrMat.offColInd = 0;
     gCsrMat.offRowOff = 0;
 
-    float *values = (float*)calloc(num_nonzero, sizeof(float));
+    double *values = (double*)calloc(num_nonzero, sizeof(double));
     int *rowIndices = (int*)calloc(num_row+1, sizeof(int));
     int *colIndices = (int*)calloc(num_nonzero, sizeof(int));
+    ulong *rowBlocks = (ulong*)calloc(num_nonzero, sizeof(ulong));
 
-    array_view<float> av_values(num_nonzero, values);
+    array_view<double> av_values(num_nonzero, values);
     array_view<int> av_rowOff(num_row+1, rowIndices);
     array_view<int> av_colIndices(num_nonzero, colIndices);
+    array_view<ulong> av_rowBlocks(num_nonzero, rowBlocks);
 
     gCsrMat.values = &av_values;
     gCsrMat.rowOffsets = &av_rowOff;
     gCsrMat.colIndices = &av_colIndices;
+    gCsrMat.rowBlocks = &av_rowBlocks;
 
-    status = hcsparseSCsrMatrixfromFile(&gCsrMat, filename, &control, false);
+    status = hcsparseDCsrMatrixfromFile(&gCsrMat, filename, &control, false);
    
     if (status != hcsparseSuccess)
     {
         std::cout<<"The input file should be in mtx format"<<std::endl;
-        exit (1);
+        exit(1);
     }
- 
-    hcsparseScsrmv(&gAlpha, &gCsrMat, &gX, &gBeta, &gY, &control); 
 
-    array_view<float> *av_val = static_cast<array_view<float> *>(gCsrMat.values);
+    hcsparseCsrMetaSize(&gCsrMat, &control);
+
+    hcsparseCsrMetaCompute(&gCsrMat, &control);
+ 
+    hcsparseDcsrmv(&gAlpha, &gCsrMat, &gX, &gBeta, &gY, &control); 
+
+    array_view<double> *av_val = static_cast<array_view<double> *>(gCsrMat.values);
     array_view<int> *av_row = static_cast<array_view<int> *>(gCsrMat.rowOffsets);
     array_view<int> *av_col = static_cast<array_view<int> *>(gCsrMat.colIndices);
 
@@ -115,12 +120,15 @@ TEST(csrmv_float_test, func_check)
             host_res[row] = host_alpha[0] * host_X[(*av_col)[col]] * (*av_val)[col] + host_res[row];
         }
     }
-    array_view<float> *av_res = static_cast<array_view<float> *>(gY.values);
 
+    array_view<double> *av_res = static_cast<array_view<double> *>(gY.values);
+
+    bool isPassed = 1;  
+ 
     for (int i = 0; i < num_row; i++)
     {
-        float diff = std::abs(host_res[i] - (*av_res)[i]);
-        EXPECT_LT(diff, TOLERANCE);
+        double diff = std::abs(host_res[i] - (*av_res)[i]);
+        EXPECT_LT(diff, 0.01);
     }
 
     hcsparseTeardown();

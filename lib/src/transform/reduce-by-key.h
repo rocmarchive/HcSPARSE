@@ -5,9 +5,9 @@
 template <typename T>
 hcsparseStatus
 reduce_by_key( int size,
-               hc::array_view<T> &keys_output, 
+               hc::array_view<T> &keys_output,
                hc::array_view<T> &values_output,
-               const hc::array_view<T> &keys_input, 
+               const hc::array_view<T> &keys_input,
                const hc::array_view<T> &values_input,
                const hcsparseControl* control)
 {
@@ -21,9 +21,9 @@ reduce_by_key( int size,
     int numWrkGrp = (size - 1)/BLOCK_SIZE + 1;
 
     hc::extent<1> grdExt_numElm(BLOCK_SIZE * numWrkGrp);
-    hc::tiled_extent<1> t_ext_numElm = grdExt_numElm.tile(GROUP_SIZE);
+    hc::tiled_extent<1> t_ext_numElm = grdExt_numElm.tile(BLOCK_SIZE);
 
-    hc::parallel_for_each(control->accl_view, t_ext_numElm, [=] (hc::tiled_index<1>& tidx) __attribute__((hc, cpu))
+    hc::parallel_for_each(control->accl_view, t_ext_numElm, [=] (hc::tiled_index<1> &tidx) __attribute__((hc, cpu))
     {
         size_t gloId = tidx.global[0];
         if (gloId >= size) return;
@@ -53,7 +53,7 @@ reduce_by_key( int size,
     hc::array_view<T> preSumArray(numWrkGrp, preSumArray_buff);
     hc::array_view<T> postSumArray(numWrkGrp, postSumArray_buff);
 
-    hc::parallel_for_each(control->accl_view, t_ext_numElm, [=] (hc::tiled_index<1>& tidx) __attribute__((hc, cpu))
+    hc::parallel_for_each(control->accl_view, t_ext_numElm, [=] (hc::tiled_index<1> &tidx) __attribute__((hc, cpu))
     {
         tile_static T ldsKeys[BLOCK_SIZE];
         tile_static T ldsVals[BLOCK_SIZE];
@@ -107,12 +107,11 @@ reduce_by_key( int size,
         }
     });
 
-    int workPerThread = size / BLOCK_SIZE;
+    int workPerThread = (numWrkGrp - 1) / BLOCK_SIZE + 1;
 
     hc::extent<1> grdExt_blk(BLOCK_SIZE);
     hc::tiled_extent<1> t_ext_blk = grdExt_blk.tile(BLOCK_SIZE);
-
-    hc::parallel_for_each(control->accl_view, t_ext_blk, [=] (hc::tiled_index<1>& tidx) __attribute__((hc, cpu))
+    hc::parallel_for_each(control->accl_view, t_ext_blk, [=] (hc::tiled_index<1> &tidx) __attribute__((hc, cpu))
     {
         tile_static T ldsVals[BLOCK_SIZE];
         tile_static T ldsKeys[BLOCK_SIZE];
@@ -124,7 +123,7 @@ reduce_by_key( int size,
         int offset;
         T key = 0;
         T workSum = 0;
-        if (mapId < size)
+        if (mapId < numWrkGrp)
         {
             T prevKey;
             // accumulate zeroth value manually
@@ -137,7 +136,7 @@ reduce_by_key( int size,
             {
                 prevKey = key;
                 key = keySumArray[ mapId+offset ];
-                if (mapId+offset < size)
+                if (mapId+offset < numWrkGrp)
                 {
                     T y = preSumArray[ mapId+offset ];
                     if (key == prevKey)
@@ -162,7 +161,7 @@ reduce_by_key( int size,
         for( offset = offset*1; offset < wgSize; offset *= 2 )
         {
             tidx.barrier.wait();
-            if (mapId < size)
+            if (mapId < numWrkGrp)
             {
                 if (locId >= offset  )
                 {
@@ -185,7 +184,7 @@ reduce_by_key( int size,
         for( offset = 0; offset < workPerThread; offset += 1 )
         {
             tidx.barrier.wait();
-            if (mapId < size && locId > 0)
+            if (mapId < numWrkGrp && locId > 0)
             {
                 T y    = postSumArray[ mapId+offset ];
                 T key1 = keySumArray[ mapId+offset ]; // change me
@@ -196,11 +195,11 @@ reduce_by_key( int size,
                     y = y + y2;
                 }
                 postSumArray[ mapId+offset ] = y;
-            } 
-        } 
-    }); 
+            }
+        }
+    });
 
-    hc::parallel_for_each(control->accl_view, t_ext_numElm, [=] (hc::tiled_index<1>& tidx) __attribute__((hc, cpu))
+    hc::parallel_for_each(control->accl_view, t_ext_numElm, [=] (hc::tiled_index<1> &tidx) __attribute__((hc, cpu))
     {
         size_t gloId = tidx.global[0];
         size_t groId = tidx.tile[0];
@@ -217,11 +216,11 @@ reduce_by_key( int size,
             T scanResult = offsetValArray[ gloId ];
             T postBlockSum = postSumArray[ groId-1 ];
             T newResult = scanResult + postBlockSum;
-            postSumArray[ gloId ] = newResult;
+            offsetValArray[ gloId ] = newResult;
         }
     });
 
-    hc::parallel_for_each(control->accl_view, t_ext_numElm, [=] (hc::tiled_index<1>& tidx) __attribute__((hc, cpu))
+    hc::parallel_for_each(control->accl_view, t_ext_numElm, [=] (hc::tiled_index<1> &tidx) __attribute__((hc, cpu))
     {
         size_t gloId = tidx.global[0];
         //  Abort threads that are passed the end of the input vector
@@ -243,3 +242,4 @@ reduce_by_key( int size,
     return hcsparseSuccess;
 
 }
+

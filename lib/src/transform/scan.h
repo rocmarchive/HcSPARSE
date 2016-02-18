@@ -5,29 +5,48 @@
 template <typename T, ElementWiseOperator OP>
 hcsparseStatus
 scan(int size,
-     hc::array_view<T> &output, 
+     hc::array_view<T> &output,
      const hc::array_view<T> &input,
-     const hcsparseControl* control, 
-     bool exclusive)
+     const hcsparseControl* control,
+     int exclusive)
 {
-    T* preSumArray_buff = (T*) calloc (size, sizeof(T));
-    T* preSumArray1_buff = (T*) calloc (size, sizeof(T));
-    T* postSumArray_buff = (T*) calloc (size, sizeof(T));
+    int numElementsRUP = size;
+    int modWgSize = (numElementsRUP & ((BLOCK_SIZE*2)-1));
 
-    hc::array_view<T> preSumArray(size, preSumArray_buff);
-    hc::array_view<T> preSumArray1(size, preSumArray1_buff);
-    hc::array_view<T> postSumArray(size, postSumArray_buff);
+    if( modWgSize )
+    {
+        numElementsRUP &= ~modWgSize;
+        numElementsRUP += (BLOCK_SIZE*2);
+    }
+
+    //2 element per work item
+    int numWorkGroupsK0 = numElementsRUP / (BLOCK_SIZE*2);
+
+    int sizeScanBuff = numWorkGroupsK0;
+
+    modWgSize = (sizeScanBuff & ((BLOCK_SIZE*2)-1));
+    if( modWgSize )
+    {
+        sizeScanBuff &= ~modWgSize;
+        sizeScanBuff += (BLOCK_SIZE*2);
+    }
+
+    T* preSumArray_buff = (T*) calloc (sizeScanBuff, sizeof(T));
+    T* preSumArray1_buff = (T*) calloc (sizeScanBuff, sizeof(T));
+    T* postSumArray_buff = (T*) calloc (sizeScanBuff, sizeof(T));
+
+    hc::array_view<T> preSumArray(sizeScanBuff, preSumArray_buff);
+    hc::array_view<T> preSumArray1(sizeScanBuff, preSumArray1_buff);
+    hc::array_view<T> postSumArray(sizeScanBuff, postSumArray_buff);
 
     T identity = 0;
 
-    int numWrkGrp = (size - 1)/BLOCK_SIZE + 1;
-
     //scan in blocks
 
-    hc::extent<1> grdExt_numElm(BLOCK_SIZE * numWrkGrp);
-    hc::tiled_extent<1> t_ext_numElm = grdExt_numElm.tile(GROUP_SIZE);
+    hc::extent<1> grdExt_numElm(numElementsRUP/2);
+    hc::tiled_extent<1> t_ext_numElm = grdExt_numElm.tile(BLOCK_SIZE);
 
-    hc::parallel_for_each(control->accl_view, t_ext_numElm, [=] (hc::tiled_index<1>& tidx) __attribute__((hc, cpu))
+    hc::parallel_for_each(control->accl_view, t_ext_numElm, [=] (hc::tiled_index<1> &tidx) __attribute__((hc, cpu))
     {
         tile_static T lds[BLOCK_SIZE*2];
         size_t gloId = tidx.global[0];
@@ -46,7 +65,7 @@ scan(int size,
         else
             lds[locId + (wgSize / 2)] = 0;
         // Exclusive case
-        if(exclusive && gloId == 0)
+        if(exclusive == 1 && gloId == 0)
         {
             T start_val = input[0];
             lds[locId] = operation<T, OP>(identity, start_val);
@@ -72,12 +91,12 @@ scan(int size,
         }
     });
 
-    T workPerThread = size / BLOCK_SIZE;
+    T workPerThread = sizeScanBuff / BLOCK_SIZE;
 
     hc::extent<1> grdExt_block(BLOCK_SIZE);
-    hc::tiled_extent<1> t_ext_block = grdExt_block.tile(GROUP_SIZE);
+    hc::tiled_extent<1> t_ext_block = grdExt_block.tile(BLOCK_SIZE);
 
-    hc::parallel_for_each(control->accl_view, t_ext_block, [=] (hc::tiled_index<1>& tidx) __attribute__((hc, cpu))
+    hc::parallel_for_each(control->accl_view, t_ext_block, [=] (hc::tiled_index<1> &tidx) __attribute__((hc, cpu))
     {
         tile_static T lds[BLOCK_SIZE];
         size_t gloId = tidx.global[0];
@@ -87,7 +106,7 @@ scan(int size,
         // do offset of zero manually
         uint offset;
         T workSum = 0;
-         if (mapId < size)
+         if (mapId < numWorkGroupsK0)
         {
             // accumulate zeroth value manually
             offset = 0;
@@ -95,7 +114,7 @@ scan(int size,
             //  Serial accumulation
             for ( offset = offset + 1; offset < workPerThread; offset += 1 )
             {
-                if (mapId + offset < size)
+                if (mapId + offset < numWorkGroupsK0)
                 {
                     T y = preSumArray[mapId+offset];
                     workSum = operation<T, OP>(workSum,y);
@@ -110,7 +129,7 @@ scan(int size,
         for ( offset = offset*1; offset < wgSize; offset *= 2 )
         {
             tidx.barrier.wait();
-            if (mapId < size)
+            if (mapId < numWorkGroupsK0)
             {
                 if (locId >= offset)
                 {
@@ -137,7 +156,7 @@ scan(int size,
         for ( offset = 1; offset < workPerThread; offset += 1 )
         {
             tidx.barrier.wait();
-            if (mapId < size && locId > 0)
+            if (mapId < numWorkGroupsK0 && locId > 0)
             {
                 T y  = preSumArray[ mapId + offset ] ;
                 T y1 = operation<T, OP>(y, workSum);
@@ -153,7 +172,10 @@ scan(int size,
         } // for
     });
 
-    hc::parallel_for_each(control->accl_view, t_ext_block, [=] (hc::tiled_index<1>& tidx) __attribute__((hc, cpu))
+    hc::extent<1> grdExt(numElementsRUP);
+    hc::tiled_extent<1> t_ext = grdExt.tile(BLOCK_SIZE);
+
+    hc::parallel_for_each(control->accl_view, t_ext, [=] (hc::tiled_index<1> &tidx) __attribute__((hc, cpu))
     {
         tile_static T lds[BLOCK_SIZE];
         size_t gloId = tidx.global[0];
@@ -164,7 +186,7 @@ scan(int size,
         T val;
         if (gloId < size)
         {
-            if (exclusive)
+            if (exclusive == 1)
             {
                 if (gloId > 0)
                 {
@@ -193,14 +215,14 @@ scan(int size,
                 if (groId % 2 == 0)
                     postBlockSum = postSumArray[ groId/2 -1 ];
                 else if (groId == 1)
-                    postBlockSum = preSumArray[0];
+                    postBlockSum = preSumArray1[0];
                 else
                 {
                     y = postSumArray[ groId/2 -1 ];
-                    y1 = preSumArray[groId/2];
+                    y1 = preSumArray1[groId/2];
                     postBlockSum = operation<T, OP>(y, y1);
                 }
-                if (exclusive)
+                if (exclusive == 1)
                     newResult = postBlockSum;
                 else
                     newResult = operation<T, OP>(scanResult, postBlockSum);
@@ -235,12 +257,12 @@ scan(int size,
 
 template <typename T, ElementWiseOperator OP>
 hcsparseStatus
-exclusive_scan( int size, 
+exclusive_scan( int size,
                 hc::array_view<T> &output,
                 const hc::array_view<T> &input,
                 const hcsparseControl* control)
 {
-   return scan<T, OP>(size, output, input, control, true);
+   return scan<T, OP>(size, output, input, control, (int)true);
 }
 
 template <typename T, ElementWiseOperator OP>
@@ -250,7 +272,5 @@ inclusive_scan( int size,
                 const hc::array_view<T> &input,
                 const hcsparseControl* control)
 {
-  return scan<T, OP>(size, output, input, control, false);
+  return scan<T, OP>(size, output, input, control, (int)false);
 }
-
-

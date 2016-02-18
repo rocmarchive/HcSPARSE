@@ -3,12 +3,6 @@
 
 #include "hcsparse_struct.h"
 
-#define ROWS_FOR_VECTOR 1
-#define BLOCK_MULTIPLIER 3
-#define BLOCKSIZE 1024
-#define WGBITS 24
-#define ROWBITS 32
-
     /*!
     * \brief Initialize the hcsparse library
     * \note Must be called before any other hcsparse API function is invoked.
@@ -981,7 +975,7 @@
     hcsparseStatus
         hcsparseDcsr2dense( const hcsparseCsrMatrix* csr,
                             hcdenseMatrix* A,
-                            hcsparseControl *control );
+                            const hcsparseControl *control );
 
     /*!
      * \brief Convert a single precision dense matrix into a CSR encoded sparse matrix
