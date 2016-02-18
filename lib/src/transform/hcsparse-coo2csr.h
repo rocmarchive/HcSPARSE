@@ -18,8 +18,8 @@ void coo2csr_kernel ( const hc::array_view<int> &coo_col,
         int i = tidx.global[0];
         if (i < size)
         {
-            csr_col[i+1] = coo_col[i];
-            csr_values[i+1] = coo_values[i];
+            csr_col[i] = coo_col[i];
+            csr_values[i] = coo_values[i];
         }
     }).wait();
 }

@@ -32,6 +32,8 @@ FILE(GLOB TESTSRCS
           csrmv_adaptive_double_test.cpp
           bicgStab_noprecond_float_test.cpp
           bicgStab_noprecond_double_test.cpp
+          csr2coo_float_test.cpp
+          coo2csr_float_test.cpp
           )
 
 
