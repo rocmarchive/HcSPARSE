@@ -652,7 +652,6 @@ hcsparseHeaderfromFile( int* nnz, int* row, int* col, const char* filePath )
     return hcsparseSuccess;
 }
 
-
 template<typename T>
 bool CoordinateCompare( const Coordinate<T> &c1, const Coordinate<T> &c2 )
 {
@@ -694,9 +693,9 @@ hcsparseSCooMatrixfromFile( hcsparseCooMatrix* cooMatx, const char* filePath, hc
 
     std::sort( coords, coords + cooMatx->num_nonzeros, CoordinateCompare< float > );
 
-    Concurrency::array_view<float> *values = static_cast<Concurrency::array_view<float> *>(cooMatx->values);
-    Concurrency::array_view<int> *rowIndices = static_cast<Concurrency::array_view<int> *>(cooMatx->rowIndices);
-    Concurrency::array_view<int> *colIndices = static_cast<Concurrency::array_view<int> *>(cooMatx->colIndices);
+    hc::array_view<float> *values = static_cast<hc::array_view<float> *>(cooMatx->values);
+    hc::array_view<int> *rowIndices = static_cast<hc::array_view<int> *>(cooMatx->rowIndices);
+    hc::array_view<int> *colIndices = static_cast<hc::array_view<int> *>(cooMatx->colIndices);
 
     for( int c = 0; c < cooMatx->num_nonzeros; ++c )
     {
@@ -736,9 +735,9 @@ hcsparseDCooMatrixfromFile( hcsparseCooMatrix* cooMatx, const char* filePath, hc
 
     std::sort( coords, coords + cooMatx->num_nonzeros, CoordinateCompare<double> );
 
-    Concurrency::array_view<double> *values = static_cast<Concurrency::array_view<double> *>(cooMatx->values);
-    Concurrency::array_view<int> *rowIndices = static_cast<Concurrency::array_view<int> *>(cooMatx->rowIndices);
-    Concurrency::array_view<int> *colIndices = static_cast<Concurrency::array_view<int> *>(cooMatx->colIndices);
+    hc::array_view<double> *values = static_cast<hc::array_view<double> *>(cooMatx->values);
+    hc::array_view<int> *rowIndices = static_cast<hc::array_view<int> *>(cooMatx->rowIndices);
+    hc::array_view<int> *colIndices = static_cast<hc::array_view<int> *>(cooMatx->colIndices);
 
     for( int c = 0; c < cooMatx->num_nonzeros; ++c )
     {
@@ -785,9 +784,9 @@ hcsparseSCsrMatrixfromFile(hcsparseCsrMatrix* csrMatx, const char* filePath, hcs
 
     std::sort( coords, coords + csrMatx->num_nonzeros, CoordinateCompare< float > );
 
-    Concurrency::array_view<float> *values = static_cast<Concurrency::array_view<float> *>(csrMatx->values);
-    Concurrency::array_view<int> *rowOffsets = static_cast<Concurrency::array_view<int> *>(csrMatx->rowOffsets);
-    Concurrency::array_view<int> *colIndices = static_cast<Concurrency::array_view<int> *>(csrMatx->colIndices);
+    hc::array_view<float> *values = static_cast<hc::array_view<float> *>(csrMatx->values);
+    hc::array_view<int> *rowOffsets = static_cast<hc::array_view<int> *>(csrMatx->rowOffsets);
+    hc::array_view<int> *colIndices = static_cast<hc::array_view<int> *>(csrMatx->colIndices);
 
     int current_row = 0;
     (*(rowOffsets))[ 0 ] = 0;
@@ -836,9 +835,9 @@ hcsparseDCsrMatrixfromFile( hcsparseCsrMatrix* csrMatx, const char* filePath, hc
 
     std::sort( coords, coords + csrMatx->num_nonzeros, CoordinateCompare<double> );
 
-    Concurrency::array_view<double> *values = static_cast<Concurrency::array_view<double> *>(csrMatx->values);
-    Concurrency::array_view<int> *rowOffsets = static_cast<Concurrency::array_view<int> *>(csrMatx->rowOffsets);
-    Concurrency::array_view<int> *colIndices = static_cast<Concurrency::array_view<int> *>(csrMatx->colIndices);
+    hc::array_view<double> *values = static_cast<hc::array_view<double> *>(csrMatx->values);
+    hc::array_view<int> *rowOffsets = static_cast<hc::array_view<int> *>(csrMatx->rowOffsets);
+    hc::array_view<int> *colIndices = static_cast<hc::array_view<int> *>(csrMatx->colIndices);
 
     int current_row = 1;
     (*(rowOffsets))[ 0 ] = 0;
@@ -860,7 +859,7 @@ hcsparseDCsrMatrixfromFile( hcsparseCsrMatrix* csrMatx, const char* filePath, hc
 hcsparseStatus
 hcsparseCsrMetaSize( hcsparseCsrMatrix* csrMatx, hcsparseControl *control )
 {
-    Concurrency::array_view<int> *rCsrRowOffsets = static_cast<Concurrency::array_view<int> *>(csrMatx->rowOffsets);
+    hc::array_view<int> *rCsrRowOffsets = static_cast<hc::array_view<int> *>(csrMatx->rowOffsets);
     int * dataRO = rCsrRowOffsets->data();
 
     csrMatx->rowBlockSize = ComputeRowBlocksSize( dataRO, csrMatx->num_rows, BLOCKSIZE, BLOCK_MULTIPLIER, ROWS_FOR_VECTOR );
@@ -877,10 +876,13 @@ hcsparseCsrMetaCompute( hcsparseCsrMatrix* csrMatx, hcsparseControl *control )
         printf( "Number of Rows in the Sparse Matrix is greater than what is supported at present ((64-WG_BITS) bits) !" );
         return hcsparseInvalid;
     }
-    Concurrency::array_view<int> *rCsrRowOffsets = static_cast<Concurrency::array_view<int> *>(csrMatx->rowOffsets);
-    Concurrency::array_view<ulong> *rRowBlocks = static_cast<Concurrency::array_view<ulong> *>(csrMatx->rowBlocks);
 
-    ComputeRowBlocks(rRowBlocks->data(), csrMatx->rowBlockSize, rCsrRowOffsets->data(), csrMatx->num_rows, BLOCKSIZE, BLOCK_MULTIPLIER, ROWS_FOR_VECTOR, true );
+    hc::array_view<int> *rCsrRowOffsets = static_cast<hc::array_view<int> *>(csrMatx->rowOffsets);
+    int *dataRO = rCsrRowOffsets->data();
+    hc::array_view<ulong> *rRowBlocks = static_cast<hc::array_view<ulong> *>(csrMatx->rowBlocks);
+    ulong *dataRB = rRowBlocks->data();
+
+    ComputeRowBlocks(dataRB, csrMatx->rowBlockSize, dataRO, csrMatx->num_rows, BLOCKSIZE, BLOCK_MULTIPLIER, ROWS_FOR_VECTOR, true );
 
     return hcsparseSuccess;
 }
@@ -1109,7 +1111,7 @@ hcsparseScsr2coo(const hcsparseCsrMatrix* csr,
     {
         return hcsparseInvalid;
     }
-    
+
     return csr2coo<float> (csr, coo, control);
 }
 
@@ -1127,7 +1129,7 @@ hcsparseDcsr2coo(const hcsparseCsrMatrix* csr,
     {
         return hcsparseInvalid;
     }
-    
+
     return csr2coo<double> (csr, coo, control);
 }
 
@@ -1168,7 +1170,7 @@ hcsparseDcsr2dense(const hcsparseCsrMatrix* csr,
 }
 
 hcsparseStatus
-hcsparseSdense2csr(const hcdenseMatrix* A, 
+hcsparseSdense2csr(const hcdenseMatrix* A,
                    hcsparseCsrMatrix* csr,
                    const hcsparseControl* control)
 {
@@ -1186,7 +1188,7 @@ hcsparseSdense2csr(const hcdenseMatrix* A,
 }
 
 hcsparseStatus
-hcsparseDdense2csr(const hcdenseMatrix* A, 
+hcsparseDdense2csr(const hcdenseMatrix* A,
                    hcsparseCsrMatrix* csr,
                    const hcsparseControl* control)
 {
@@ -1199,7 +1201,7 @@ hcsparseDdense2csr(const hcdenseMatrix* A,
     {
         return hcsparseInvalid;
     }
- 
+
     return dense2csr<double> (A, csr, control);
 }
 
@@ -1218,6 +1220,7 @@ hcsparseScsrSpGemm(const hcsparseCsrMatrix* sparseMatA,
     {
        return hcsparseInvalid;
     }
-   
-    return csrSpGemm<float> (sparseMatA, sparseMatB, sparseMatC, control);  
+
+    return csrSpGemm<float> (sparseMatA, sparseMatB, sparseMatC, control);
 }
+

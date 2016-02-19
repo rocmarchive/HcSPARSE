@@ -5,25 +5,25 @@
 template <typename T>
 hcsparseStatus
 reduce_by_key( int size,
-               Concurrency::array_view<T> &keys_output, 
-               Concurrency::array_view<T> &values_output,
-               const Concurrency::array_view<T> &keys_input, 
-               const Concurrency::array_view<T> &values_input,
+               hc::array_view<T> &keys_output,
+               hc::array_view<T> &values_output,
+               const hc::array_view<T> &keys_input,
+               const hc::array_view<T> &values_input,
                const hcsparseControl* control)
 {
     //this vector stores the places where input index is changing;
     T* offsetArray_buff = (T*) calloc (size, sizeof(T));
     T* offsetValArray_buff = (T*) calloc (size, sizeof(T));
 
-    Concurrency::array_view<T> offsetArray(size, offsetArray_buff);
-    Concurrency::array_view<T> offsetValArray(size, offsetValArray_buff);
+    hc::array_view<T> offsetArray(size, offsetArray_buff);
+    hc::array_view<T> offsetValArray(size, offsetValArray_buff);
 
     int numWrkGrp = (size - 1)/BLOCK_SIZE + 1;
 
-    Concurrency::extent<1> grdExt_numElm(BLOCK_SIZE * numWrkGrp);
-    Concurrency::tiled_extent<BLOCK_SIZE> t_ext_numElm(grdExt_numElm);
+    hc::extent<1> grdExt_numElm(BLOCK_SIZE * numWrkGrp);
+    hc::tiled_extent<1> t_ext_numElm = grdExt_numElm.tile(BLOCK_SIZE);
 
-    Concurrency::parallel_for_each(control->accl_view, t_ext_numElm, [=] (Concurrency::tiled_index<BLOCK_SIZE> tidx) restrict(amp)
+    hc::parallel_for_each(control->accl_view, t_ext_numElm, [=] (hc::tiled_index<1> &tidx) __attribute__((hc, cpu))
     {
         size_t gloId = tidx.global[0];
         if (gloId >= size) return;
@@ -49,18 +49,18 @@ reduce_by_key( int size,
     T* preSumArray_buff = (T*) calloc (numWrkGrp, sizeof(T));
     T* postSumArray_buff = (T*) calloc (numWrkGrp, sizeof(T));
 
-    Concurrency::array_view<T> keySumArray(numWrkGrp, keySumArray_buff);
-    Concurrency::array_view<T> preSumArray(numWrkGrp, preSumArray_buff);
-    Concurrency::array_view<T> postSumArray(numWrkGrp, postSumArray_buff);
+    hc::array_view<T> keySumArray(numWrkGrp, keySumArray_buff);
+    hc::array_view<T> preSumArray(numWrkGrp, preSumArray_buff);
+    hc::array_view<T> postSumArray(numWrkGrp, postSumArray_buff);
 
-    Concurrency::parallel_for_each(control->accl_view, t_ext_numElm, [=] (Concurrency::tiled_index<BLOCK_SIZE> tidx) restrict(amp)
+    hc::parallel_for_each(control->accl_view, t_ext_numElm, [=] (hc::tiled_index<1> &tidx) __attribute__((hc, cpu))
     {
         tile_static T ldsKeys[BLOCK_SIZE];
         tile_static T ldsVals[BLOCK_SIZE];
         size_t gloId = tidx.global[0];
         size_t groId = tidx.tile[0];
         size_t locId = tidx.local[0];
-        size_t wgSize = tidx.tile_dim0;
+        size_t wgSize = tidx.tile_dim[0];
         T key;
         T val = 0;
         if(gloId < size)
@@ -109,16 +109,15 @@ reduce_by_key( int size,
 
     int workPerThread = (numWrkGrp - 1) / BLOCK_SIZE + 1;
 
-    Concurrency::extent<1> grdExt_blk(BLOCK_SIZE);
-    Concurrency::tiled_extent<BLOCK_SIZE> t_ext_blk(grdExt_blk);
-
-    Concurrency::parallel_for_each(control->accl_view, t_ext_blk, [=] (Concurrency::tiled_index<BLOCK_SIZE> tidx) restrict(amp)
+    hc::extent<1> grdExt_blk(BLOCK_SIZE);
+    hc::tiled_extent<1> t_ext_blk = grdExt_blk.tile(BLOCK_SIZE);
+    hc::parallel_for_each(control->accl_view, t_ext_blk, [=] (hc::tiled_index<1> &tidx) __attribute__((hc, cpu))
     {
         tile_static T ldsVals[BLOCK_SIZE];
         tile_static T ldsKeys[BLOCK_SIZE];
         size_t gloId = tidx.global[0];
         size_t locId = tidx.local[0];
-        size_t wgSize = tidx.tile_dim0;
+        size_t wgSize = tidx.tile_dim[0];
         uint mapId  = gloId * workPerThread;
         // do offset of zero manually
         int offset;
@@ -196,11 +195,11 @@ reduce_by_key( int size,
                     y = y + y2;
                 }
                 postSumArray[ mapId+offset ] = y;
-            } 
-        } 
-    }); 
+            }
+        }
+    });
 
-    Concurrency::parallel_for_each(control->accl_view, t_ext_numElm, [=] (Concurrency::tiled_index<BLOCK_SIZE> tidx) restrict(amp)
+    hc::parallel_for_each(control->accl_view, t_ext_numElm, [=] (hc::tiled_index<1> &tidx) __attribute__((hc, cpu))
     {
         size_t gloId = tidx.global[0];
         size_t groId = tidx.tile[0];
@@ -221,7 +220,7 @@ reduce_by_key( int size,
         }
     });
 
-    Concurrency::parallel_for_each(control->accl_view, t_ext_numElm, [=] (Concurrency::tiled_index<BLOCK_SIZE> tidx) restrict(amp)
+    hc::parallel_for_each(control->accl_view, t_ext_numElm, [=] (hc::tiled_index<1> &tidx) __attribute__((hc, cpu))
     {
         size_t gloId = tidx.global[0];
         //  Abort threads that are passed the end of the input vector
@@ -243,3 +242,4 @@ reduce_by_key( int size,
     return hcsparseSuccess;
 
 }
+

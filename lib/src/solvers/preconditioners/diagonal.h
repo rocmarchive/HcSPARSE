@@ -27,7 +27,7 @@ public:
         int size = std::min(A->num_rows, A->num_cols);
 
         invBuff = (T*) calloc ( size, sizeof(T));
-        Concurrency::array_view<T> av_invBuff(size, invBuff);
+        hc::array_view<T> av_invBuff(size, invBuff);
  
         invDiag_A.values = &av_invBuff;
         invDiag_A.num_values = size;
@@ -37,7 +37,7 @@ public:
         // easy to check with poisson matrix;
         status = extract_diagonal<T, true>(&invDiag_A, A, control);
 
-        Concurrency::array_view<T> *avInvDiag = static_cast<Concurrency::array_view<T> *>(invDiag_A.values);         
+        hc::array_view<T> *avInvDiag = static_cast<hc::array_view<T> *>(invDiag_A.values);         
 
         for (int i = 0; i < size; i++)
             invBuff[i] = (*avInvDiag)[i];
@@ -49,7 +49,7 @@ public:
                      hcsparseControl* control)    
     {
 
-        Concurrency::array_view<T> av_invBuff(invDiag_A.num_values, invBuff);
+        hc::array_view<T> av_invBuff(invDiag_A.num_values, invBuff);
         invDiag_A.values = &av_invBuff;
 
         //element wise multiply y = x*invDiag_A;

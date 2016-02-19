@@ -25,13 +25,13 @@ cg(hcdenseVector *pX,
         return hcsparseInvalid;
     }
 
-    Concurrency::array_view<T> *x = static_cast<Concurrency::array_view<T> *>(pX->values);
-    Concurrency::array_view<T> *b = static_cast<Concurrency::array_view<T> *>(pB->values);
+    hc::array_view<T> *x = static_cast<hc::array_view<T> *>(pX->values);
+    hc::array_view<T> *b = static_cast<hc::array_view<T> *>(pB->values);
 
     int status;
 
     T *norm_b_Buff = (T*) calloc(1, sizeof(T));
-    Concurrency::array_view<T> av_norm_b(1, norm_b_Buff);
+    hc::array_view<T> av_norm_b(1, norm_b_Buff);
 
     hcsparseScalar norm_b;
     norm_b.value = &av_norm_b;
@@ -69,10 +69,10 @@ cg(hcdenseVector *pX,
     T *r_Buff = (T*) calloc(N, sizeof(T));
     T *p_Buff = (T*) calloc(N, sizeof(T));
 
-    Concurrency::array_view<T> av_y(N, y_Buff);
-    Concurrency::array_view<T> av_z(N, z_Buff);
-    Concurrency::array_view<T> av_r(N, r_Buff);
-    Concurrency::array_view<T> av_p(N, p_Buff);
+    hc::array_view<T> av_y(N, y_Buff);
+    hc::array_view<T> av_z(N, z_Buff);
+    hc::array_view<T> av_r(N, r_Buff);
+    hc::array_view<T> av_p(N, p_Buff);
 
     hcdenseVector y;
     hcdenseVector z;
@@ -99,8 +99,8 @@ cg(hcdenseVector *pX,
 
     one_Buff[0] = 1;
  
-    Concurrency::array_view<T> av_one(1, one_Buff);
-    Concurrency::array_view<T> av_zero(1, zero_Buff);
+    hc::array_view<T> av_one(1, one_Buff);
+    hc::array_view<T> av_zero(1, zero_Buff);
 
     hcsparseScalar one;
     hcsparseScalar zero;
@@ -117,7 +117,7 @@ cg(hcdenseVector *pX,
     status = elementwise_transform<T, EW_MINUS>(&r, pB, &y, control);
 
     T *norm_r_Buff = (T*) calloc(1, sizeof(T));
-    Concurrency::array_view<T> av_norm_r(1, norm_r_Buff);
+    hc::array_view<T> av_norm_r(1, norm_r_Buff);
 
     hcsparseScalar norm_r;
     norm_r.value = &av_norm_r;
@@ -127,7 +127,7 @@ cg(hcdenseVector *pX,
 
     //T residuum = 0;
     T *residuum_Buff = (T*) calloc(1, sizeof(T));
-    Concurrency::array_view<T> av_residuum(1, residuum_Buff);
+    hc::array_view<T> av_residuum(1, residuum_Buff);
 
     hcsparseScalar residuum;
     residuum.value = &av_residuum;
@@ -155,7 +155,7 @@ cg(hcdenseVector *pX,
 
     //rz = <r, z>, here actually should be conjugate(r)) but we do not support complex type.
     T *rz_Buff = (T*) calloc(1, sizeof(T));
-    Concurrency::array_view<T> av_rz(1, rz_Buff);
+    hc::array_view<T> av_rz(1, rz_Buff);
 
     hcsparseScalar rz;
     rz.value = &av_rz;
@@ -172,10 +172,10 @@ cg(hcdenseVector *pX,
     T *yp_Buff = (T*) calloc(1, sizeof(T));
     T *rz_old_Buff = (T*) calloc(1, sizeof(T));
 
-    Concurrency::array_view<T> av_alpha(1, alpha_Buff);
-    Concurrency::array_view<T> av_beta(1, beta_Buff);
-    Concurrency::array_view<T> av_yp(1, yp_Buff);
-    Concurrency::array_view<T> av_rz_old(1, rz_old_Buff);
+    hc::array_view<T> av_alpha(1, alpha_Buff);
+    hc::array_view<T> av_beta(1, beta_Buff);
+    hc::array_view<T> av_yp(1, yp_Buff);
+    hc::array_view<T> av_rz_old(1, rz_old_Buff);
 
     hcsparseScalar alpha;
     hcsparseScalar beta;

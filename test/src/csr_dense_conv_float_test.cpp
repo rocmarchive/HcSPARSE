@@ -6,7 +6,7 @@ int main(int argc, char *argv[])
     hcsparseCsrMatrix gCsrMat_res;
     hcdenseMatrix gMat;
 
-    std::vector<Concurrency::accelerator>acc = Concurrency::accelerator::get_all();
+    std::vector<accelerator>acc = accelerator::get_all();
     accelerator_view accl_view = (acc[1].create_view()); 
 
     hcsparseControl control(accl_view);
@@ -50,9 +50,9 @@ int main(int argc, char *argv[])
     int *csr_rowOff = (int*)calloc(num_row+1, sizeof(int));
     int *csr_colIndices = (int*)calloc(num_nonzero, sizeof(int));    
 
-    Concurrency::array_view<float> av_csr_values(num_nonzero, csr_values);
-    Concurrency::array_view<int> av_csr_rowOff(num_row+1, csr_rowOff);
-    Concurrency::array_view<int> av_csr_colIndices(num_nonzero, csr_colIndices);
+    array_view<float> av_csr_values(num_nonzero, csr_values);
+    array_view<int> av_csr_rowOff(num_row+1, csr_rowOff);
+    array_view<int> av_csr_colIndices(num_nonzero, csr_colIndices);
 
     gCsrMat.values = &av_csr_values;
     gCsrMat.rowOffsets = &av_csr_rowOff;
@@ -62,9 +62,9 @@ int main(int argc, char *argv[])
     int *csr_res_rowOff = (int*)calloc(num_row+1, sizeof(int));
     int *csr_res_colIndices = (int*)calloc(num_nonzero, sizeof(int));    
 
-    Concurrency::array_view<float> av_csr_res_values(num_nonzero, csr_res_values);
-    Concurrency::array_view<int> av_csr_res_rowOff(num_row+1, csr_res_rowOff);
-    Concurrency::array_view<int> av_csr_res_colIndices(num_nonzero, csr_res_colIndices);
+    array_view<float> av_csr_res_values(num_nonzero, csr_res_values);
+    array_view<int> av_csr_res_rowOff(num_row+1, csr_res_rowOff);
+    array_view<int> av_csr_res_colIndices(num_nonzero, csr_res_colIndices);
 
     gCsrMat_res.values = &av_csr_res_values;
     gCsrMat_res.rowOffsets = &av_csr_res_rowOff;
@@ -72,7 +72,7 @@ int main(int argc, char *argv[])
 
     float *A_values = (float*)calloc(num_row*num_col, sizeof(float));
 
-    Concurrency::array_view<float> av_A_values(num_row*num_col, A_values);
+    array_view<float> av_A_values(num_row*num_col, A_values);
 
     gMat.values = &av_A_values;
     gMat.num_rows = num_row;

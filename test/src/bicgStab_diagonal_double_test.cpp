@@ -6,7 +6,7 @@ int main(int argc, char *argv[])
     hcdenseVector gX;
     hcdenseVector gB;
 
-    std::vector<Concurrency::accelerator>acc = Concurrency::accelerator::get_all();
+    std::vector<accelerator>acc = accelerator::get_all();
     accelerator_view accl_view = (acc[1].create_view()); 
 
     hcsparseControl control(accl_view);
@@ -45,8 +45,8 @@ int main(int argc, char *argv[])
         host_B[i] = rand()%100;
     }
 
-    Concurrency::array_view<double> dev_X(num_col, host_X);
-    Concurrency::array_view<double> dev_B(num_row, host_B);
+    array_view<double> dev_X(num_col, host_X);
+    array_view<double> dev_B(num_row, host_B);
 
     hcsparseSetup();
     hcsparseInitCsrMatrix(&gA);
@@ -70,9 +70,9 @@ int main(int argc, char *argv[])
     int *rowIndices = (int*)calloc(num_row+1, sizeof(int));
     int *colIndices = (int*)calloc(num_nonzero, sizeof(int));
 
-    Concurrency::array_view<double> av_values(num_nonzero, values);
-    Concurrency::array_view<int> av_rowOff(num_row+1, rowIndices);
-    Concurrency::array_view<int> av_colIndices(num_nonzero, colIndices);
+    array_view<double> av_values(num_nonzero, values);
+    array_view<int> av_rowOff(num_row+1, rowIndices);
+    array_view<int> av_colIndices(num_nonzero, colIndices);
 
     gA.values = &av_values;
     gA.rowOffsets = &av_rowOff;

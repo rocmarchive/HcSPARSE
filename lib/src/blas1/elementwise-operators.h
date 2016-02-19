@@ -13,49 +13,49 @@ enum ElementWiseOperator
 };
 
 template<typename T>
-T add (T a, T b) restrict(amp, cpu)
+T add (T a, T b) __attribute__((hc, cpu))
 {
     return a + b;
 }
 
 template<typename T>
-T sub (T a, T b) restrict(amp, cpu)
+T sub (T a, T b) __attribute__((hc, cpu))
 {
     return a - b;
 }
 
 template<typename T>
-T multi (T a, T b) restrict(amp, cpu)
+T multi (T a, T b) __attribute__((hc, cpu))
 {
     return a * b;
 }
 
 template<typename T>
-T div (T a, T b) restrict(amp, cpu)
+T div (T a, T b) __attribute__((hc, cpu))
 {
     return a / b;
 }
 
 template<typename T>
-T min (T a, T b) restrict(amp, cpu)
+T min (T a, T b) __attribute__((hc, cpu))
 {
     return (a >= b) ? b : a;
 }
 
 template<typename T>
-T max (T a, T b) restrict(amp, cpu)
+T max (T a, T b) __attribute__((hc, cpu))
 {
     return (a >= b) ? a : b;
 }
 
 template<typename T>
-T dummy (T a, T b) restrict(amp, cpu)
+T dummy (T a, T b) __attribute__((hc, cpu))
 {
     return a;
 }
 
 template<typename T, ElementWiseOperator OP>
-T operation(T a, T b) restrict(amp)
+T operation(T a, T b) __attribute__((hc, cpu))
 {
     if (OP == EW_PLUS)
         return add<T>(a, b);    
@@ -66,9 +66,9 @@ T operation(T a, T b) restrict(amp)
     else if (OP == EW_DIV)
         return div<T>(a, b);    
     else if (OP == EW_MIN)
-        return min<T>(a, b);    
+        return std::min<T>(a, b);    
     else if (OP == EW_MAX)
-        return max<T>(a, b);    
+        return std::max<T>(a, b);    
     else
         return dummy<T>(a, b);  
 }

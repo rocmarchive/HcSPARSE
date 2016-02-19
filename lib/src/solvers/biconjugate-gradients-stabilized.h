@@ -20,13 +20,12 @@ bicgStab(hcdenseVector *pX,
         return hcsparseInvalid;
     }
 
-    Concurrency::array_view<T> *x = static_cast<Concurrency::array_view<T> *>(pX->values);
-    Concurrency::array_view<T> *b = static_cast<Concurrency::array_view<T> *>(pB->values);
+    hc::array_view<T> *x = static_cast<hc::array_view<T> *>(pX->values);
+    hc::array_view<T> *b = static_cast<hc::array_view<T> *>(pB->values);
 
     int status;
-
     T *norm_b_buff = (T*)calloc(1, sizeof(T));
-    Concurrency::array_view<T> av_norm_b(1, norm_b_buff);
+    hc::array_view<T> av_norm_b(1, norm_b_buff);
     hcsparseScalar norm_b;
     norm_b.value = &av_norm_b;
     norm_b.offValue = 0;
@@ -50,7 +49,6 @@ bicgStab(hcdenseVector *pX,
     }
 
 
-
     //n == number of rows;
     const auto N = pA->num_cols;
 
@@ -64,15 +62,15 @@ bicgStab(hcdenseVector *pX,
     T *Ms_buff = (T*) calloc(N, sizeof(T));
     T *AMs_buff = (T*) calloc(N, sizeof(T));
 
-    Concurrency::array_view<T> av_y(N, y_buff);
-    Concurrency::array_view<T> av_p(N, p_buff);
-    Concurrency::array_view<T> av_r(N, r_buff);
-    Concurrency::array_view<T> av_r_star(N, r_star_buff);
-    Concurrency::array_view<T> av_s(N, s_buff);
-    Concurrency::array_view<T> av_Mp(N, Mp_buff);
-    Concurrency::array_view<T> av_AMp(N, AMp_buff);
-    Concurrency::array_view<T> av_Ms(N, Ms_buff);
-    Concurrency::array_view<T> av_AMs(N, AMs_buff);
+    hc::array_view<T> av_y(N, y_buff);
+    hc::array_view<T> av_p(N, p_buff);
+    hc::array_view<T> av_r(N, r_buff);
+    hc::array_view<T> av_r_star(N, r_star_buff);
+    hc::array_view<T> av_s(N, s_buff);
+    hc::array_view<T> av_Mp(N, Mp_buff);
+    hc::array_view<T> av_AMp(N, AMp_buff);
+    hc::array_view<T> av_Ms(N, Ms_buff);
+    hc::array_view<T> av_AMs(N, AMs_buff);
 
     hcdenseVector y;
     hcdenseVector p;
@@ -119,8 +117,8 @@ bicgStab(hcdenseVector *pX,
 
     one_buff[0] = 1;
 
-    Concurrency::array_view<T> av_one(1, one_buff);
-    Concurrency::array_view<T> av_zero(1, zero_buff);
+    hc::array_view<T> av_one(1, one_buff);
+    hc::array_view<T> av_zero(1, zero_buff);
 
     hcsparseScalar one;
     hcsparseScalar zero;
@@ -138,7 +136,7 @@ bicgStab(hcdenseVector *pX,
     status = elementwise_transform<T, EW_MINUS>(&r, pB, &y, control);
 
     T *norm_r_buff = (T*) calloc(1, sizeof(T));
-    Concurrency::array_view<T> av_norm_r(1, norm_r_buff);
+    hc::array_view<T> av_norm_r(1, norm_r_buff);
 
     hcsparseScalar norm_r;
 
@@ -148,7 +146,7 @@ bicgStab(hcdenseVector *pX,
     status = Norm1<T>(&norm_r, &r, control);
 
     T *residuum_buff = (T*) calloc(1, sizeof(T));
-    Concurrency::array_view<T> av_residuum(1, residuum_buff);
+    hc::array_view<T> av_residuum(1, residuum_buff);
 
     av_residuum[0] = div<T>(av_norm_r[0], av_norm_b[0]);
 
@@ -174,7 +172,7 @@ bicgStab(hcdenseVector *pX,
 
     // holder for <r_star, r>
     T *r_star_r_old_buff = (T*) calloc(1, sizeof(T));
-    Concurrency::array_view<T> av_r_star_r_old(1, r_star_r_old_buff);
+    hc::array_view<T> av_r_star_r_old(1, r_star_r_old_buff);
 
     hcsparseScalar r_star_r_old;
     r_star_r_old.value = &av_r_star_r_old;
@@ -182,7 +180,7 @@ bicgStab(hcdenseVector *pX,
 
     // holder for <r_star, r_{i+1}>
     T *r_star_r_new_buff = (T*) calloc(1, sizeof(T));
-    Concurrency::array_view<T> av_r_star_r_new(1, r_star_r_new_buff);
+    hc::array_view<T> av_r_star_r_new(1, r_star_r_new_buff);
   
     hcsparseScalar r_star_r_new;
     r_star_r_new.value = &av_r_star_r_new;
@@ -197,9 +195,9 @@ bicgStab(hcdenseVector *pX,
     T *beta_buff = (T*) calloc(1, sizeof(T));
     T *omega_buff = (T*) calloc(1, sizeof(T));
 
-    Concurrency::array_view<T> av_alpha(1, alpha_buff);
-    Concurrency::array_view<T> av_beta(1, beta_buff);
-    Concurrency::array_view<T> av_omega(1, omega_buff);
+    hc::array_view<T> av_alpha(1, alpha_buff);
+    hc::array_view<T> av_beta(1, beta_buff);
+    hc::array_view<T> av_omega(1, omega_buff);
 
     hcsparseScalar alpha;
     hcsparseScalar beta;
@@ -216,7 +214,7 @@ bicgStab(hcdenseVector *pX,
 
     // holder for <r_star, AMp>
     T *r_star_AMp_buff = (T*) calloc(1, sizeof(T));
-    Concurrency::array_view<T> av_r_star_AMp(1, r_star_AMp_buff);
+    hc::array_view<T> av_r_star_AMp(1, r_star_AMp_buff);
 
     hcsparseScalar r_star_AMp;
     r_star_AMp.value = &av_r_star_AMp;
@@ -224,7 +222,7 @@ bicgStab(hcdenseVector *pX,
 
     // hoder for <A*M*s, s>
     T *AMsS_buff = (T*) calloc(1, sizeof(T));
-    Concurrency::array_view<T> av_AMsS(1, AMsS_buff);
+    hc::array_view<T> av_AMsS(1, AMsS_buff);
 
     hcsparseScalar AMsS;
     AMsS.value = &av_AMsS;
@@ -232,7 +230,7 @@ bicgStab(hcdenseVector *pX,
 
     // holder for <AMs, AMs>
     T *AMsAMs_buff = (T*) calloc(1, sizeof(T));
-    Concurrency::array_view<T> av_AMsAMs(1, AMsAMs_buff);
+    hc::array_view<T> av_AMsAMs(1, AMsAMs_buff);
 
     hcsparseScalar AMsAMs;
     AMsAMs.value = &av_AMsAMs;
@@ -240,7 +238,7 @@ bicgStab(hcdenseVector *pX,
 
     // holder for norm_s;
     T *norm_s_buff = (T*) calloc(1, sizeof(T));
-    Concurrency::array_view<T> av_norm_s(1, norm_s_buff);
+    hc::array_view<T> av_norm_s(1, norm_s_buff);
 
     hcsparseScalar norm_s;
     norm_s.value = &av_norm_s;

@@ -8,7 +8,7 @@ int main(int argc, char *argv[])
     hcsparseScalar gAlpha;
     hcsparseScalar gBeta;
 
-    std::vector<Concurrency::accelerator>acc = Concurrency::accelerator::get_all();
+    std::vector<accelerator>acc = accelerator::get_all();
     accelerator_view accl_view = (acc[1].create_view()); 
 
     hcsparseControl control(accl_view);
@@ -53,10 +53,10 @@ int main(int argc, char *argv[])
     host_alpha[0] = 1;
     host_beta[0] = 0;
 
-    Concurrency::array_view<float> dev_X(num_col, host_X);
-    Concurrency::array_view<float> dev_Y(num_row, host_Y);
-    Concurrency::array_view<float> dev_alpha(1, host_alpha);
-    Concurrency::array_view<float> dev_beta(1, host_beta);
+    array_view<float> dev_X(num_col, host_X);
+    array_view<float> dev_Y(num_row, host_Y);
+    array_view<float> dev_alpha(1, host_alpha);
+    array_view<float> dev_beta(1, host_beta);
 
     hcsparseSetup();
     hcsparseInitCsrMatrix(&gCsrMat);
@@ -87,10 +87,10 @@ int main(int argc, char *argv[])
     int *colIndices = (int*)calloc(num_nonzero, sizeof(int));
     ulong *rowBlocks = (ulong*)calloc(num_nonzero, sizeof(ulong));
 
-    Concurrency::array_view<float> av_values(num_nonzero, values);
-    Concurrency::array_view<int> av_rowOff(num_row+1, rowIndices);
-    Concurrency::array_view<int> av_colIndices(num_nonzero, colIndices);
-    Concurrency::array_view<ulong> av_rowBlocks(num_nonzero, rowBlocks);
+    array_view<float> av_values(num_nonzero, values);
+    array_view<int> av_rowOff(num_row+1, rowIndices);
+    array_view<int> av_colIndices(num_nonzero, colIndices);
+    array_view<ulong> av_rowBlocks(num_nonzero, rowBlocks);
 
     gCsrMat.values = &av_values;
     gCsrMat.rowOffsets = &av_rowOff;
@@ -111,9 +111,9 @@ int main(int argc, char *argv[])
  
     hcsparseScsrmv(&gAlpha, &gCsrMat, &gX, &gBeta, &gY, &control); 
 
-    Concurrency::array_view<float> *av_val = static_cast<Concurrency::array_view<float> *>(gCsrMat.values);
-    Concurrency::array_view<int> *av_row = static_cast<Concurrency::array_view<int> *>(gCsrMat.rowOffsets);
-    Concurrency::array_view<int> *av_col = static_cast<Concurrency::array_view<int> *>(gCsrMat.colIndices);
+    array_view<float> *av_val = static_cast<array_view<float> *>(gCsrMat.values);
+    array_view<int> *av_row = static_cast<array_view<int> *>(gCsrMat.rowOffsets);
+    array_view<int> *av_col = static_cast<array_view<int> *>(gCsrMat.colIndices);
 
     int col = 0;
     for (int row = 0; row < num_row; row++)
@@ -125,7 +125,7 @@ int main(int argc, char *argv[])
         }
     }
 
-    Concurrency::array_view<float> *av_res = static_cast<Concurrency::array_view<float> *>(gY.values);
+    array_view<float> *av_res = static_cast<array_view<float> *>(gY.values);
 
     bool isPassed = 1;  
  

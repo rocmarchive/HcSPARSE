@@ -22,7 +22,7 @@ void binarysearch(int   *s_key,
                   int   key_input,
                   T     val_input,
                   int   merged_size,
-                  bool  *is_new_col) restrict (amp)
+                  bool  *is_new_col) __attribute__ ((hc))
 {
     int start = 0;
     int stop  = merged_size - 1;
@@ -53,7 +53,7 @@ void binarysearch_sub(int   *s_key,
                       T     *s_val,
                       int   key_input,
                       T     val_input,
-                      int   merged_size) restrict (amp)
+                      int   merged_size) __attribute__ ((hc))
 {
     int start = 0;
     int stop  = merged_size - 1;
@@ -78,12 +78,12 @@ void binarysearch_sub(int   *s_key,
 
 template <typename T>
 inline
-void binarysearch_global(Concurrency::array_view<int> &d_key,
-                         Concurrency::array_view<T> &d_val,
+void binarysearch_global(hc::array_view<int> &d_key,
+                         hc::array_view<T> &d_val,
                          int            key_input,
                          T          val_input,
                          int            merged_size,
-                         bool          *is_new_col) restrict (amp)
+                         bool          *is_new_col) __attribute__ ((hc))
 {
     int start = 0;
     int stop  = merged_size - 1;
@@ -109,11 +109,11 @@ void binarysearch_global(Concurrency::array_view<int> &d_key,
 
 template <typename T>
 inline
-void binarysearch_global_sub(Concurrency::array_view<int> &d_key,
-                             Concurrency::array_view<T> &d_val,
+void binarysearch_global_sub(hc::array_view<int> &d_key,
+                             hc::array_view<T> &d_val,
                              int            key_input,
                              T          val_input,
-                             int            merged_size) restrict (amp)
+                             int            merged_size) __attribute__ ((hc))
 {
     int start = 0;
     int stop  = merged_size - 1;
@@ -137,9 +137,9 @@ void binarysearch_global_sub(Concurrency::array_view<int> &d_key,
 }
 
 inline
-void scan_256(Concurrency::tiled_index<GROUPSIZE_256> &tidx,
+void scan_256(hc::tiled_index<1> &tidx,
               int  *s_scan,
-              const int      local_id) restrict (amp)
+              const int      local_id) __attribute__ ((hc))
 {
     int ai, bi;
     int baseai = 1 + 2 * local_id;
@@ -249,7 +249,7 @@ void mergepath_serialmerge_liu(int          *s_a_key,
 
 template <typename T>
 inline
-void mergepath_liu(Concurrency::tiled_index<GROUPSIZE_256> &tidx,
+void mergepath_liu(hc::tiled_index<1> &tidx,
                    int          *s_a_key,
                    T               *s_a_val,
                    const int                 a_length,
@@ -259,16 +259,16 @@ void mergepath_liu(Concurrency::tiled_index<GROUPSIZE_256> &tidx,
                    int             *s_a_border,
                    int             *s_b_border,
                    int                      *reg_key,
-                   T                       *reg_val) restrict (amp)
+                   T                       *reg_val) __attribute__ ((hc))
 {
     if (b_length == 0)
         return;
     if (s_a_key[a_length-1] < s_b_key[0])
         return;
     int local_id = tidx.local[0];
-    int local_size = tidx.tile_dim0;
-    int delta = Concurrency::fast_math::ceil((float)(a_length + b_length) / (float)local_size);
-    int active_threads = Concurrency::fast_math::ceil((float)(a_length + b_length) / (float)delta);
+    int local_size = tidx.tile_dim[0];
+    int delta = hc::fast_math::ceil((float)(a_length + b_length) / (float)local_size);
+    int active_threads = hc::fast_math::ceil((float)(a_length + b_length) / (float)delta);
     int offset = delta * local_id;
     int a_start, a_stop, b_start, b_stop;
     if (!local_id)
@@ -310,11 +310,11 @@ void mergepath_liu(Concurrency::tiled_index<GROUPSIZE_256> &tidx,
 }
 
 inline
-int mergepath_partition_global_liu(Concurrency::array_view<int> &s_a_key,
+int mergepath_partition_global_liu(hc::array_view<int> &s_a_key,
                                    const int      a_length,
-                                   Concurrency::array_view<int> &s_b_key,
+                                   hc::array_view<int> &s_b_key,
                                    const int      b_length,
-                                   const int      offset) restrict (amp)
+                                   const int      offset) __attribute__ ((hc))
 {
     int x_start = offset > b_length ? offset - b_length : 0;
     int x_stop  = offset > a_length ? a_length : offset;
@@ -344,12 +344,12 @@ int mergepath_partition_global_liu(Concurrency::array_view<int> &s_a_key,
 
 template <typename T>
 inline
-void mergepath_global_2level_liu(Concurrency::tiled_index<GROUPSIZE_256> &tidx,
-                                 Concurrency::array_view<int> &s_a_key,
-                                 Concurrency::array_view<T> &s_a_val,
+void mergepath_global_2level_liu(hc::tiled_index<1> &tidx,
+                                 hc::array_view<int> &s_a_key,
+                                 hc::array_view<T> &s_a_val,
                                  const int                 a_length,
-                                 Concurrency::array_view<int> &s_b_key,
-                                 Concurrency::array_view<T> &s_b_val,
+                                 hc::array_view<int> &s_b_key,
+                                 hc::array_view<T> &s_b_val,
                                  const int                 b_length,
                                  int             *s_a_border,
                                  int             *s_b_border,
@@ -357,17 +357,17 @@ void mergepath_global_2level_liu(Concurrency::tiled_index<GROUPSIZE_256> &tidx,
                                  T                       *reg_val,
                                  int             *s_key,
                                  T              *s_val,
-                                 Concurrency::array_view<int> &d_temp_key,
-                                 Concurrency::array_view<T> &d_temp_val) restrict (amp)
+                                 hc::array_view<int> &d_temp_key,
+                                 hc::array_view<T> &d_temp_val) __attribute__ ((hc))
 {
     if (b_length == 0)
         return;
     if (s_a_key[a_length-1] < s_b_key[0])
         return;
     int local_id = tidx.local[0];
-    int local_size = tidx.tile_dim0;
+    int local_size = tidx.tile_dim[0];
     int delta_2level = local_size * 9;
-    int loop_2level = Concurrency::fast_math::ceil((float)(a_length + b_length) / (float)delta_2level);
+    int loop_2level = hc::fast_math::ceil((float)(a_length + b_length) / (float)delta_2level);
     int a_border_2level_l, b_border_2level_l, a_border_2level_r, b_border_2level_r;
     for (int i = 0; i < loop_2level; i++)
     {
@@ -426,19 +426,19 @@ void mergepath_global_2level_liu(Concurrency::tiled_index<GROUPSIZE_256> &tidx,
 
 template <typename T>
 inline
-void readwrite_mergedlist_global(Concurrency::tiled_index<GROUPSIZE_256> &tidx,
-                                 const Concurrency::array_view<int> &d_csrColIndCt,
-                                 const Concurrency::array_view<T> &d_csrValCt,
-                                 Concurrency::array_view<int> &d_key_merged,
-                                 Concurrency::array_view<T> &d_val_merged,
+void readwrite_mergedlist_global(hc::tiled_index<1> &tidx,
+                                 const hc::array_view<int> &d_csrColIndCt,
+                                 const hc::array_view<T> &d_csrValCt,
+                                 hc::array_view<int> &d_key_merged,
+                                 hc::array_view<T> &d_val_merged,
                                  const int       merged_size,
                                  const int       row_offset,
-                                 const bool      is_write) restrict (amp)
+                                 const bool      is_write) __attribute__ ((hc))
 {
     int local_id = tidx.local[0];
-    int local_size = tidx.tile_dim0;
+    int local_size = tidx.tile_dim[0];
     int stride, offset_local_id, global_offset;
-    int loop = Concurrency::fast_math::ceil((float)merged_size / (float)local_size);
+    int loop = hc::fast_math::ceil((float)merged_size / (float)local_size);
     for (int i = 0; i < loop; i++)
     {
         stride = i != loop - 1 ? local_size : merged_size - i * local_size;
@@ -462,19 +462,19 @@ void readwrite_mergedlist_global(Concurrency::tiled_index<GROUPSIZE_256> &tidx,
 
 template <typename T>
 inline
-void readwrite_mergedlist(Concurrency::tiled_index<GROUPSIZE_256> &tidx, 
-                          Concurrency::array_view<int> &d_csrColIndCt,
-                          Concurrency::array_view<T> &d_csrValCt,
+void readwrite_mergedlist(hc::tiled_index<1> &tidx, 
+                          hc::array_view<int> &d_csrColIndCt,
+                          hc::array_view<T> &d_csrValCt,
                           int *s_key_merged,
                           T *s_val_merged,
                           const int       merged_size,
                           const int       row_offset,
-                          const bool      is_write) restrict (amp)
+                          const bool      is_write) __attribute__ ((hc))
 {
     int local_id = tidx.local[0];
-    int local_size = tidx.tile_dim0;
+    int local_size = tidx.tile_dim[0];
     int stride, offset_local_id, global_offset;
-    int loop = Concurrency::fast_math::ceil((float)merged_size / (float)local_size);
+    int loop = hc::fast_math::ceil((float)merged_size / (float)local_size);
     for (int i = 0; i < loop; i++)
     {
         stride = i != loop - 1 ? local_size : merged_size - i * local_size;
@@ -503,7 +503,7 @@ void siftDown(int *s_key,
               const int start,
               const int stop,
               const int local_id,
-              const int local_size) restrict (amp) 
+              const int local_size) __attribute__ ((hc)) 
 {
     int root = start;
     int child, swap;
@@ -541,7 +541,7 @@ int heapsort(int *s_key,
              T   *s_val,
              const int segment_size,
              const int local_id,
-             const int local_size) restrict (amp)
+             const int local_size) __attribute__ ((hc))
 {
     // heapsort - heapify max-heap
     int start = (segment_size - 1) / 2;
@@ -681,10 +681,10 @@ void bitonic(int   *s_key,
 
 template <typename T>
 inline
-void bitonicsort(Concurrency::tiled_index<GROUPSIZE_256> &tidx,
+void bitonicsort(hc::tiled_index<1> &tidx,
                  int  *s_key,
                  T    *s_val,
-                 int  arrayLength) restrict (amp)
+                 int  arrayLength) __attribute__ ((hc))
 {
     int local_id = tidx.local[0];
     int numStages = 0;
@@ -704,14 +704,14 @@ void bitonicsort(Concurrency::tiled_index<GROUPSIZE_256> &tidx,
 
 template <typename T>
 inline
-void compression_scan(Concurrency::tiled_index<GROUPSIZE_256> &tidx,
+void compression_scan(hc::tiled_index<1> &tidx,
                       int *s_scan,
                       int *s_key,
                       T   *s_val,
                       const int       local_counter,
                       const int       local_size,
                       const int       local_id,
-                      const int       local_id_halfwidth) restrict (amp)
+                      const int       local_id_halfwidth) __attribute__ ((hc))
 {
     // compression - prefix sum
     bool duplicate = 1;
@@ -802,25 +802,25 @@ void compression_scan(Concurrency::tiled_index<GROUPSIZE_256> &tidx,
 
 template <typename T>
 hcsparseStatus compute_nnzCt(int m, 
-                             Concurrency::array_view<int> &csrRowPtrA, 
-                             Concurrency::array_view<int> &csrColIndA, 
-                             Concurrency::array_view<int> &csrRowPtrB, 
-                             Concurrency::array_view<int> &csrColIndB, 
-                             Concurrency::array_view<int> &csrRowPtrCt, 
+                             hc::array_view<int> &csrRowPtrA, 
+                             hc::array_view<int> &csrColIndA, 
+                             hc::array_view<int> &csrRowPtrB, 
+                             hc::array_view<int> &csrColIndB, 
+                             hc::array_view<int> &csrRowPtrCt, 
                              const hcsparseControl* control)
 {  
     size_t szLocalWorkSize;
     size_t szGlobalWorkSize;
 
     int num_threads = GROUPSIZE_256;
-    int num_blocks = Concurrency::fast_math::ceil((double)m / (double)num_threads);
+    int num_blocks = hc::fast_math::ceil((double)m / (double)num_threads);
 
     szLocalWorkSize  = num_threads;
     szGlobalWorkSize = num_blocks * szLocalWorkSize;
 
-    Concurrency::extent<1> grdExt(szGlobalWorkSize);
-    Concurrency::tiled_extent<GROUPSIZE_256> t_ext(grdExt);
-    Concurrency::parallel_for_each(control->accl_view, t_ext, [=] (Concurrency::tiled_index<GROUPSIZE_256> tidx) restrict(amp)
+    hc::extent<1> grdExt(szGlobalWorkSize);
+    hc::tiled_extent<1> t_ext = grdExt.tile(GROUPSIZE_256);
+    hc::parallel_for_each(control->accl_view, t_ext, [=] (hc::tiled_index<1> &tidx) __attribute__((hc))
     {
         int global_id = tidx.global[0];
         int start, stop, index, strideB, row_size_Ct = 0;
@@ -847,8 +847,8 @@ hcsparseStatus compute_nnzCt(int m,
 template <typename T> 
 hcsparseStatus compute_nnzC_Ct_0(int num_blocks, int j, 
                                  int counter, int position, 
-                                 Concurrency::array_view<int> &queue_one, 
-                                 Concurrency::array_view<int> &csrRowPtrC, 
+                                 hc::array_view<int> &queue_one, 
+                                 hc::array_view<int> &csrRowPtrC, 
                                  const hcsparseControl* control)
 {
     size_t szLocalWorkSize;
@@ -857,9 +857,9 @@ hcsparseStatus compute_nnzC_Ct_0(int num_blocks, int j,
     szLocalWorkSize  = GROUPSIZE_256;
     szGlobalWorkSize = num_blocks * szLocalWorkSize;
     
-    Concurrency::extent<1> grdExt(szGlobalWorkSize);
-    Concurrency::tiled_extent<GROUPSIZE_256> t_ext(grdExt);
-    Concurrency::parallel_for_each(control->accl_view, t_ext, [=] (Concurrency::tiled_index<GROUPSIZE_256> tidx) restrict(amp)
+    hc::extent<1> grdExt(szGlobalWorkSize);
+    hc::tiled_extent<1> t_ext = grdExt.tile(GROUPSIZE_256);
+    hc::parallel_for_each(control->accl_view, t_ext, [=] (hc::tiled_index<1> &tidx) __attribute__((hc))
     {
         int global_id = tidx.global[0];
         if (global_id < counter)
@@ -875,17 +875,17 @@ hcsparseStatus compute_nnzC_Ct_0(int num_blocks, int j,
 template <typename T>
 hcsparseStatus compute_nnzC_Ct_1(int num_blocks, int j, 
                                  int counter, int position, 
-                                 Concurrency::array_view<int> &queue_one, 
-                                 Concurrency::array_view<int> &csrRowPtrA, 
-                                 Concurrency::array_view<int> &csrColIndA, 
-                                 Concurrency::array_view<T> &csrValA, 
-                                 Concurrency::array_view<int> &csrRowPtrB, 
-                                 Concurrency::array_view<int> &csrColIndB, 
-                                 Concurrency::array_view<T> &csrValB, 
-                                 Concurrency::array_view<int> &csrRowPtrC, 
-                                 Concurrency::array_view<int> &csrRowPtrCt, 
-                                 Concurrency::array_view<int> &csrColIndCt, 
-                                 Concurrency::array_view<T> &csrValCt, 
+                                 hc::array_view<int> &queue_one, 
+                                 hc::array_view<int> &csrRowPtrA, 
+                                 hc::array_view<int> &csrColIndA, 
+                                 hc::array_view<T> &csrValA, 
+                                 hc::array_view<int> &csrRowPtrB, 
+                                 hc::array_view<int> &csrColIndB, 
+                                 hc::array_view<T> &csrValB, 
+                                 hc::array_view<int> &csrRowPtrC, 
+                                 hc::array_view<int> &csrRowPtrCt, 
+                                 hc::array_view<int> &csrColIndCt, 
+                                 hc::array_view<T> &csrValCt, 
                                  const hcsparseControl* control)
 {
     size_t szLocalWorkSize;
@@ -894,9 +894,9 @@ hcsparseStatus compute_nnzC_Ct_1(int num_blocks, int j,
     szLocalWorkSize  = GROUPSIZE_256;
     szGlobalWorkSize = num_blocks * szLocalWorkSize;
 
-    Concurrency::extent<1> grdExt(szGlobalWorkSize);
-    Concurrency::tiled_extent<GROUPSIZE_256> t_ext(grdExt);
-    Concurrency::parallel_for_each(control->accl_view, t_ext, [=] (Concurrency::tiled_index<GROUPSIZE_256> tidx) restrict(amp)
+    hc::extent<1> grdExt(szGlobalWorkSize);
+    hc::tiled_extent<1> t_ext = grdExt.tile(GROUPSIZE_256);
+    hc::parallel_for_each(control->accl_view, t_ext, [=] (hc::tiled_index<1> tidx) __attribute__((hc))
     {
         int global_id = tidx.global[0];
         if (global_id < counter)
@@ -926,17 +926,17 @@ hcsparseStatus compute_nnzC_Ct_1(int num_blocks, int j,
 template <typename T>
 hcsparseStatus compute_nnzC_Ct_2heap_noncoalesced_local(int num_blocks, int j, 
                                                         int counter, int position, 
-                                                        Concurrency::array_view<int> &queue_one, 
-                                                        Concurrency::array_view<int> &csrRowPtrA, 
-                                                        Concurrency::array_view<int> &csrColIndA, 
-                                                        Concurrency::array_view<T> &csrValA, 
-                                                        Concurrency::array_view<int> &csrRowPtrB, 
-                                                        Concurrency::array_view<int> &csrColIndB, 
-                                                        Concurrency::array_view<T> &csrValB, 
-                                                        Concurrency::array_view<int> &csrRowPtrC, 
-                                                        Concurrency::array_view<int> &csrRowPtrCt, 
-                                                        Concurrency::array_view<int> &csrColIndCt, 
-                                                        Concurrency::array_view<T> &csrValCt, 
+                                                        hc::array_view<int> &queue_one, 
+                                                        hc::array_view<int> &csrRowPtrA, 
+                                                        hc::array_view<int> &csrColIndA, 
+                                                        hc::array_view<T> &csrValA, 
+                                                        hc::array_view<int> &csrRowPtrB, 
+                                                        hc::array_view<int> &csrColIndB, 
+                                                        hc::array_view<T> &csrValB, 
+                                                        hc::array_view<int> &csrRowPtrC, 
+                                                        hc::array_view<int> &csrRowPtrCt, 
+                                                        hc::array_view<int> &csrColIndCt, 
+                                                        hc::array_view<T> &csrValCt, 
                                                         const hcsparseControl* control)
 {
     size_t szLocalWorkSize;
@@ -945,16 +945,16 @@ hcsparseStatus compute_nnzC_Ct_2heap_noncoalesced_local(int num_blocks, int j,
     szLocalWorkSize  = GROUPSIZE_256;
     szGlobalWorkSize = num_blocks * szLocalWorkSize;
 
-    Concurrency::extent<1> grdExt(szGlobalWorkSize);
-    Concurrency::tiled_extent<GROUPSIZE_256> t_ext(grdExt);
-    Concurrency::parallel_for_each(control->accl_view, t_ext, [=] (Concurrency::tiled_index<GROUPSIZE_256> tidx) restrict(amp)
+    hc::extent<1> grdExt(szGlobalWorkSize);
+    hc::tiled_extent<1> t_ext = grdExt.tile(GROUPSIZE_256);
+    hc::parallel_for_each(control->accl_view, t_ext, [=] (hc::tiled_index<1> &tidx) __attribute__((hc))
     {
         tile_static int s_key[GROUPSIZE_256];
         tile_static T s_val[GROUPSIZE_256];
         const int local_id = tidx.local[0];
         const int group_id = tidx.tile[0];
         const int global_id = tidx.global[0];
-        const int local_size = tidx.tile_dim0;
+        const int local_size = tidx.tile_dim[0];
         int index = 0;
         if (global_id < counter)
         {
@@ -998,17 +998,17 @@ hcsparseStatus compute_nnzC_Ct_2heap_noncoalesced_local(int num_blocks, int j,
 
 template <typename T>
 hcsparseStatus compute_nnzC_Ct_bitonic_scan(int num_blocks, int j, int position, 
-                                            Concurrency::array_view<int> &queue_one, 
-                                            Concurrency::array_view<int> &csrRowPtrA, 
-                                            Concurrency::array_view<int> &csrColIndA, 
-                                            Concurrency::array_view<T> &csrValA, 
-                                            Concurrency::array_view<int> &csrRowPtrB, 
-                                            Concurrency::array_view<int> &csrColIndB, 
-                                            Concurrency::array_view<T> &csrValB, 
-                                            Concurrency::array_view<int> &csrRowPtrC, 
-                                            Concurrency::array_view<int> &csrRowPtrCt, 
-                                            Concurrency::array_view<int> &csrColIndCt, 
-                                            Concurrency::array_view<T> &csrValCt, 
+                                            hc::array_view<int> &queue_one, 
+                                            hc::array_view<int> &csrRowPtrA, 
+                                            hc::array_view<int> &csrColIndA, 
+                                            hc::array_view<T> &csrValA, 
+                                            hc::array_view<int> &csrRowPtrB, 
+                                            hc::array_view<int> &csrColIndB, 
+                                            hc::array_view<T> &csrValB, 
+                                            hc::array_view<int> &csrRowPtrC, 
+                                            hc::array_view<int> &csrRowPtrCt, 
+                                            hc::array_view<int> &csrColIndCt, 
+                                            hc::array_view<T> &csrValCt, 
                                             int n, 
                                             const hcsparseControl* control)
 {
@@ -1018,16 +1018,16 @@ hcsparseStatus compute_nnzC_Ct_bitonic_scan(int num_blocks, int j, int position,
     szLocalWorkSize  = GROUPSIZE_256;
     szGlobalWorkSize = num_blocks * szLocalWorkSize;
 
-    Concurrency::extent<1> grdExt(szGlobalWorkSize);
-    Concurrency::tiled_extent<GROUPSIZE_256> t_ext(grdExt);
-    Concurrency::parallel_for_each(control->accl_view, t_ext, [=] (Concurrency::tiled_index<GROUPSIZE_256> tidx) restrict(amp)
+    hc::extent<1> grdExt(szGlobalWorkSize);
+    hc::tiled_extent<1> t_ext = grdExt.tile(GROUPSIZE_256);
+    hc::parallel_for_each(control->accl_view, t_ext, [=] (hc::tiled_index<1> &tidx) __attribute__((hc))
     {
         tile_static int s_key[2*GROUPSIZE_256];
         tile_static T s_val[2*GROUPSIZE_256];
         tile_static int s_scan[2*GROUPSIZE_256 + 1];
         int local_id = tidx.local[0];
         int group_id = tidx.tile[0];
-        int local_size = tidx.tile_dim0;
+        int local_size = tidx.tile_dim[0];
         int width = local_size * 2;
         int i, local_counter = 0;
         int strideB, local_offset, global_offset;
@@ -1102,17 +1102,17 @@ hcsparseStatus compute_nnzC_Ct_bitonic_scan(int num_blocks, int j, int position,
 
 template <typename T>
 hcsparseStatus compute_nnzC_Ct_mergepath(int num_blocks, int j, int mergebuffer_size, int position, int *count_next, int mergepath_location, 
-                                         Concurrency::array_view<int> &queue_one, 
-                                         Concurrency::array_view<int> &csrRowPtrA, 
-                                         Concurrency::array_view<int> &csrColIndA, 
-                                         Concurrency::array_view<T> &csrValA, 
-                                         Concurrency::array_view<int> &csrRowPtrB, 
-                                         Concurrency::array_view<int> &csrColIndB, 
-                                         Concurrency::array_view<T> &csrValB, 
-                                         Concurrency::array_view<int> &csrRowPtrC, 
-                                         Concurrency::array_view<int> &csrRowPtrCt, 
-                                         Concurrency::array_view<int> &csrColIndCt, 
-                                         Concurrency::array_view<T> &csrValCt, 
+                                         hc::array_view<int> &queue_one, 
+                                         hc::array_view<int> &csrRowPtrA, 
+                                         hc::array_view<int> &csrColIndA, 
+                                         hc::array_view<T> &csrValA, 
+                                         hc::array_view<int> &csrRowPtrB, 
+                                         hc::array_view<int> &csrColIndB, 
+                                         hc::array_view<T> &csrValB, 
+                                         hc::array_view<int> &csrRowPtrC, 
+                                         hc::array_view<int> &csrRowPtrCt, 
+                                         hc::array_view<int> &csrColIndCt, 
+                                         hc::array_view<T> &csrValCt, 
                                          int *_nnzCt, int m, int *_h_queue_one, 
                                          const hcsparseControl* control)
 {
@@ -1122,9 +1122,9 @@ hcsparseStatus compute_nnzC_Ct_mergepath(int num_blocks, int j, int mergebuffer_
     szLocalWorkSize  = GROUPSIZE_256;
     szGlobalWorkSize = num_blocks * szLocalWorkSize;
     
-    Concurrency::extent<1> grdExt(szGlobalWorkSize);
-    Concurrency::tiled_extent<GROUPSIZE_256> t_ext(grdExt);
-    Concurrency::parallel_for_each(control->accl_view, t_ext, [=] (Concurrency::tiled_index<GROUPSIZE_256> tidx) restrict(amp)
+    hc::extent<1> grdExt(szGlobalWorkSize);
+    hc::tiled_extent<1> t_ext = grdExt.tile(GROUPSIZE_256);
+    hc::parallel_for_each(control->accl_view, t_ext, [=] (hc::tiled_index<1> &tidx) __attribute__((hc))
     {
         tile_static int s_key_merged_l1[mergebuffer_size_local];
         tile_static T s_val_merged_l1[mergebuffer_size_local];
@@ -1138,7 +1138,7 @@ hcsparseStatus compute_nnzC_Ct_mergepath(int num_blocks, int j, int mergebuffer_
         int merged_size_l1 = 0;
         int local_id = tidx.local[0]; //threadIdx.x;
         int row_id = queue_one[queue_id];
-        int   local_size = tidx.tile_dim0;
+        int   local_size = tidx.tile_dim[0];
         float local_size_float = local_size;
         int stride, loop;
         int reg_reuse1;
@@ -1159,8 +1159,8 @@ hcsparseStatus compute_nnzC_Ct_mergepath(int num_blocks, int j, int mergebuffer_
         // load existing merged list
         reg_reuse1 = queue_one[queue_id + 1];
 
-        Concurrency::array_view<int> *d_key_merged = static_cast<Concurrency::array_view<int> *>((void *)&csrColIndCt[reg_reuse1]);
-        Concurrency::array_view<T> *d_val_merged = static_cast<Concurrency::array_view<T> *>((void *)&csrValCt[reg_reuse1]);
+        hc::array_view<int> *d_key_merged = static_cast<hc::array_view<int> *>((void *)&csrColIndCt[reg_reuse1]);
+        hc::array_view<T> *d_val_merged = static_cast<hc::array_view<T> *>((void *)&csrValCt[reg_reuse1]);
         reg_reuse1 = queue_one[queue_id + 5];
         readwrite_mergedlist_global<T> (tidx, csrColIndCt, csrValCt, *d_key_merged, *d_val_merged, merged_size_l2, reg_reuse1, 0);
         tidx.barrier.wait();
@@ -1173,7 +1173,7 @@ hcsparseStatus compute_nnzC_Ct_mergepath(int num_blocks, int j, int mergebuffer_
             is_last = false;
             stop_col_index_B  = csrRowPtrB[reg_reuse1 + 1];  // reg_reuse1 = row_id_B
             stride = stop_col_index_B - start_col_index_B;
-            loop  = Concurrency::fast_math::ceil(stride / local_size_float); //ceil((float)stride / (float)local_size);
+            loop  = hc::fast_math::ceil(stride / local_size_float); //ceil((float)stride / (float)local_size);
             start_col_index_B += local_id;
             for (k = 0; k < loop; k++)
             {
@@ -1326,17 +1326,17 @@ hcsparseStatus compute_nnzC_Ct_mergepath(int num_blocks, int j, int mergebuffer_
  
 template <typename T>
 hcsparseStatus compute_nnzC_Ct_general(int *_h_counter_one, 
-                                       Concurrency::array_view<int> &queue_one, 
-                                       Concurrency::array_view<int> &csrRowPtrA, 
-                                       Concurrency::array_view<int> &csrColIndA, 
-                                       Concurrency::array_view<T> &csrValA, 
-                                       Concurrency::array_view<int> &csrRowPtrB, 
-                                       Concurrency::array_view<int> &csrColIndB, 
-                                       Concurrency::array_view<T> &csrValB, 
-                                       Concurrency::array_view<int> &csrRowPtrC, 
-                                       Concurrency::array_view<int> &csrRowPtrCt, 
-                                       Concurrency::array_view<int> &csrColIndCt, 
-                                       Concurrency::array_view<T> &csrValCt, 
+                                       hc::array_view<int> &queue_one, 
+                                       hc::array_view<int> &csrRowPtrA, 
+                                       hc::array_view<int> &csrColIndA, 
+                                       hc::array_view<T> &csrValA, 
+                                       hc::array_view<int> &csrRowPtrB, 
+                                       hc::array_view<int> &csrColIndB, 
+                                       hc::array_view<T> &csrValB, 
+                                       hc::array_view<int> &csrRowPtrC, 
+                                       hc::array_view<int> &csrRowPtrCt, 
+                                       hc::array_view<int> &csrColIndCt, 
+                                       hc::array_view<T> &csrValCt, 
                                        int _n, int _nnzCt, int m, int *queue_one_h, 
                                        const hcsparseControl* control)
 {
@@ -1352,19 +1352,19 @@ hcsparseStatus compute_nnzC_Ct_general(int *_h_counter_one,
 
             if (j == 0)
             {
-                int num_blocks = Concurrency::fast_math::ceil((double)counter / (double)GROUPSIZE_256);
+                int num_blocks = hc::fast_math::ceil((double)counter / (double)GROUPSIZE_256);
 
                 run_status = compute_nnzC_Ct_0<T> (num_blocks, j, counter, _h_counter_one[j], queue_one, csrRowPtrC, control);
             }
             else if (j == 1)
             {
-                int num_blocks = Concurrency::fast_math::ceil((double)counter / (double)GROUPSIZE_256);
+                int num_blocks = hc::fast_math::ceil((double)counter / (double)GROUPSIZE_256);
 
                 run_status = compute_nnzC_Ct_1<T> (num_blocks, j, counter, _h_counter_one[j], queue_one, csrRowPtrA, csrColIndA, csrValA, csrRowPtrB, csrColIndB, csrValB, csrRowPtrC, csrRowPtrCt, csrColIndCt, csrValCt, control);
             }
             else if (j > 1 && j <= 32)
             {
-                int num_blocks = Concurrency::fast_math::ceil((double)counter / (double)GROUPSIZE_256);
+                int num_blocks = hc::fast_math::ceil((double)counter / (double)GROUPSIZE_256);
                 run_status = compute_nnzC_Ct_2heap_noncoalesced_local<T> (num_blocks, j, counter, _h_counter_one[j], queue_one, csrRowPtrA, csrColIndA, csrValA, csrRowPtrB, csrColIndB, csrValB, csrRowPtrC, csrRowPtrCt, csrColIndCt, csrValCt, control);
             }
             else if (j > 32 && j <= 124)
@@ -1407,13 +1407,13 @@ hcsparseStatus compute_nnzC_Ct_general(int *_h_counter_one,
 
 template <typename T>
 hcsparseStatus copy_Ct_to_C_Single(int num_blocks, int position, int size,
-                                   Concurrency::array_view<T> &csrValC, 
-                                   Concurrency::array_view<int> &csrRowPtrC, 
-                                   Concurrency::array_view<int> &csrColIndC, 
-                                   Concurrency::array_view<T> &csrValCt, 
-                                   Concurrency::array_view<int> &csrRowPtrCt, 
-                                   Concurrency::array_view<int> &csrColIndCt, 
-                                   Concurrency::array_view<int> &queue_one, 
+                                   hc::array_view<T> &csrValC, 
+                                   hc::array_view<int> &csrRowPtrC, 
+                                   hc::array_view<int> &csrColIndC, 
+                                   hc::array_view<T> &csrValCt, 
+                                   hc::array_view<int> &csrRowPtrCt, 
+                                   hc::array_view<int> &csrColIndCt, 
+                                   hc::array_view<int> &queue_one, 
                                    const hcsparseControl* control)
 {
     size_t szLocalWorkSize;
@@ -1422,9 +1422,9 @@ hcsparseStatus copy_Ct_to_C_Single(int num_blocks, int position, int size,
     szLocalWorkSize  = GROUPSIZE_256;
     szGlobalWorkSize = num_blocks * szLocalWorkSize;
 
-    Concurrency::extent<1> grdExt(szGlobalWorkSize);
-    Concurrency::tiled_extent<GROUPSIZE_256> t_ext(grdExt);
-    Concurrency::parallel_for_each(control->accl_view, t_ext, [=] (Concurrency::tiled_index<GROUPSIZE_256> tidx) restrict(amp)
+    hc::extent<1> grdExt(szGlobalWorkSize);
+    hc::tiled_extent<1> t_ext = grdExt.tile(GROUPSIZE_256);
+    hc::parallel_for_each(control->accl_view, t_ext, [=] (hc::tiled_index<1> &tidx) __attribute__((hc))
     {
         int global_id = tidx.global[0];
         bool valid = (global_id < size);
@@ -1445,13 +1445,13 @@ hcsparseStatus copy_Ct_to_C_Single(int num_blocks, int position, int size,
 
 template <typename T>
 hcsparseStatus copy_Ct_to_C_Loopless(int num_blocks, int position, 
-                                     Concurrency::array_view<T> &csrValC, 
-                                     Concurrency::array_view<int> &csrRowPtrC, 
-                                     Concurrency::array_view<int> &csrColIndC, 
-                                     Concurrency::array_view<T> &csrValCt, 
-                                     Concurrency::array_view<int> &csrRowPtrCt, 
-                                     Concurrency::array_view<int> &csrColIndCt, 
-                                     Concurrency::array_view<int> &queue_one, 
+                                     hc::array_view<T> &csrValC, 
+                                     hc::array_view<int> &csrRowPtrC, 
+                                     hc::array_view<int> &csrColIndC, 
+                                     hc::array_view<T> &csrValCt, 
+                                     hc::array_view<int> &csrRowPtrCt, 
+                                     hc::array_view<int> &csrColIndCt, 
+                                     hc::array_view<int> &queue_one, 
                                      const hcsparseControl* control)
 {
     size_t szLocalWorkSize;
@@ -1460,9 +1460,9 @@ hcsparseStatus copy_Ct_to_C_Loopless(int num_blocks, int position,
     szLocalWorkSize  = GROUPSIZE_256;
     szGlobalWorkSize = num_blocks * szLocalWorkSize;
 
-    Concurrency::extent<1> grdExt(szGlobalWorkSize);
-    Concurrency::tiled_extent<GROUPSIZE_256> t_ext(grdExt);
-    Concurrency::parallel_for_each(control->accl_view, t_ext, [=] (Concurrency::tiled_index<GROUPSIZE_256> tidx) restrict(amp)
+    hc::extent<1> grdExt(szGlobalWorkSize);
+    hc::tiled_extent<1> t_ext = grdExt.tile(GROUPSIZE_256);
+    hc::parallel_for_each(control->accl_view, t_ext, [=] (hc::tiled_index<1> &tidx) __attribute__((hc))
     {
         int local_id = tidx.local[0];
         int group_id = tidx.tile[0];
@@ -1483,13 +1483,13 @@ hcsparseStatus copy_Ct_to_C_Loopless(int num_blocks, int position,
 
 template <typename T>
 hcsparseStatus copy_Ct_to_C_Loop(int num_blocks, int position, 
-                                 Concurrency::array_view<T> &csrValC, 
-                                 Concurrency::array_view<int> &csrRowPtrC, 
-                                 Concurrency::array_view<int> &csrColIndC, 
-                                 Concurrency::array_view<T> &csrValCt, 
-                                 Concurrency::array_view<int> &csrRowPtrCt, 
-                                 Concurrency::array_view<int> &csrColIndCt, 
-                                 Concurrency::array_view<int> &queue_one, 
+                                 hc::array_view<T> &csrValC, 
+                                 hc::array_view<int> &csrRowPtrC, 
+                                 hc::array_view<int> &csrColIndC, 
+                                 hc::array_view<T> &csrValCt, 
+                                 hc::array_view<int> &csrRowPtrCt, 
+                                 hc::array_view<int> &csrColIndCt, 
+                                 hc::array_view<int> &queue_one, 
                                  const hcsparseControl* control)
 {
     size_t szLocalWorkSize;
@@ -1498,13 +1498,13 @@ hcsparseStatus copy_Ct_to_C_Loop(int num_blocks, int position,
     szLocalWorkSize = GROUPSIZE_256;
     szGlobalWorkSize = num_blocks * szLocalWorkSize;
 
-    Concurrency::extent<1> grdExt(szGlobalWorkSize);
-    Concurrency::tiled_extent<GROUPSIZE_256> t_ext(grdExt);
-    Concurrency::parallel_for_each(control->accl_view, t_ext, [=] (Concurrency::tiled_index<GROUPSIZE_256> tidx) restrict(amp)
+    hc::extent<1> grdExt(szGlobalWorkSize);
+    hc::tiled_extent<1> t_ext = grdExt.tile(GROUPSIZE_256);
+    hc::parallel_for_each(control->accl_view, t_ext, [=] (hc::tiled_index<1> &tidx) __attribute__((hc))
     {
         int local_id = tidx.local[0];
         int group_id = tidx.tile[0];
-        int local_size = tidx.tile_dim0;
+        int local_size = tidx.tile_dim[0];
         int row_id = queue_one[TUPLE_QUEUE * (position + group_id)];
         int Ct_base_start = queue_one[TUPLE_QUEUE * (position + group_id) + 1];
         int C_base_start  = csrRowPtrC[row_id];
@@ -1532,13 +1532,13 @@ hcsparseStatus copy_Ct_to_C_Loop(int num_blocks, int position,
 
 template <typename T>
 hcsparseStatus copy_Ct_to_C_general(int *counter_one, 
-                        Concurrency::array_view<T> &csrValC, 
-                        Concurrency::array_view<int> &csrRowPtrC, 
-                        Concurrency::array_view<int> &csrColIndC, 
-                        Concurrency::array_view<T> &csrValCt, 
-                        Concurrency::array_view<int> &csrRowPtrCt, 
-                        Concurrency::array_view<int> &csrColIndCt, 
-                        Concurrency::array_view<int> &queue_one, 
+                        hc::array_view<T> &csrValC, 
+                        hc::array_view<int> &csrRowPtrC, 
+                        hc::array_view<int> &csrColIndC, 
+                        hc::array_view<T> &csrValCt, 
+                        hc::array_view<int> &csrRowPtrCt, 
+                        hc::array_view<int> &csrColIndCt, 
+                        hc::array_view<int> &queue_one, 
                         const hcsparseControl* control)
 {
     int counter = 0;
@@ -1553,7 +1553,7 @@ hcsparseStatus copy_Ct_to_C_general(int *counter_one,
             if (j == 1)
             {
                 int num_threads = GROUPSIZE_256;
-                int num_blocks  = Concurrency::fast_math::ceil((double)counter / (double)num_threads);
+                int num_blocks  = hc::fast_math::ceil((double)counter / (double)num_threads);
                 run_status = copy_Ct_to_C_Single<T> (num_blocks, counter, counter_one[j], csrValC, csrRowPtrC, csrColIndC, csrValCt, csrRowPtrCt, csrColIndCt, queue_one, control);
             }
             else if (j > 1 && j <= 123)
@@ -1588,17 +1588,17 @@ csrSpGemm(const hcsparseCsrMatrix* matA,
         return hcsparseInvalid;
     }  
     
-    Concurrency::array_view<int> *csrRowPtrA = static_cast<Concurrency::array_view<int> *>(matA->rowOffsets);
-    Concurrency::array_view<int> *csrColIndA = static_cast<Concurrency::array_view<int> *>(matA->colIndices);
-    Concurrency::array_view<T> *csrValA = static_cast<Concurrency::array_view<T> *>(matA->values);
-    Concurrency::array_view<int> *csrRowPtrB = static_cast<Concurrency::array_view<int> *>(matB->rowOffsets);
-    Concurrency::array_view<int> *csrColIndB = static_cast<Concurrency::array_view<int> *>(matB->colIndices);
-    Concurrency::array_view<T> *csrValB    = static_cast<Concurrency::array_view<T> *>(matB->values);
+    hc::array_view<int> *csrRowPtrA = static_cast<hc::array_view<int> *>(matA->rowOffsets);
+    hc::array_view<int> *csrColIndA = static_cast<hc::array_view<int> *>(matA->colIndices);
+    hc::array_view<T> *csrValA = static_cast<hc::array_view<T> *>(matA->values);
+    hc::array_view<int> *csrRowPtrB = static_cast<hc::array_view<int> *>(matB->rowOffsets);
+    hc::array_view<int> *csrColIndB = static_cast<hc::array_view<int> *>(matB->colIndices);
+    hc::array_view<T> *csrValB    = static_cast<hc::array_view<T> *>(matB->values);
     
-    Concurrency::array_view<int> *csrRowPtrC = static_cast<Concurrency::array_view<int> *>(matC->rowOffsets);
+    hc::array_view<int> *csrRowPtrC = static_cast<hc::array_view<int> *>(matC->rowOffsets);
 
     int* csrRowPtrCt_h = (int*) calloc (m + 1, sizeof(int));
-    Concurrency::array_view<int> csrRowPtrCt_d(m + 1, csrRowPtrCt_h);
+    hc::array_view<int> csrRowPtrCt_d(m + 1, csrRowPtrCt_h);
  
     // STAGE 1
     compute_nnzCt<T> (m, *csrRowPtrA, *csrColIndA, *csrRowPtrB, *csrColIndB, csrRowPtrCt_d, control);
@@ -1609,7 +1609,7 @@ csrSpGemm(const hcsparseCsrMatrix* matA,
     int* counter_sum = (int*) calloc (NUM_SEGMENTS + 1, sizeof(int));
     int* queue_one = (int*) calloc (m * TUPLE_QUEUE, sizeof(int));
     
-    Concurrency::array_view<int> queue_one_d(m * TUPLE_QUEUE, queue_one); 
+    hc::array_view<int> queue_one_d(m * TUPLE_QUEUE, queue_one); 
 
     // STAGE 2 - STEP 1 : statistics
     int nnzCt = statistics(csrRowPtrCt_h, counter, counter_one, counter_sum, queue_one, m);
@@ -1618,8 +1618,8 @@ csrSpGemm(const hcsparseCsrMatrix* matA,
     int* csrColIndCt_buf = (int*) calloc (nnzCt, sizeof(int));
     T* csrValCt_buf = (T*) calloc (nnzCt, sizeof(T));
 
-    Concurrency::array_view<int> csrColIndCt(nnzCt, csrColIndCt_buf);
-    Concurrency::array_view<T> csrValCt(nnzCt, csrValCt_buf);   
+    hc::array_view<int> csrColIndCt(nnzCt, csrColIndCt_buf);
+    hc::array_view<T> csrValCt(nnzCt, csrValCt_buf);   
  
     // STAGE 3 - STEP 1 : compute nnzC and Ct
     status1 = compute_nnzC_Ct_general<T> (counter_one, queue_one_d, *csrRowPtrA, *csrColIndA, *csrValA, *csrRowPtrB, *csrColIndB, *csrValB, *csrRowPtrC, csrRowPtrCt_d, csrColIndCt, csrValCt, n, nnzCt, m, queue_one, control);
@@ -1636,8 +1636,8 @@ csrSpGemm(const hcsparseCsrMatrix* matA,
 
     int nnzC = (*csrRowPtrC)[m];
     
-    Concurrency::array_view<int> *csrColIndC = static_cast<Concurrency::array_view<int> *>(matC->colIndices);
-    Concurrency::array_view<T> *csrValC = static_cast<Concurrency::array_view<T> *>(matC->values);
+    hc::array_view<int> *csrColIndC = static_cast<hc::array_view<int> *>(matC->colIndices);
+    hc::array_view<T> *csrValC = static_cast<hc::array_view<T> *>(matC->values);
 
     status2 = copy_Ct_to_C_general<T> (counter_one, *csrValC, *csrRowPtrC, *csrColIndC, csrValCt, csrRowPtrCt_d, csrColIndCt, queue_one_d, control);
     

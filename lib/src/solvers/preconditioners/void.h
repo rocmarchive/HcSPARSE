@@ -28,8 +28,8 @@ public:
         //void does nothing just copy x to y;
 
         //deep copy;
-        Concurrency::array_view<T> *av_x = static_cast<Concurrency::array_view<T> *>(x->values);
-        Concurrency::array_view<T> *av_y = static_cast<Concurrency::array_view<T> *>(y->values);
+        hc::array_view<T> *av_x = static_cast<hc::array_view<T> *>(x->values);
+        hc::array_view<T> *av_y = static_cast<hc::array_view<T> *>(y->values);
         for (int i = 0; i < x->num_values; i++)
             (*av_y)[i] = (*av_x)[i];
     }

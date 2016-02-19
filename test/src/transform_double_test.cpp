@@ -6,7 +6,7 @@ int main()
     hcdenseVector gX;
     hcdenseVector gY;
 
-    std::vector<Concurrency::accelerator>acc = Concurrency::accelerator::get_all();
+    std::vector<accelerator>acc = accelerator::get_all();
     accelerator_view accl_view = (acc[1].create_view()); 
 
     hcsparseControl control(accl_view);
@@ -25,9 +25,9 @@ int main()
         host_Y[i] = rand()%100;
     }
     
-    Concurrency::array_view<double> dev_R(num_elements, host_R);
-    Concurrency::array_view<double> dev_X(num_elements, host_X);
-    Concurrency::array_view<double> dev_Y(num_elements, host_Y);
+    array_view<double> dev_R(num_elements, host_R);
+    array_view<double> dev_X(num_elements, host_X);
+    array_view<double> dev_Y(num_elements, host_Y);
 
     hcsparseSetup();
     hcsparseInitVector(&gR);
@@ -88,7 +88,7 @@ int main()
                 break;
         }
 
-        Concurrency::array_view<double> *av_res = static_cast<Concurrency::array_view<double> *>(gR.values);
+        array_view<double> *av_res = static_cast<array_view<double> *>(gR.values);
         for (int i = 0; i < num_elements; i++)
         {
             if (host_res[i] != (*av_res)[i])

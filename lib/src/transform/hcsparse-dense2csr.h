@@ -10,16 +10,16 @@ dense2csr(const hcdenseMatrix* A,
 
     //calculate nnz
     int* nnz_location_buf = (int*) calloc (dense_size, sizeof(int));
-    Concurrency::array_view<int> nnz_locations(dense_size, nnz_location_buf);
+    hc::array_view<int> nnz_locations(dense_size, nnz_location_buf);
 
-    Concurrency::array_view<T> *Avalues = static_cast<Concurrency::array_view<T> *>(A->values);
+    hc::array_view<T> *Avalues = static_cast<hc::array_view<T> *>(A->values);
 
     int num_nonzeros = 0;
 
     calculate_num_nonzeros<T> (dense_size, *Avalues, nnz_locations, num_nonzeros, control);
 
     int* coo_indexes_buf = (int*) calloc (dense_size, sizeof(int));
-    Concurrency::array_view<int> coo_indexes(dense_size, coo_indexes_buf);
+    hc::array_view<int> coo_indexes(dense_size, coo_indexes_buf);
 
     exclusive_scan<int, EW_PLUS>(dense_size, coo_indexes, nnz_locations, control);
 
@@ -30,7 +30,7 @@ dense2csr(const hcdenseMatrix* A,
     coo.offValues = 0;
     coo.offColInd = 0;
     coo.offRowInd = 0;
-  
+
     coo.num_nonzeros = num_nonzeros;
     coo.num_rows = A->num_rows;
     coo.num_cols = A->num_cols;
@@ -39,9 +39,9 @@ dense2csr(const hcdenseMatrix* A,
     int* rowInd_buf = (int*) calloc (num_nonzeros, sizeof(int));
     T* val_buf = (T*) calloc (num_nonzeros, sizeof(T));
 
-    Concurrency::array_view<int> colInd(num_nonzeros, colInd_buf);
-    Concurrency::array_view<int> rowInd(num_nonzeros, rowInd_buf);
-    Concurrency::array_view<T> values(num_nonzeros, val_buf);
+    hc::array_view<int> colInd(num_nonzeros, colInd_buf);
+    hc::array_view<int> rowInd(num_nonzeros, rowInd_buf);
+    hc::array_view<T> values(num_nonzeros, val_buf);
 
     coo.values = &values;
     coo.colIndices = &colInd;

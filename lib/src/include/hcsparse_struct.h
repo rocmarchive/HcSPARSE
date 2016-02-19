@@ -2,11 +2,11 @@
 #define _HC_SPARSE_STRUCT_H_
 
 #include <iostream>
-#include <amp.h>
-#include <amp_math.h>
+#include <hc.hpp>
+#include <hc_math.hpp>
 
-using namespace Concurrency;
-using namespace Concurrency::precise_math;
+using namespace hc;
+using namespace hc::precise_math;
 
 template<typename T>
 struct Coordinate
@@ -93,7 +93,7 @@ typedef struct hcdenseVector_
 
 typedef struct hcsparseControl_
 {
-    Concurrency::accelerator_view accl_view;
+    hc::accelerator_view accl_view;
 
     // for NV(32) for AMD(64)
     size_t wavefront_size;
@@ -108,7 +108,7 @@ typedef struct hcsparseControl_
     // current device max compute units;
     uint max_compute_units;
 
-    hcsparseControl_( Concurrency::accelerator_view &accl_view )
+    hcsparseControl_( hc::accelerator_view &accl_view )
         : accl_view( accl_view ), wavefront_size( 0 ),
         max_wg_size( 0 ), extended_precision(false),
         dpfp_support(false), max_compute_units( 0 )

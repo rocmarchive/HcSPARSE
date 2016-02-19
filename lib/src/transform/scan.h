@@ -5,9 +5,9 @@
 template <typename T, ElementWiseOperator OP>
 hcsparseStatus
 scan(int size,
-     Concurrency::array_view<T> &output, 
-     const Concurrency::array_view<T> &input,
-     const hcsparseControl* control, 
+     hc::array_view<T> &output,
+     const hc::array_view<T> &input,
+     const hcsparseControl* control,
      int exclusive)
 {
     int numElementsRUP = size;
@@ -35,24 +35,24 @@ scan(int size,
     T* preSumArray1_buff = (T*) calloc (sizeScanBuff, sizeof(T));
     T* postSumArray_buff = (T*) calloc (sizeScanBuff, sizeof(T));
 
-    Concurrency::array_view<T> preSumArray(sizeScanBuff, preSumArray_buff);
-    Concurrency::array_view<T> preSumArray1(sizeScanBuff, preSumArray1_buff);
-    Concurrency::array_view<T> postSumArray(sizeScanBuff, postSumArray_buff);
+    hc::array_view<T> preSumArray(sizeScanBuff, preSumArray_buff);
+    hc::array_view<T> preSumArray1(sizeScanBuff, preSumArray1_buff);
+    hc::array_view<T> postSumArray(sizeScanBuff, postSumArray_buff);
 
     T identity = 0;
 
     //scan in blocks
 
-    Concurrency::extent<1> grdExt_numElm(numElementsRUP/2);
-    Concurrency::tiled_extent<BLOCK_SIZE> t_ext_numElm(grdExt_numElm);
+    hc::extent<1> grdExt_numElm(numElementsRUP/2);
+    hc::tiled_extent<1> t_ext_numElm = grdExt_numElm.tile(BLOCK_SIZE);
 
-    Concurrency::parallel_for_each(control->accl_view, t_ext_numElm, [=] (Concurrency::tiled_index<BLOCK_SIZE> tidx) restrict(amp)
+    hc::parallel_for_each(control->accl_view, t_ext_numElm, [=] (hc::tiled_index<1> &tidx) __attribute__((hc, cpu))
     {
         tile_static T lds[BLOCK_SIZE*2];
         size_t gloId = tidx.global[0];
         size_t groId = tidx.tile[0];
         size_t locId = tidx.local[0];
-        size_t wgSize = tidx.tile_dim0;
+        size_t wgSize = tidx.tile_dim[0];
         wgSize *=2;
         size_t offset = 1;
         // load input into shared memory
@@ -93,15 +93,15 @@ scan(int size,
 
     T workPerThread = sizeScanBuff / BLOCK_SIZE;
 
-    Concurrency::extent<1> grdExt_block(BLOCK_SIZE);
-    Concurrency::tiled_extent<BLOCK_SIZE> t_ext_block(grdExt_block);
+    hc::extent<1> grdExt_block(BLOCK_SIZE);
+    hc::tiled_extent<1> t_ext_block = grdExt_block.tile(BLOCK_SIZE);
 
-    Concurrency::parallel_for_each(control->accl_view, t_ext_block, [=] (Concurrency::tiled_index<BLOCK_SIZE> tidx) restrict(amp)
+    hc::parallel_for_each(control->accl_view, t_ext_block, [=] (hc::tiled_index<1> &tidx) __attribute__((hc, cpu))
     {
         tile_static T lds[BLOCK_SIZE];
         size_t gloId = tidx.global[0];
         size_t locId = tidx.local[0];
-        size_t wgSize = tidx.tile_dim0;
+        size_t wgSize = tidx.tile_dim[0];
         uint mapId  = gloId * workPerThread;
         // do offset of zero manually
         uint offset;
@@ -172,16 +172,16 @@ scan(int size,
         } // for
     });
 
-    Concurrency::extent<1> grdExt(numElementsRUP);
-    Concurrency::tiled_extent<BLOCK_SIZE> t_ext(grdExt);
+    hc::extent<1> grdExt(numElementsRUP);
+    hc::tiled_extent<1> t_ext = grdExt.tile(BLOCK_SIZE);
 
-    Concurrency::parallel_for_each(control->accl_view, t_ext, [=] (Concurrency::tiled_index<BLOCK_SIZE> tidx) restrict(amp)
+    hc::parallel_for_each(control->accl_view, t_ext, [=] (hc::tiled_index<1> &tidx) __attribute__((hc, cpu))
     {
         tile_static T lds[BLOCK_SIZE];
         size_t gloId = tidx.global[0];
         size_t groId = tidx.tile[0];
         size_t locId = tidx.local[0];
-        size_t wgSize = tidx.tile_dim0;
+        size_t wgSize = tidx.tile_dim[0];
         // if exclusive, load gloId=0 w/ identity, and all others shifted-1
         T val;
         if (gloId < size)
@@ -257,9 +257,9 @@ scan(int size,
 
 template <typename T, ElementWiseOperator OP>
 hcsparseStatus
-exclusive_scan( int size, 
-                Concurrency::array_view<T> &output,
-                const Concurrency::array_view<T> &input,
+exclusive_scan( int size,
+                hc::array_view<T> &output,
+                const hc::array_view<T> &input,
                 const hcsparseControl* control)
 {
    return scan<T, OP>(size, output, input, control, (int)true);
@@ -268,11 +268,9 @@ exclusive_scan( int size,
 template <typename T, ElementWiseOperator OP>
 hcsparseStatus
 inclusive_scan( int size,
-                Concurrency::array_view<T> &output,
-                const Concurrency::array_view<T> &input,
+                hc::array_view<T> &output,
+                const hc::array_view<T> &input,
                 const hcsparseControl* control)
 {
   return scan<T, OP>(size, output, input, control, (int)false);
 }
-
-

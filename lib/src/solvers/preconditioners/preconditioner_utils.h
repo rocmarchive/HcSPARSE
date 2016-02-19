@@ -6,10 +6,10 @@
 
 template <typename T, bool inverse>
 void extract_diagonal_kernel ( const long num_rows,
-                               Concurrency::array_view<T> &diag,
-                               const Concurrency::array_view<int> &csr_row_offsets,
-                               const Concurrency::array_view<int> &csr_col_indices,
-                               const Concurrency::array_view<T> &csr_values,
+                               hc::array_view<T> &diag,
+                               const hc::array_view<int> &csr_row_offsets,
+                               const hc::array_view<int> &csr_col_indices,
+                               const hc::array_view<T> &csr_values,
                                long subwave_size,
                                hcsparseControl *control)
 {
@@ -17,9 +17,9 @@ void extract_diagonal_kernel ( const long num_rows,
 
     int global_work_size = GROUP_SIZE * ( ( predicted + GROUP_SIZE - 1 ) / GROUP_SIZE );
 
-    Concurrency::extent<1> grdExt(global_work_size);
-    Concurrency::tiled_extent< GROUP_SIZE> t_ext(grdExt);
-    Concurrency::parallel_for_each(control->accl_view, t_ext, [=] (Concurrency::tiled_index<GROUP_SIZE> tidx) restrict(amp)
+    hc::extent<1> grdExt(global_work_size);
+    hc::tiled_extent<1> t_ext = grdExt.tile(GROUP_SIZE);
+    hc::parallel_for_each(control->accl_view, t_ext, [&] (hc::tiled_index<1>& tidx) __attribute__((hc, cpu))
     { 
         const int global_id   = tidx.global[0];         
         const int local_id    = tidx.local[0];          
@@ -73,10 +73,10 @@ extract_diagonal(hcdenseVector* pDiag,
     if (nnz_per_row < 8)  {  subwave_size = 4;  }
     if (nnz_per_row < 4)  {  subwave_size = 2;  }
 
-    Concurrency::array_view<T> *av_Diag = static_cast<Concurrency::array_view<T> *>(pDiag->values);
-    Concurrency::array_view<T> *av_Amat = static_cast<Concurrency::array_view<T> *>(pA->values); 
-    Concurrency::array_view<int> *av_ArowOff = static_cast<Concurrency::array_view<int> *>(pA->rowOffsets); 
-    Concurrency::array_view<int> *av_AcolInd = static_cast<Concurrency::array_view<int> *>(pA->colIndices); 
+    hc::array_view<T> *av_Diag = static_cast<hc::array_view<T> *>(pDiag->values);
+    hc::array_view<T> *av_Amat = static_cast<hc::array_view<T> *>(pA->values); 
+    hc::array_view<int> *av_ArowOff = static_cast<hc::array_view<int> *>(pA->rowOffsets); 
+    hc::array_view<int> *av_AcolInd = static_cast<hc::array_view<int> *>(pA->colIndices); 
 
     extract_diagonal_kernel<T, inverse> (size, *av_Diag, *av_ArowOff, *av_AcolInd, *av_Amat, subwave_size, control);
 
