@@ -38,6 +38,7 @@ FILE(GLOB TESTSRCS
           csr_dense_conv_double_test.cpp
           csrmm_float_test.cpp
           csrmm_double_test.cpp
+          spcsrmm_float_test.cpp
           )
 
 
