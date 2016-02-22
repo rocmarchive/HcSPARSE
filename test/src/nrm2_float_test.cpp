@@ -1,5 +1,8 @@
 #include <hcsparse.h>
 #include <iostream>
+
+#define TOLERANCE 0.01
+
 int main()
 {
     hcsparseScalar gR;
@@ -48,8 +51,11 @@ int main()
 
     bool ispassed = 1;
     array_view<float> *av_res = static_cast<array_view<float> *>(gR.value);
-    if (host_res[0] != (*av_res)[0])
+
+    float diff = std::abs(host_res[0] - (*av_res)[0]);
+    if (diff > TOLERANCE)
     {
+        std::cout<<host_res[0]<<" "<<(*av_res)[0]<<std::endl;
         ispassed = 0;
     }
 

@@ -29,7 +29,7 @@ T fabs (T a, T b) __attribute__((hc, cpu))
 }
 
 template<typename T>
-T sqrt (T a) __attribute__((hc, cpu))
+T sqr_root (T a) __attribute__((hc, cpu))
 {
     return hc::fast_math::sqrt(a);
 }
@@ -55,7 +55,7 @@ template<typename T, ReduceOperator OP>
 T reduceOperation (T a) __attribute__((hc, cpu))
 {
     if (OP == RO_SQRT)
-        return 0; //std::sqrt<T>(a);
+        return sqr_root<T>(a);
     else
         return reduce_dummy<T>(a);
 }

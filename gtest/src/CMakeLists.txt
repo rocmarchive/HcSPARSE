@@ -24,7 +24,7 @@ FILE(GLOB TESTSRCS
           reduce_int_test.cpp
           transform_float_test.cpp
           transform_double_test.cpp
-#          nrm2_float_test.cpp
+          nrm2_float_test.cpp
           nrm1_float_test.cpp
           csrmv_float_test.cpp
           csrmv_double_test.cpp
