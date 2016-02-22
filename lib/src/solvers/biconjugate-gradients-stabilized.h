@@ -266,7 +266,6 @@ bicgStab(hcdenseVector *pX,
 
         if (solverControl->finished(av_residuum[0]))
         {
-//            iteration++;
             solverControl->nIters = iteration;
             //x = x + alpha * M*p_j;
             status = axpby<T>(pX, &one, pX, &alpha, &Mp, control);
@@ -303,7 +302,6 @@ bicgStab(hcdenseVector *pX,
 
         if (solverControl->finished(av_residuum[0]))
         {
-//            iteration++;
             solverControl->nIters = iteration;
             break;
         }

@@ -4,11 +4,11 @@
 
 template <typename T, ElementWiseOperator OP>
 hcsparseStatus
-scan(int size,
-     hc::array_view<T> &output,
-     const hc::array_view<T> &input,
-     const hcsparseControl* control,
-     int exclusive)
+scan (int size,
+      hc::array_view<T> &output,
+      const hc::array_view<T> &input,
+      const hcsparseControl* control,
+      int exclusive)
 {
     int numElementsRUP = size;
     int modWgSize = (numElementsRUP & ((BLOCK_SIZE*2)-1));
@@ -257,7 +257,7 @@ scan(int size,
 
 template <typename T, ElementWiseOperator OP>
 hcsparseStatus
-exclusive_scan( int size,
+exclusive_scan (int size,
                 hc::array_view<T> &output,
                 const hc::array_view<T> &input,
                 const hcsparseControl* control)
@@ -267,7 +267,7 @@ exclusive_scan( int size,
 
 template <typename T, ElementWiseOperator OP>
 hcsparseStatus
-inclusive_scan( int size,
+inclusive_scan (int size,
                 hc::array_view<T> &output,
                 const hc::array_view<T> &input,
                 const hcsparseControl* control)

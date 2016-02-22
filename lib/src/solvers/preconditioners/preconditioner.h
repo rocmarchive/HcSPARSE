@@ -3,12 +3,6 @@
 
 #include "hcsparse.h"
 
-//enum PRECONDITIONER
-//{
-//    VOID = 0,
-//    DIAGONAL
-//};
-
 /** //From Wikipedia
 In linear algebra and numerical analysis, a preconditioner P of a matrix A is
 a matrix such that P^{-1}A has a smaller condition number than A.
@@ -55,8 +49,8 @@ class PreconditionerHandler
 {
 public:
     virtual void operator()(const hcdenseVector *x,
-                       hcdenseVector *y,
-                       hcsparseControl* control) = 0;
+                            hcdenseVector *y,
+                            hcsparseControl* control) = 0;
 
     virtual void notify(const hcsparseCsrMatrix* pA,
                         hcsparseControl* control) = 0;

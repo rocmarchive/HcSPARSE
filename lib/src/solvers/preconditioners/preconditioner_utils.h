@@ -47,9 +47,9 @@ void extract_diagonal_kernel ( const long num_rows,
 
 template<typename T, bool inverse = false>
 hcsparseStatus
-extract_diagonal(hcdenseVector* pDiag,
-                 const hcsparseCsrMatrix* pA,
-                 hcsparseControl* control)
+extract_diagonal (hcdenseVector* pDiag,
+                  const hcsparseCsrMatrix* pA,
+                  hcsparseControl* control)
 {
     if (pDiag->values == nullptr)
     {

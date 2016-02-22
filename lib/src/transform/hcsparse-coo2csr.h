@@ -3,12 +3,12 @@
 #define BLOCK_SIZE 256
 
 template <typename T>
-void coo2csr_kernel ( const hc::array_view<int> &coo_col,
-                      const hc::array_view<T> &coo_values,
-                      hc::array_view<int> &csr_col,
-                      hc::array_view<T> &csr_values,
-                      int size,
-                      const hcsparseControl* control)
+void coo2csr_kernel (const hc::array_view<int> &coo_col,
+                     const hc::array_view<T> &coo_values,
+                     hc::array_view<int> &csr_col,
+                     hc::array_view<T> &csr_values,
+                     int size,
+                     const hcsparseControl* control)
 {
 
     hc::extent<1> grdExt(BLOCK_SIZE * ((size - 1)/BLOCK_SIZE + 1));

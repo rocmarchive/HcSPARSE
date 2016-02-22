@@ -55,7 +55,7 @@ hcsparseTeardown(void)
 
 // Convenience sparse matrix construction functions
 hcsparseStatus
-hcsparseInitScalar( hcsparseScalar* scalar )
+hcsparseInitScalar (hcsparseScalar* scalar)
 {
     scalar->clear( );
 
@@ -63,7 +63,7 @@ hcsparseInitScalar( hcsparseScalar* scalar )
 };
 
 hcsparseStatus
-hcsparseInitVector( hcdenseVector* vec )
+hcsparseInitVector (hcdenseVector* vec)
 {
     vec->clear( );
 
@@ -71,7 +71,7 @@ hcsparseInitVector( hcdenseVector* vec )
 };
 
 hcsparseStatus
-hcsparseInitCooMatrix( hcsparseCooMatrix* cooMatx )
+hcsparseInitCooMatrix (hcsparseCooMatrix* cooMatx)
 {
     cooMatx->clear( );
 
@@ -79,7 +79,7 @@ hcsparseInitCooMatrix( hcsparseCooMatrix* cooMatx )
 };
 
 hcsparseStatus
-hcsparseInitCsrMatrix( hcsparseCsrMatrix* csrMatx )
+hcsparseInitCsrMatrix (hcsparseCsrMatrix* csrMatx)
 {
     csrMatx->clear( );
 
@@ -87,7 +87,7 @@ hcsparseInitCsrMatrix( hcsparseCsrMatrix* csrMatx )
 };
 
 hcsparseStatus
-hcdenseInitMatrix( hcdenseMatrix* denseMatx )
+hcdenseInitMatrix (hcdenseMatrix* denseMatx)
 {
     denseMatx->clear();
 
@@ -95,12 +95,12 @@ hcdenseInitMatrix( hcdenseMatrix* denseMatx )
 }
 
 hcsparseStatus
-    hcsparseScsrmv( const hcsparseScalar* alpha,
-                        const hcsparseCsrMatrix* matx,
-                        const hcdenseVector* x,
-                        const hcsparseScalar* beta,
-                        hcdenseVector* y,
-                        const hcsparseControl* control )
+hcsparseScsrmv (const hcsparseScalar* alpha,
+                const hcsparseCsrMatrix* matx,
+                const hcdenseVector* x,
+                const hcsparseScalar* beta,
+                hcdenseVector* y,
+                const hcsparseControl* control)
 {
     if (!hcsparseInitialized)
     {
@@ -117,12 +117,12 @@ hcsparseStatus
 }
 
 hcsparseStatus
-    hcsparseDcsrmv( const hcsparseScalar* alpha,
-                        const hcsparseCsrMatrix* matx,
-                        const hcdenseVector* x,
-                        const hcsparseScalar* beta,
-                        hcdenseVector* y,
-                        const hcsparseControl* control )
+hcsparseDcsrmv (const hcsparseScalar* alpha,
+                const hcsparseCsrMatrix* matx,
+                const hcdenseVector* x,
+                const hcsparseScalar* beta,
+                hcdenseVector* y,
+                const hcsparseControl* control)
 {
     if (!hcsparseInitialized)
     {
@@ -139,12 +139,12 @@ hcsparseStatus
 }
 
 hcsparseStatus
-hcsparseScsrmm( const hcsparseScalar* alpha,
+hcsparseScsrmm (const hcsparseScalar* alpha,
                 const hcsparseCsrMatrix* sparseCsrA,
                 const hcdenseMatrix* denseB,
                 const hcsparseScalar* beta,
                 hcdenseMatrix* denseC,
-                const hcsparseControl *control )
+                const hcsparseControl *control)
 {
     if( !hcsparseInitialized )
     {
@@ -160,12 +160,12 @@ hcsparseScsrmm( const hcsparseScalar* alpha,
 }
 
 hcsparseStatus
-hcsparseDcsrmm( const hcsparseScalar* alpha,
+hcsparseDcsrmm (const hcsparseScalar* alpha,
                 const hcsparseCsrMatrix* sparseCsrA,
                 const hcdenseMatrix* denseB,
                 const hcsparseScalar* beta,
                 hcdenseMatrix* denseC,
-                const hcsparseControl *control )
+                const hcsparseControl *control)
 {
     if( !hcsparseInitialized )
     {
@@ -181,10 +181,10 @@ hcsparseDcsrmm( const hcsparseScalar* alpha,
 }
 
 hcsparseStatus
-hcdenseSscale ( hcdenseVector* r,
-                const hcsparseScalar* alpha,
-                const hcdenseVector* y,
-                const hcsparseControl* control)
+hcdenseSscale (hcdenseVector* r,
+               const hcsparseScalar* alpha,
+               const hcdenseVector* y,
+               const hcsparseControl* control)
 {
     if (!hcsparseInitialized)
     {
@@ -201,7 +201,7 @@ hcdenseSscale ( hcdenseVector* r,
 
 
 hcsparseStatus
-hcdenseDscale( hcdenseVector* r,
+hcdenseDscale (hcdenseVector* r,
                const hcsparseScalar* alpha,
                const hcdenseVector* y,
                const hcsparseControl* control)
@@ -220,11 +220,11 @@ hcdenseDscale( hcdenseVector* r,
 }
 
 hcsparseStatus
-hcdenseSaxpy ( hcdenseVector* r,
-                const hcsparseScalar* alpha,
-                const hcdenseVector* x,
-                const hcdenseVector* y,
-                const hcsparseControl* control)
+hcdenseSaxpy (hcdenseVector* r,
+              const hcsparseScalar* alpha,
+              const hcdenseVector* x,
+              const hcdenseVector* y,
+              const hcsparseControl* control)
 {
     if (!hcsparseInitialized)
     {
@@ -240,11 +240,11 @@ hcdenseSaxpy ( hcdenseVector* r,
 }
 
 hcsparseStatus
-hcdenseDaxpy ( hcdenseVector* r,
-                const hcsparseScalar* alpha,
-                const hcdenseVector* x,
-                const hcdenseVector* y,
-                const hcsparseControl* control)
+hcdenseDaxpy (hcdenseVector* r,
+              const hcsparseScalar* alpha,
+              const hcdenseVector* x,
+              const hcdenseVector* y,
+              const hcsparseControl* control)
 {
     if (!hcsparseInitialized)
     {
@@ -260,12 +260,12 @@ hcdenseDaxpy ( hcdenseVector* r,
 }
 
 hcsparseStatus
-hcdenseSaxpby ( hcdenseVector* r,
-                const hcsparseScalar* alpha,
-                const hcdenseVector* x,
-                const hcsparseScalar* beta,
-                const hcdenseVector* y,
-                const hcsparseControl* control)
+hcdenseSaxpby (hcdenseVector* r,
+               const hcsparseScalar* alpha,
+               const hcdenseVector* x,
+               const hcsparseScalar* beta,
+               const hcdenseVector* y,
+               const hcsparseControl* control)
 {
     if (!hcsparseInitialized)
     {
@@ -281,12 +281,12 @@ hcdenseSaxpby ( hcdenseVector* r,
 }
 
 hcsparseStatus
-hcdenseDaxpby ( hcdenseVector* r,
-                const hcsparseScalar* alpha,
-                const hcdenseVector* x,
-                const hcsparseScalar* beta,
-                const hcdenseVector* y,
-                const hcsparseControl* control)
+hcdenseDaxpby (hcdenseVector* r,
+               const hcsparseScalar* alpha,
+               const hcdenseVector* x,
+               const hcsparseScalar* beta,
+               const hcdenseVector* y,
+               const hcsparseControl* control)
 {
     if (!hcsparseInitialized)
     {
@@ -302,9 +302,9 @@ hcdenseDaxpby ( hcdenseVector* r,
 }
 
 hcsparseStatus
-hcdenseIreduce(hcsparseScalar* s,
-               const hcdenseVector* x,
-               const hcsparseControl* control)
+hcdenseIreduce (hcsparseScalar* s,
+                const hcdenseVector* x,
+                const hcsparseControl* control)
 {
     if (!hcsparseInitialized)
     {
@@ -320,9 +320,9 @@ hcdenseIreduce(hcsparseScalar* s,
 }
 
 hcsparseStatus
-hcdenseSreduce(hcsparseScalar* s,
-               const hcdenseVector* x,
-               const hcsparseControl* control)
+hcdenseSreduce (hcsparseScalar* s,
+                const hcdenseVector* x,
+                const hcsparseControl* control)
 {
     if (!hcsparseInitialized)
     {
@@ -338,9 +338,9 @@ hcdenseSreduce(hcsparseScalar* s,
 }
 
 hcsparseStatus
-hcdenseDreduce(hcsparseScalar* s,
-               const hcdenseVector* x,
-               const hcsparseControl* control)
+hcdenseDreduce (hcsparseScalar* s,
+                const hcdenseVector* x,
+                const hcsparseControl* control)
 {
     if (!hcsparseInitialized)
     {
@@ -356,10 +356,10 @@ hcdenseDreduce(hcsparseScalar* s,
 }
 
 hcsparseStatus
-hcdenseSadd( hcdenseVector* r,
+hcdenseSadd (hcdenseVector* r,
              const hcdenseVector* x,
              const hcdenseVector* y,
-             const hcsparseControl* control )
+             const hcsparseControl* control)
 {
     if (!hcsparseInitialized)
     {
@@ -375,10 +375,10 @@ hcdenseSadd( hcdenseVector* r,
 }
 
 hcsparseStatus
-hcdenseDadd( hcdenseVector* r,
+hcdenseDadd (hcdenseVector* r,
              const hcdenseVector* x,
              const hcdenseVector* y,
-             const hcsparseControl* control )
+             const hcsparseControl* control)
 {
     if (!hcsparseInitialized)
     {
@@ -394,10 +394,10 @@ hcdenseDadd( hcdenseVector* r,
 }
 
 hcsparseStatus
-hcdenseSsub( hcdenseVector* r,
+hcdenseSsub (hcdenseVector* r,
              const hcdenseVector* x,
              const hcdenseVector* y,
-             const hcsparseControl* control )
+             const hcsparseControl* control)
 {
     if (!hcsparseInitialized)
     {
@@ -413,10 +413,10 @@ hcdenseSsub( hcdenseVector* r,
 }
 
 hcsparseStatus
-hcdenseDsub( hcdenseVector* r,
+hcdenseDsub (hcdenseVector* r,
              const hcdenseVector* x,
              const hcdenseVector* y,
-             const hcsparseControl* control )
+             const hcsparseControl* control)
 {
     if (!hcsparseInitialized)
     {
@@ -432,10 +432,10 @@ hcdenseDsub( hcdenseVector* r,
 }
 
 hcsparseStatus
-hcdenseSmul( hcdenseVector* r,
+hcdenseSmul (hcdenseVector* r,
              const hcdenseVector* x,
              const hcdenseVector* y,
-             const hcsparseControl* control )
+             const hcsparseControl* control)
 {
     if (!hcsparseInitialized)
     {
@@ -451,10 +451,10 @@ hcdenseSmul( hcdenseVector* r,
 }
 
 hcsparseStatus
-hcdenseDmul( hcdenseVector* r,
+hcdenseDmul (hcdenseVector* r,
              const hcdenseVector* x,
              const hcdenseVector* y,
-             const hcsparseControl* control )
+             const hcsparseControl* control)
 {
     if (!hcsparseInitialized)
     {
@@ -470,10 +470,10 @@ hcdenseDmul( hcdenseVector* r,
 }
 
 hcsparseStatus
-hcdenseSdiv( hcdenseVector* r,
+hcdenseSdiv (hcdenseVector* r,
              const hcdenseVector* x,
              const hcdenseVector* y,
-             const hcsparseControl* control )
+             const hcsparseControl* control)
 {
     if (!hcsparseInitialized)
     {
@@ -489,10 +489,10 @@ hcdenseSdiv( hcdenseVector* r,
 }
 
 hcsparseStatus
-hcdenseDdiv( hcdenseVector* r,
+hcdenseDdiv (hcdenseVector* r,
              const hcdenseVector* x,
              const hcdenseVector* y,
-             const hcsparseControl* control )
+             const hcsparseControl* control)
 {
     if (!hcsparseInitialized)
     {
@@ -508,9 +508,9 @@ hcdenseDdiv( hcdenseVector* r,
 }
 
 hcsparseStatus
-hcdenseSnrm1(hcsparseScalar* s,
-             const hcdenseVector* x,
-             const hcsparseControl* control)
+hcdenseSnrm1 (hcsparseScalar* s,
+              const hcdenseVector* x,
+              const hcsparseControl* control)
 {
     if (!hcsparseInitialized)
     {
@@ -526,9 +526,9 @@ hcdenseSnrm1(hcsparseScalar* s,
 }
 
 hcsparseStatus
-hcdenseDnrm1(hcsparseScalar* s,
-             const hcdenseVector* x,
-             const hcsparseControl* control)
+hcdenseDnrm1 (hcsparseScalar* s,
+              const hcdenseVector* x,
+              const hcsparseControl* control)
 {
     if (!hcsparseInitialized)
     {
@@ -544,9 +544,9 @@ hcdenseDnrm1(hcsparseScalar* s,
 }
 
 hcsparseStatus
-hcdenseSnrm2(hcsparseScalar* s,
-             const hcdenseVector* x,
-             const hcsparseControl* control)
+hcdenseSnrm2 (hcsparseScalar* s,
+              const hcdenseVector* x,
+              const hcsparseControl* control)
 {
     if (!hcsparseInitialized)
     {
@@ -562,9 +562,9 @@ hcdenseSnrm2(hcsparseScalar* s,
 }
 
 hcsparseStatus
-hcdenseDnrm2(hcsparseScalar* s,
-             const hcdenseVector* x,
-             const hcsparseControl* control)
+hcdenseDnrm2 (hcsparseScalar* s,
+              const hcdenseVector* x,
+              const hcsparseControl* control)
 {
     if (!hcsparseInitialized)
     {
@@ -624,7 +624,7 @@ hcdenseDdot (hcsparseScalar* r,
 // Post-condition: clears hcsparseCooMatrix, then sets pCooMatx->m, pCooMatx->n
 // pCooMatx->nnz
 hcsparseStatus
-hcsparseHeaderfromFile( int* nnz, int* row, int* col, const char* filePath )
+hcsparseHeaderfromFile (int* nnz, int* row, int* col, const char* filePath)
 {
 
     // Check that the file format is matrix market; the only format we can read right now
@@ -653,7 +653,7 @@ hcsparseHeaderfromFile( int* nnz, int* row, int* col, const char* filePath )
 }
 
 template<typename T>
-bool CoordinateCompare( const Coordinate<T> &c1, const Coordinate<T> &c2 )
+bool CoordinateCompare (const Coordinate<T> &c1, const Coordinate<T> &c2)
 {
     if( c1.x != c2.x )
         return ( c1.x < c2.x );
@@ -666,11 +666,10 @@ bool CoordinateCompare( const Coordinate<T> &c1, const Coordinate<T> &c2 )
 // Pre-condition: This function assumes that the device memory buffers have been
 // pre-allocated by the caller
 hcsparseStatus
-hcsparseSCooMatrixfromFile( hcsparseCooMatrix* cooMatx, const char* filePath, hcsparseControl *control, bool read_explicit_zeroes )
+hcsparseSCooMatrixfromFile (hcsparseCooMatrix* cooMatx, const char* filePath, hcsparseControl *control, bool read_explicit_zeroes)
 {
     // Check that the file format is matrix market; the only format we can read right now
     // This is not a complete solution, and fails for directories with file names etc...
-    // TODO: Should we use boost filesystem?
     std::string strPath( filePath );
     if( strPath.find_last_of( '.' ) != std::string::npos )
     {
@@ -708,11 +707,10 @@ hcsparseSCooMatrixfromFile( hcsparseCooMatrix* cooMatx, const char* filePath, hc
 }
 
 hcsparseStatus
-hcsparseDCooMatrixfromFile( hcsparseCooMatrix* cooMatx, const char* filePath, hcsparseControl *control, bool read_explicit_zeroes )
+hcsparseDCooMatrixfromFile (hcsparseCooMatrix* cooMatx, const char* filePath, hcsparseControl *control, bool read_explicit_zeroes)
 {
     // Check that the file format is matrix market; the only format we can read right now
     // This is not a complete solution, and fails for directories with file names etc...
-    // TODO: Should we use boost filesystem?
     std::string strPath( filePath );
     if( strPath.find_last_of( '.' ) != std::string::npos )
     {
@@ -750,7 +748,7 @@ hcsparseDCooMatrixfromFile( hcsparseCooMatrix* cooMatx, const char* filePath, hc
 }
 
 hcsparseStatus
-hcsparseSCsrMatrixfromFile(hcsparseCsrMatrix* csrMatx, const char* filePath, hcsparseControl *control, bool read_explicit_zeroes )
+hcsparseSCsrMatrixfromFile (hcsparseCsrMatrix* csrMatx, const char* filePath, hcsparseControl *control, bool read_explicit_zeroes)
 {
 
     // Check that the file format is matrix market; the only format we can read right now
@@ -806,7 +804,7 @@ hcsparseSCsrMatrixfromFile(hcsparseCsrMatrix* csrMatx, const char* filePath, hcs
 }
 
 hcsparseStatus
-hcsparseDCsrMatrixfromFile( hcsparseCsrMatrix* csrMatx, const char* filePath, hcsparseControl *control, bool read_explicit_zeroes )
+hcsparseDCsrMatrixfromFile (hcsparseCsrMatrix* csrMatx, const char* filePath, hcsparseControl *control, bool read_explicit_zeroes)
 {
     // Check that the file format is matrix market; the only format we can read right now
     // This is not a complete solution, and fails for directories with file names etc...
@@ -857,7 +855,7 @@ hcsparseDCsrMatrixfromFile( hcsparseCsrMatrix* csrMatx, const char* filePath, hc
 }
 
 hcsparseStatus
-hcsparseCsrMetaSize( hcsparseCsrMatrix* csrMatx, hcsparseControl *control )
+hcsparseCsrMetaSize (hcsparseCsrMatrix* csrMatx, hcsparseControl *control)
 {
     hc::array_view<int> *rCsrRowOffsets = static_cast<hc::array_view<int> *>(csrMatx->rowOffsets);
     int * dataRO = rCsrRowOffsets->data();
@@ -868,7 +866,7 @@ hcsparseCsrMetaSize( hcsparseCsrMatrix* csrMatx, hcsparseControl *control )
 }
 
 hcsparseStatus
-hcsparseCsrMetaCompute( hcsparseCsrMatrix* csrMatx, hcsparseControl *control )
+hcsparseCsrMetaCompute (hcsparseCsrMatrix* csrMatx, hcsparseControl *control)
 {
     // Check to ensure nRows can fit in 32 bits
     if( static_cast<ulong>( csrMatx->num_rows ) > static_cast<ulong>( std::pow( 2, ( 64 - ROWBITS ) ) ) )
@@ -888,8 +886,8 @@ hcsparseCsrMetaCompute( hcsparseCsrMatrix* csrMatx, hcsparseControl *control )
 }
 
 hcsparseStatus
-hcsparseScsrbicgStab(hcdenseVector* x, const hcsparseCsrMatrix *A, const hcdenseVector *b,
-               hcsparseSolverControl *solverControl, hcsparseControl *control)
+hcsparseScsrbicgStab (hcdenseVector* x, const hcsparseCsrMatrix *A, const hcdenseVector *b,
+                      hcsparseSolverControl *solverControl, hcsparseControl *control)
 {
     using T = float;
 
@@ -930,8 +928,8 @@ hcsparseScsrbicgStab(hcdenseVector* x, const hcsparseCsrMatrix *A, const hcdense
 }
 
 hcsparseStatus
-hcsparseDcsrbicgStab(hcdenseVector* x, const hcsparseCsrMatrix *A, const hcdenseVector *b,
-               hcsparseSolverControl *solverControl, hcsparseControl *control)
+hcsparseDcsrbicgStab (hcdenseVector* x, const hcsparseCsrMatrix *A, const hcdenseVector *b,
+                      hcsparseSolverControl *solverControl, hcsparseControl *control)
 {
     using T = double;
 
@@ -972,11 +970,11 @@ hcsparseDcsrbicgStab(hcdenseVector* x, const hcsparseCsrMatrix *A, const hcdense
 }
 
 hcsparseStatus
-hcsparseScsrcg(hcdenseVector *x,
-               const hcsparseCsrMatrix *A,
-               const hcdenseVector *b,
-               hcsparseSolverControl *solverControl,
-               hcsparseControl *control)
+hcsparseScsrcg (hcdenseVector *x,
+                const hcsparseCsrMatrix *A,
+                const hcdenseVector *b,
+                hcsparseSolverControl *solverControl,
+                hcsparseControl *control)
 {
     using T = float;
 
@@ -1017,11 +1015,11 @@ hcsparseScsrcg(hcdenseVector *x,
 }
 
 hcsparseStatus
-hcsparseDcsrcg(hcdenseVector *x,
-               const hcsparseCsrMatrix *A,
-               const hcdenseVector *b,
-               hcsparseSolverControl *solverControl,
-               hcsparseControl *control)
+hcsparseDcsrcg (hcdenseVector *x,
+                const hcsparseCsrMatrix *A,
+                const hcdenseVector *b,
+                hcsparseSolverControl *solverControl,
+                hcsparseControl *control)
 {
     using T = double;
 
@@ -1098,9 +1096,9 @@ hcsparseDcoo2csr (const hcsparseCooMatrix* coo,
 }
 
 hcsparseStatus
-hcsparseScsr2coo(const hcsparseCsrMatrix* csr,
-                 hcsparseCooMatrix* coo,
-                 const hcsparseControl* control)
+hcsparseScsr2coo (const hcsparseCsrMatrix* csr,
+                  hcsparseCooMatrix* coo,
+                  const hcsparseControl* control)
 {
     if (!hcsparseInitialized)
     {
@@ -1116,9 +1114,9 @@ hcsparseScsr2coo(const hcsparseCsrMatrix* csr,
 }
 
 hcsparseStatus
-hcsparseDcsr2coo(const hcsparseCsrMatrix* csr,
-                 hcsparseCooMatrix* coo,
-                 const hcsparseControl* control)
+hcsparseDcsr2coo (const hcsparseCsrMatrix* csr,
+                  hcsparseCooMatrix* coo,
+                  const hcsparseControl* control)
 {
     if (!hcsparseInitialized)
     {
@@ -1134,9 +1132,9 @@ hcsparseDcsr2coo(const hcsparseCsrMatrix* csr,
 }
 
 hcsparseStatus
-hcsparseScsr2dense(const hcsparseCsrMatrix* csr,
-                   hcdenseMatrix* A,
-                   const hcsparseControl* control)
+hcsparseScsr2dense (const hcsparseCsrMatrix* csr,
+                    hcdenseMatrix* A,
+                    const hcsparseControl* control)
 {
     if (!hcsparseInitialized)
     {
@@ -1152,9 +1150,9 @@ hcsparseScsr2dense(const hcsparseCsrMatrix* csr,
 }
 
 hcsparseStatus
-hcsparseDcsr2dense(const hcsparseCsrMatrix* csr,
-                   hcdenseMatrix* A,
-                   const hcsparseControl* control)
+hcsparseDcsr2dense (const hcsparseCsrMatrix* csr,
+                    hcdenseMatrix* A,
+                    const hcsparseControl* control)
 {
     if (!hcsparseInitialized)
     {
@@ -1170,9 +1168,9 @@ hcsparseDcsr2dense(const hcsparseCsrMatrix* csr,
 }
 
 hcsparseStatus
-hcsparseSdense2csr(const hcdenseMatrix* A,
-                   hcsparseCsrMatrix* csr,
-                   const hcsparseControl* control)
+hcsparseSdense2csr (const hcdenseMatrix* A,
+                    hcsparseCsrMatrix* csr,
+                    const hcsparseControl* control)
 {
     if (!hcsparseInitialized)
     {
@@ -1188,9 +1186,9 @@ hcsparseSdense2csr(const hcdenseMatrix* A,
 }
 
 hcsparseStatus
-hcsparseDdense2csr(const hcdenseMatrix* A,
-                   hcsparseCsrMatrix* csr,
-                   const hcsparseControl* control)
+hcsparseDdense2csr (const hcdenseMatrix* A,
+                    hcsparseCsrMatrix* csr,
+                    const hcsparseControl* control)
 {
     if (!hcsparseInitialized)
     {
@@ -1206,10 +1204,10 @@ hcsparseDdense2csr(const hcdenseMatrix* A,
 }
 
 hcsparseStatus
-hcsparseScsrSpGemm(const hcsparseCsrMatrix* sparseMatA,
-                   const hcsparseCsrMatrix* sparseMatB,
-                   hcsparseCsrMatrix* sparseMatC,
-                   const hcsparseControl* control )
+hcsparseScsrSpGemm (const hcsparseCsrMatrix* sparseMatA,
+                    const hcsparseCsrMatrix* sparseMatB,
+                    hcsparseCsrMatrix* sparseMatC,
+                    const hcsparseControl* control)
 {
     if (!hcsparseInitialized)
     {

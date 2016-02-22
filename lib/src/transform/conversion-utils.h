@@ -29,11 +29,11 @@ indices_to_offsets (const int num_rows,
 
 template <typename T>
 hcsparseStatus
-offsets_to_indices(const int num_rows,
-                   const int size,
-                   hc::array_view<T> &av_cooIndices,
-                   const hc::array_view<T> &av_csrOffsets,
-                   const hcsparseControl* control)
+offsets_to_indices (const int num_rows,
+                    const int size,
+                    hc::array_view<T> &av_cooIndices,
+                    const hc::array_view<T> &av_csrOffsets,
+                    const hcsparseControl* control)
 {
     int subwave_size = WAVE_SIZE;
 
@@ -81,14 +81,14 @@ offsets_to_indices(const int num_rows,
 
 template<typename T>
 hcsparseStatus
-transform_csr_2_dense(int size,
-                      const hc::array_view<int> &row_offsets,
-                      const hc::array_view<int> &col_indices,
-                      const hc::array_view<T> &values,
-                      const int num_rows,
-                      const int num_cols,
-                      hc::array_view<T> &A,
-                      const hcsparseControl* control)
+transform_csr_2_dense (int size,
+                       const hc::array_view<int> &row_offsets,
+                       const hc::array_view<int> &col_indices,
+                       const hc::array_view<T> &values,
+                       const int num_rows,
+                       const int num_cols,
+                       hc::array_view<T> &A,
+                       const hcsparseControl* control)
 {
     int subwave_size = WAVE_SIZE;
 
@@ -136,11 +136,11 @@ transform_csr_2_dense(int size,
 
 template <typename T>
 hcsparseStatus
-calculate_num_nonzeros(int dense_size,
-                       const hc::array_view<T> &A,
-                       hc::array_view<int> &nnz_locations,
-                       int& num_nonzeros,
-                       const hcsparseControl* control)
+calculate_num_nonzeros (int dense_size,
+                        const hc::array_view<T> &A,
+                        hc::array_view<int> &nnz_locations,
+                        int& num_nonzeros,
+                        const hcsparseControl* control)
 {
     int global_work_size = 0;
 
@@ -188,15 +188,15 @@ calculate_num_nonzeros(int dense_size,
 
 template<typename T>
 hcsparseStatus
-dense_to_coo(int dense_size,
-             int num_cols,
-             hc::array_view<int> &row_indices,
-             hc::array_view<int> &col_indices,
-             hc::array_view<T> &values,
-             const hc::array_view<T> &A,
-             const hc::array_view<int> &nnz_locations,
-             const hc::array_view<int> &coo_indexes,
-             const hcsparseControl* control)
+dense_to_coo (int dense_size,
+              int num_cols,
+              hc::array_view<int> &row_indices,
+              hc::array_view<int> &col_indices,
+              hc::array_view<T> &values,
+              const hc::array_view<T> &A,
+              const hc::array_view<int> &nnz_locations,
+              const hc::array_view<int> &coo_indexes,
+              const hcsparseControl* control)
 {
     int global_work_size = 0;
 

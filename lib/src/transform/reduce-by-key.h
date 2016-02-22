@@ -4,7 +4,7 @@
 
 template <typename T>
 hcsparseStatus
-reduce_by_key( int size,
+reduce_by_key (int size,
                hc::array_view<T> &keys_output,
                hc::array_view<T> &values_output,
                const hc::array_view<T> &keys_input,

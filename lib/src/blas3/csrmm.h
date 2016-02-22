@@ -3,25 +3,25 @@
 #define WAVE_SIZE 64
 #define GROUP_SIZE 256
 
-template<typename T>
+template <typename T>
 void
 csrmv_kernel( const int num_rows,
-        const int subwave_size,
-        const hc::array_view<T> &alpha,
-        const long off_alpha,
-        const hc::array_view<int> &row_offset,
-        const hc::array_view<int> &col,
-        const hc::array_view<T> &val,
-        const hc::array_view<T> &x,
-        const size_t ldx,
-        const long off_x,
-        const hc::array_view<T> &beta,
-        const long off_beta,
-        hc::array_view<T> &y,
-        const size_t ldy,
-        const long off_y,
-        int curr_col,
-        const hcsparseControl *control )
+              const int subwave_size,
+              const hc::array_view<T> &alpha,
+              const long off_alpha,
+              const hc::array_view<int> &row_offset,
+              const hc::array_view<int> &col,
+              const hc::array_view<T> &val,
+              const hc::array_view<T> &x,
+              const size_t ldx,
+              const long off_x,
+              const hc::array_view<T> &beta,
+              const long off_beta,
+              hc::array_view<T> &y,
+              const size_t ldy,
+              const long off_y,
+              int curr_col,
+              const hcsparseControl *control )
 {
     int predicted = subwave_size * num_rows;
 
@@ -134,17 +134,17 @@ csrmm( const hcsparseScalar *pAlpha,
        hcdenseMatrix *pDenseC,
        const hcsparseControl *control )
 {
-   int nnz_per_row = pSparseCsrA->nnz_per_row();
+    int nnz_per_row = pSparseCsrA->nnz_per_row();
 
-   hc::array_view<T> *avCsrA_values = static_cast<hc::array_view<T> *>(pSparseCsrA->values);
-   hc::array_view<int> *avCsrA_colIndices = static_cast<hc::array_view<int> *>(pSparseCsrA->colIndices);
-   hc::array_view<int> *avCsrA_rowOffsets = static_cast<hc::array_view<int> *>(pSparseCsrA->rowOffsets);
+    hc::array_view<T> *avCsrA_values = static_cast<hc::array_view<T> *>(pSparseCsrA->values);
+    hc::array_view<int> *avCsrA_colIndices = static_cast<hc::array_view<int> *>(pSparseCsrA->colIndices);
+    hc::array_view<int> *avCsrA_rowOffsets = static_cast<hc::array_view<int> *>(pSparseCsrA->rowOffsets);
  
-   hc::array_view<T> *avDenseB_values = static_cast<hc::array_view<T> *>(pDenseB->values);
-   hc::array_view<T> *avDenseC_values = static_cast<hc::array_view<T> *>(pDenseC->values);
+    hc::array_view<T> *avDenseB_values = static_cast<hc::array_view<T> *>(pDenseB->values);
+    hc::array_view<T> *avDenseC_values = static_cast<hc::array_view<T> *>(pDenseC->values);
 
-   hc::array_view<T> *avAlpha_value = static_cast<hc::array_view<T> *>(pAlpha->value);
-   hc::array_view<T> *avBeta_value = static_cast<hc::array_view<T> *>(pBeta->value);
+    hc::array_view<T> *avAlpha_value = static_cast<hc::array_view<T> *>(pAlpha->value);
+    hc::array_view<T> *avBeta_value = static_cast<hc::array_view<T> *>(pBeta->value);
 
     csrmv_batched<T> (pSparseCsrA->num_rows, nnz_per_row, *avAlpha_value, pAlpha->offValue, *avCsrA_rowOffsets, *avCsrA_colIndices, 
                       *avCsrA_values, *avDenseB_values, pDenseB->lead_dim, pDenseB->offValues, *avBeta_value, pBeta->offValue, 

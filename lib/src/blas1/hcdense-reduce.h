@@ -57,11 +57,11 @@ void global_reduce (const long size,
     }).wait();
 }
 
-template<typename T, ReduceOperator G_OP, ReduceOperator F_OP = RO_DUMMY>
+template <typename T, ReduceOperator G_OP, ReduceOperator F_OP = RO_DUMMY>
 hcsparseStatus
-reduce(hcsparseScalar* pR,
-       const hcdenseVector* pX,
-       const hcsparseControl* control)
+reduce (hcsparseScalar* pR,
+        const hcdenseVector* pX,
+        const hcsparseControl* control)
 {
     int size = pX->num_values;
     int REDUCE_BLOCKS_NUMBER = size/BLOCK_SIZE + 1;

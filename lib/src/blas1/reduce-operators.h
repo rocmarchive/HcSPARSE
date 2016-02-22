@@ -10,37 +10,37 @@ enum ReduceOperator
     RO_DUMMY //does nothing
 };
 
-template<typename T>
+template <typename T>
 T plus (T a, T b) __attribute__((hc, cpu))
 {
     return a + b;
 }
 
-template<typename T>
+template <typename T>
 T sqr (T a, T b) __attribute__((hc, cpu))
 {
     return a + b * b;
 }
 
-template<typename T>
+template <typename T>
 T fabs (T a, T b) __attribute__((hc, cpu))
 {
     return a + hc::fast_math::fabs(b);
 }
 
-template<typename T>
+template <typename T>
 T sqr_root (T a) __attribute__((hc, cpu))
 {
     return hc::fast_math::sqrt(a);
 }
 
-template<typename T>
+template <typename T>
 T reduce_dummy (T a) __attribute__((hc, cpu))
 {
     return a;
 }
 
-template<typename T, ReduceOperator OP>
+template <typename T, ReduceOperator OP>
 T reduceOperation (T a, T b) __attribute__((hc, cpu))
 {
     if (OP == RO_PLUS)
@@ -51,7 +51,7 @@ T reduceOperation (T a, T b) __attribute__((hc, cpu))
         return fabs<T>(a, b);
 }
 
-template<typename T, ReduceOperator OP>
+template <typename T, ReduceOperator OP>
 T reduceOperation (T a) __attribute__((hc, cpu))
 {
     if (OP == RO_SQRT)

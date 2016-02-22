@@ -4,10 +4,6 @@
 
 #include "hcsparse.h"
 
-#ifndef __has_builtin
-  #define __has_builtin(x) 0
-#endif
-
 static inline unsigned int flp2(unsigned int x)
 {
     x |= (x >> 1);

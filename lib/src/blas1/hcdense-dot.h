@@ -14,7 +14,6 @@ void inner_product (const long size,
                     const int REDUCE_BLOCKS_NUMBER,
                     const hcsparseControl* control)
 {
-
     hc::extent<1> grdExt(REDUCE_BLOCKS_NUMBER * BLOCK_SIZE);
     hc::tiled_extent<1> t_ext = grdExt.tile(BLOCK_SIZE);
     hc::parallel_for_each(control->accl_view, t_ext, [=] (hc::tiled_index<1>& tidx) __attribute__((hc, cpu))
@@ -59,12 +58,12 @@ void inner_product (const long size,
     });
 }
 
-template<typename T>
+template <typename T>
 hcsparseStatus
-dot(hcsparseScalar* pR,
-       const hcdenseVector* pX,
-       const hcdenseVector* pY,
-       const hcsparseControl* control)
+dot (hcsparseScalar* pR,
+     const hcdenseVector* pX,
+     const hcdenseVector* pY,
+     const hcsparseControl* control)
 {
     int size = pX->num_values;
     int REDUCE_BLOCKS_NUMBER = size/BLOCK_SIZE + 1;

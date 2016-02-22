@@ -10,12 +10,12 @@
  */
 template<typename T, typename PTYPE>
 hcsparseStatus
-cg(hcdenseVector *pX,
-   const hcsparseCsrMatrix* pA,
-   const hcdenseVector *pB,
-   PTYPE& M,
-   hcsparseSolverControl *solverControl,
-   hcsparseControl *control)
+cg (hcdenseVector *pX,
+    const hcsparseCsrMatrix* pA,
+    const hcdenseVector *pB,
+    PTYPE& M,
+    hcsparseSolverControl *solverControl,
+    hcsparseControl *control)
 {
 
     assert( pA->num_cols == pB->num_values );

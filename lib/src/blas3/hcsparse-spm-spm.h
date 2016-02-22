@@ -17,12 +17,12 @@ int statistics(int *_h_csrRowPtrCt, int *_h_counter, int *_h_counter_one, int *_
 
 template <typename T>
 inline
-void binarysearch(int   *s_key,
-                  T     *s_val,
-                  int   key_input,
-                  T     val_input,
-                  int   merged_size,
-                  bool  *is_new_col) __attribute__ ((hc))
+void binarysearch (int   *s_key,
+                   T     *s_val,
+                   int   key_input,
+                   T     val_input,
+                   int   merged_size,
+                   bool  *is_new_col) __attribute__ ((hc))
 {
     int start = 0;
     int stop  = merged_size - 1;
@@ -49,11 +49,11 @@ void binarysearch(int   *s_key,
 
 template <typename T>
 inline
-void binarysearch_sub(int   *s_key,
-                      T     *s_val,
-                      int   key_input,
-                      T     val_input,
-                      int   merged_size) __attribute__ ((hc))
+void binarysearch_sub (int   *s_key,
+                       T     *s_val,
+                       int   key_input,
+                       T     val_input,
+                       int   merged_size) __attribute__ ((hc))
 {
     int start = 0;
     int stop  = merged_size - 1;
@@ -78,12 +78,12 @@ void binarysearch_sub(int   *s_key,
 
 template <typename T>
 inline
-void binarysearch_global(hc::array_view<int> &d_key,
-                         hc::array_view<T> &d_val,
-                         int            key_input,
-                         T          val_input,
-                         int            merged_size,
-                         bool          *is_new_col) __attribute__ ((hc))
+void binarysearch_global (hc::array_view<int> &d_key,
+                          hc::array_view<T>   &d_val,
+                          int                 key_input,
+                          T                   val_input,
+                          int                 merged_size,
+                          bool                *is_new_col) __attribute__ ((hc))
 {
     int start = 0;
     int stop  = merged_size - 1;
@@ -109,11 +109,11 @@ void binarysearch_global(hc::array_view<int> &d_key,
 
 template <typename T>
 inline
-void binarysearch_global_sub(hc::array_view<int> &d_key,
-                             hc::array_view<T> &d_val,
-                             int            key_input,
-                             T          val_input,
-                             int            merged_size) __attribute__ ((hc))
+void binarysearch_global_sub (hc::array_view<int> &d_key,
+                              hc::array_view<T>   &d_val,
+                              int                 key_input,
+                              T                   val_input,
+                              int                 merged_size) __attribute__ ((hc))
 {
     int start = 0;
     int stop  = merged_size - 1;
@@ -137,9 +137,9 @@ void binarysearch_global_sub(hc::array_view<int> &d_key,
 }
 
 inline
-void scan_256(hc::tiled_index<1> &tidx,
-              int  *s_scan,
-              const int      local_id) __attribute__ ((hc))
+void scan_256 (hc::tiled_index<1> &tidx,
+               int                *s_scan,
+               const int          local_id) __attribute__ ((hc))
 {
     int ai, bi;
     int baseai = 1 + 2 * local_id;
@@ -172,20 +172,20 @@ void scan_256(hc::tiled_index<1> &tidx,
 }
 
 inline
-int y_pos(const int x_pos,
-          const int b_length,
-          const int offset)
+int y_pos (const int x_pos,
+           const int b_length,
+           const int offset)
 {
     int pos = b_length - (x_pos + b_length - offset);
     return pos > b_length ? b_length : pos;
 }
 
 inline
-int mergepath_partition_liu(int   *s_a_key,
-                            const int      a_length,
-                            int   *s_b_key,
-                            const int      b_length,
-                            const int      offset)
+int mergepath_partition_liu (int            *s_a_key,
+                             const int      a_length,
+                             int            *s_b_key,
+                             const int      b_length,
+                             const int      offset)
 {
     int x_start = offset > b_length ? offset - b_length : 0;
     int x_stop  = offset > a_length ? a_length : offset;
@@ -218,14 +218,14 @@ int mergepath_partition_liu(int   *s_a_key,
 
 template <typename T>
 inline
-void mergepath_serialmerge_liu(int          *s_a_key,
-                               T           *s_a_val,
-                               const int             a_length,
-                               int          *s_b_key,
-                               T           *s_b_val,
-                               const int             b_length,
-                               int                  *reg_key,
-                               T                   *reg_val)
+void mergepath_serialmerge_liu (int         *s_a_key,
+                                T           *s_a_val,
+                                const int   a_length,
+                                int         *s_b_key,
+                                T           *s_b_val,
+                                const int   b_length,
+                                int         *reg_key,
+                                T           *reg_val)
 {
     int a_pointer = 0;
     int b_pointer = 0;
@@ -249,17 +249,17 @@ void mergepath_serialmerge_liu(int          *s_a_key,
 
 template <typename T>
 inline
-void mergepath_liu(hc::tiled_index<1> &tidx,
-                   int          *s_a_key,
-                   T               *s_a_val,
-                   const int                 a_length,
-                   int              *s_b_key,
-                   T               *s_b_val,
-                   const int                 b_length,
-                   int             *s_a_border,
-                   int             *s_b_border,
-                   int                      *reg_key,
-                   T                       *reg_val) __attribute__ ((hc))
+void mergepath_liu (hc::tiled_index<1> &tidx,
+                    int                *s_a_key,
+                    T                  *s_a_val,
+                    const int          a_length,
+                    int                *s_b_key,
+                    T                  *s_b_val,
+                    const int          b_length,
+                    int                *s_a_border,
+                    int                *s_b_border,
+                    int                *reg_key,
+                    T                  *reg_val) __attribute__ ((hc))
 {
     if (b_length == 0)
         return;
@@ -290,12 +290,12 @@ void mergepath_liu(hc::tiled_index<1> &tidx,
     if (local_id < active_threads)
     {
         mergepath_serialmerge_liu<T> (&s_a_key[a_start],
-                                  &s_a_val[a_start],
-                                  a_stop - a_start,
-                                  &s_b_key[b_start],
-                                  &s_b_val[b_start],
-                                  b_stop - b_start,
-                                  reg_key, reg_val);
+                                      &s_a_val[a_start],
+                                      a_stop - a_start,
+                                      &s_b_key[b_start],
+                                      &s_b_val[b_start],
+                                      b_stop - b_start,
+                                      reg_key, reg_val);
     }
     tidx.barrier.wait();
     if (local_id < active_threads)
@@ -310,11 +310,11 @@ void mergepath_liu(hc::tiled_index<1> &tidx,
 }
 
 inline
-int mergepath_partition_global_liu(hc::array_view<int> &s_a_key,
-                                   const int      a_length,
-                                   hc::array_view<int> &s_b_key,
-                                   const int      b_length,
-                                   const int      offset) __attribute__ ((hc))
+int mergepath_partition_global_liu (hc::array_view<int> &s_a_key,
+                                    const int           a_length,
+                                    hc::array_view<int> &s_b_key,
+                                    const int           b_length,
+                                    const int           offset) __attribute__ ((hc))
 {
     int x_start = offset > b_length ? offset - b_length : 0;
     int x_stop  = offset > a_length ? a_length : offset;
@@ -344,26 +344,27 @@ int mergepath_partition_global_liu(hc::array_view<int> &s_a_key,
 
 template <typename T>
 inline
-void mergepath_global_2level_liu(hc::tiled_index<1> &tidx,
-                                 hc::array_view<int> &s_a_key,
-                                 hc::array_view<T> &s_a_val,
-                                 const int                 a_length,
-                                 hc::array_view<int> &s_b_key,
-                                 hc::array_view<T> &s_b_val,
-                                 const int                 b_length,
-                                 int             *s_a_border,
-                                 int             *s_b_border,
-                                 int                      *reg_key,
-                                 T                       *reg_val,
-                                 int             *s_key,
-                                 T              *s_val,
-                                 hc::array_view<int> &d_temp_key,
-                                 hc::array_view<T> &d_temp_val) __attribute__ ((hc))
+void mergepath_global_2level_liu (hc::tiled_index<1>  &tidx,
+                                  hc::array_view<int> &s_a_key,
+                                  hc::array_view<T>   &s_a_val,
+                                  const int           a_length,
+                                  hc::array_view<int> &s_b_key,
+                                  hc::array_view<T>   &s_b_val,
+                                  const int           b_length,
+                                  int                 *s_a_border,
+                                  int                 *s_b_border,
+                                  int                 *reg_key,
+                                  T                   *reg_val,
+                                  int                 *s_key,
+                                  T                   *s_val,
+                                  hc::array_view<int> &d_temp_key,
+                                  hc::array_view<T>   &d_temp_val) __attribute__ ((hc))
 {
     if (b_length == 0)
         return;
     if (s_a_key[a_length-1] < s_b_key[0])
         return;
+
     int local_id = tidx.local[0];
     int local_size = tidx.tile_dim[0];
     int delta_2level = local_size * 9;
@@ -382,10 +383,10 @@ void mergepath_global_2level_liu(hc::tiled_index<1> &tidx,
         }
         else
         {
-           s_a_border[local_id] = a_border_2level_r = local_id < 64 ? mergepath_partition_global_liu(s_a_key, a_length, s_b_key, b_length, offset_2level_next) : 0;
-           tidx.barrier.wait();
-           a_border_2level_r = local_id < 64 ? a_border_2level_r : s_a_border[local_id % 64];
-           b_border_2level_r = y_pos(a_border_2level_r, b_length, offset_2level_next);
+            s_a_border[local_id] = a_border_2level_r = local_id < 64 ? mergepath_partition_global_liu(s_a_key, a_length, s_b_key, b_length, offset_2level_next) : 0;
+            tidx.barrier.wait();
+            a_border_2level_r = local_id < 64 ? a_border_2level_r : s_a_border[local_id % 64];
+            b_border_2level_r = y_pos(a_border_2level_r, b_length, offset_2level_next);
         }
         //barrier(CLK_GLOBAL_MEM_FENCE);
         // load entries in the borders
@@ -404,8 +405,8 @@ void mergepath_global_2level_liu(hc::tiled_index<1> &tidx,
         tidx.barrier.wait();
         // merge path in local mem
         mergepath_liu<T> (tidx, s_key, s_val, a_size,
-                      &s_key[a_size], &s_val[a_size], b_size,
-                      s_a_border, s_b_border, reg_key, reg_val);
+                          &s_key[a_size], &s_val[a_size], b_size,
+                          s_a_border, s_b_border, reg_key, reg_val);
         tidx.barrier.wait();
         // dump the merged part to device mem (temp)
         for (int j = local_id; j < a_size + b_size; j += local_size)
@@ -426,14 +427,14 @@ void mergepath_global_2level_liu(hc::tiled_index<1> &tidx,
 
 template <typename T>
 inline
-void readwrite_mergedlist_global(hc::tiled_index<1> &tidx,
-                                 const hc::array_view<int> &d_csrColIndCt,
-                                 const hc::array_view<T> &d_csrValCt,
-                                 hc::array_view<int> &d_key_merged,
-                                 hc::array_view<T> &d_val_merged,
-                                 const int       merged_size,
-                                 const int       row_offset,
-                                 const bool      is_write) __attribute__ ((hc))
+void readwrite_mergedlist_global (hc::tiled_index<1>        &tidx,
+                                  const hc::array_view<int> &d_csrColIndCt,
+                                  const hc::array_view<T>   &d_csrValCt,
+                                  hc::array_view<int>       &d_key_merged,
+                                  hc::array_view<T>         &d_val_merged,
+                                  const int                 merged_size,
+                                  const int                 row_offset,
+                                  const bool                is_write) __attribute__ ((hc))
 {
     int local_id = tidx.local[0];
     int local_size = tidx.tile_dim[0];
@@ -462,14 +463,14 @@ void readwrite_mergedlist_global(hc::tiled_index<1> &tidx,
 
 template <typename T>
 inline
-void readwrite_mergedlist(hc::tiled_index<1> &tidx, 
-                          hc::array_view<int> &d_csrColIndCt,
-                          hc::array_view<T> &d_csrValCt,
-                          int *s_key_merged,
-                          T *s_val_merged,
-                          const int       merged_size,
-                          const int       row_offset,
-                          const bool      is_write) __attribute__ ((hc))
+void readwrite_mergedlist (hc::tiled_index<1>  &tidx, 
+                           hc::array_view<int> &d_csrColIndCt,
+                           hc::array_view<T>   &d_csrValCt,
+                           int                 *s_key_merged,
+                           T                   *s_val_merged,
+                           const int           merged_size,
+                           const int           row_offset,
+                           const bool          is_write) __attribute__ ((hc))
 {
     int local_id = tidx.local[0];
     int local_size = tidx.tile_dim[0];
@@ -498,12 +499,12 @@ void readwrite_mergedlist(hc::tiled_index<1> &tidx,
 
 template <typename T>
 inline
-void siftDown(int *s_key,
-              T   *s_val,
-              const int start,
-              const int stop,
-              const int local_id,
-              const int local_size) __attribute__ ((hc)) 
+void siftDown (int       *s_key,
+               T         *s_val,
+               const int start,
+               const int stop,
+               const int local_id,
+               const int local_size) __attribute__ ((hc)) 
 {
     int root = start;
     int child, swap;
@@ -537,11 +538,11 @@ void siftDown(int *s_key,
 
 template <typename T>
 inline
-int heapsort(int *s_key,
-             T   *s_val,
-             const int segment_size,
-             const int local_id,
-             const int local_size) __attribute__ ((hc))
+int heapsort (int       *s_key,
+              T         *s_val,
+              const int segment_size,
+              const int local_id,
+              const int local_size) __attribute__ ((hc))
 {
     // heapsort - heapify max-heap
     int start = (segment_size - 1) / 2;
@@ -605,11 +606,11 @@ int heapsort(int *s_key,
 
 template <typename T>
 inline
-void coex(int  *keyA,
-          T    *valA,
-          int  *keyB,
-          T    *valB,
-          const int  dir)
+void coex (int        *keyA,
+           T          *valA,
+           int        *keyB,
+           T          *valB,
+           const int  dir)
 {
     int t;
     T v;
@@ -626,12 +627,12 @@ void coex(int  *keyA,
 
 template <typename T>
 inline
-void bitonic(int   *s_key,
-             T     *s_val,
-             int   stage,
-             int   passOfStage,
-             int   local_id,
-             int   local_counter)
+void bitonic (int   *s_key,
+              T     *s_val,
+              int   stage,
+              int   passOfStage,
+              int   local_id,
+              int   local_counter)
 {
     int sortIncreasing = 1;
     int pairDistance = 1 << (stage - passOfStage);
@@ -681,10 +682,10 @@ void bitonic(int   *s_key,
 
 template <typename T>
 inline
-void bitonicsort(hc::tiled_index<1> &tidx,
-                 int  *s_key,
-                 T    *s_val,
-                 int  arrayLength) __attribute__ ((hc))
+void bitonicsort (hc::tiled_index<1> &tidx,
+                  int                *s_key,
+                  T                  *s_val,
+                  int                arrayLength) __attribute__ ((hc))
 {
     int local_id = tidx.local[0];
     int numStages = 0;
@@ -704,14 +705,14 @@ void bitonicsort(hc::tiled_index<1> &tidx,
 
 template <typename T>
 inline
-void compression_scan(hc::tiled_index<1> &tidx,
-                      int *s_scan,
-                      int *s_key,
-                      T   *s_val,
-                      const int       local_counter,
-                      const int       local_size,
-                      const int       local_id,
-                      const int       local_id_halfwidth) __attribute__ ((hc))
+void compression_scan (hc::tiled_index<1> &tidx,
+                       int                *s_scan,
+                       int                *s_key,
+                       T                  *s_val,
+                       const int          local_counter,
+                       const int          local_size,
+                       const int          local_id,
+                       const int          local_id_halfwidth) __attribute__ ((hc))
 {
     // compression - prefix sum
     bool duplicate = 1;
@@ -801,13 +802,13 @@ void compression_scan(hc::tiled_index<1> &tidx,
 }
 
 template <typename T>
-hcsparseStatus compute_nnzCt(int m, 
-                             hc::array_view<int> &csrRowPtrA, 
-                             hc::array_view<int> &csrColIndA, 
-                             hc::array_view<int> &csrRowPtrB, 
-                             hc::array_view<int> &csrColIndB, 
-                             hc::array_view<int> &csrRowPtrCt, 
-                             const hcsparseControl* control)
+hcsparseStatus compute_nnzCt (int m, 
+                              hc::array_view<int> &csrRowPtrA, 
+                              hc::array_view<int> &csrColIndA, 
+                              hc::array_view<int> &csrRowPtrB, 
+                              hc::array_view<int> &csrColIndB, 
+                              hc::array_view<int> &csrRowPtrCt, 
+                              const hcsparseControl* control)
 {  
     size_t szLocalWorkSize;
     size_t szGlobalWorkSize;
@@ -845,11 +846,11 @@ hcsparseStatus compute_nnzCt(int m,
  
 
 template <typename T> 
-hcsparseStatus compute_nnzC_Ct_0(int num_blocks, int j, 
-                                 int counter, int position, 
-                                 hc::array_view<int> &queue_one, 
-                                 hc::array_view<int> &csrRowPtrC, 
-                                 const hcsparseControl* control)
+hcsparseStatus compute_nnzC_Ct_0 (int num_blocks, int j, 
+                                  int counter, int position, 
+                                  hc::array_view<int> &queue_one, 
+                                  hc::array_view<int> &csrRowPtrC, 
+                                  const hcsparseControl* control)
 {
     size_t szLocalWorkSize;
     size_t szGlobalWorkSize;
@@ -873,20 +874,20 @@ hcsparseStatus compute_nnzC_Ct_0(int num_blocks, int j,
 }
 
 template <typename T>
-hcsparseStatus compute_nnzC_Ct_1(int num_blocks, int j, 
-                                 int counter, int position, 
-                                 hc::array_view<int> &queue_one, 
-                                 hc::array_view<int> &csrRowPtrA, 
-                                 hc::array_view<int> &csrColIndA, 
-                                 hc::array_view<T> &csrValA, 
-                                 hc::array_view<int> &csrRowPtrB, 
-                                 hc::array_view<int> &csrColIndB, 
-                                 hc::array_view<T> &csrValB, 
-                                 hc::array_view<int> &csrRowPtrC, 
-                                 hc::array_view<int> &csrRowPtrCt, 
-                                 hc::array_view<int> &csrColIndCt, 
-                                 hc::array_view<T> &csrValCt, 
-                                 const hcsparseControl* control)
+hcsparseStatus compute_nnzC_Ct_1 (int num_blocks, int j, 
+                                  int counter, int position, 
+                                  hc::array_view<int> &queue_one, 
+                                  hc::array_view<int> &csrRowPtrA, 
+                                  hc::array_view<int> &csrColIndA, 
+                                  hc::array_view<T> &csrValA, 
+                                  hc::array_view<int> &csrRowPtrB, 
+                                  hc::array_view<int> &csrColIndB, 
+                                  hc::array_view<T> &csrValB, 
+                                  hc::array_view<int> &csrRowPtrC, 
+                                  hc::array_view<int> &csrRowPtrCt, 
+                                  hc::array_view<int> &csrColIndCt, 
+                                  hc::array_view<T> &csrValCt, 
+                                  const hcsparseControl* control)
 {
     size_t szLocalWorkSize;
     size_t szGlobalWorkSize;
@@ -924,20 +925,20 @@ hcsparseStatus compute_nnzC_Ct_1(int num_blocks, int j,
 }
 
 template <typename T>
-hcsparseStatus compute_nnzC_Ct_2heap_noncoalesced_local(int num_blocks, int j, 
-                                                        int counter, int position, 
-                                                        hc::array_view<int> &queue_one, 
-                                                        hc::array_view<int> &csrRowPtrA, 
-                                                        hc::array_view<int> &csrColIndA, 
-                                                        hc::array_view<T> &csrValA, 
-                                                        hc::array_view<int> &csrRowPtrB, 
-                                                        hc::array_view<int> &csrColIndB, 
-                                                        hc::array_view<T> &csrValB, 
-                                                        hc::array_view<int> &csrRowPtrC, 
-                                                        hc::array_view<int> &csrRowPtrCt, 
-                                                        hc::array_view<int> &csrColIndCt, 
-                                                        hc::array_view<T> &csrValCt, 
-                                                        const hcsparseControl* control)
+hcsparseStatus compute_nnzC_Ct_2heap_noncoalesced_local (int num_blocks, int j, 
+                                                         int counter, int position, 
+                                                         hc::array_view<int> &queue_one, 
+                                                         hc::array_view<int> &csrRowPtrA, 
+                                                         hc::array_view<int> &csrColIndA, 
+                                                         hc::array_view<T> &csrValA, 
+                                                         hc::array_view<int> &csrRowPtrB, 
+                                                         hc::array_view<int> &csrColIndB, 
+                                                         hc::array_view<T> &csrValB, 
+                                                         hc::array_view<int> &csrRowPtrC, 
+                                                         hc::array_view<int> &csrRowPtrCt, 
+                                                         hc::array_view<int> &csrColIndCt, 
+                                                         hc::array_view<T> &csrValCt, 
+                                                         const hcsparseControl* control)
 {
     size_t szLocalWorkSize;
     size_t szGlobalWorkSize;
@@ -997,20 +998,20 @@ hcsparseStatus compute_nnzC_Ct_2heap_noncoalesced_local(int num_blocks, int j,
 }
 
 template <typename T>
-hcsparseStatus compute_nnzC_Ct_bitonic_scan(int num_blocks, int j, int position, 
-                                            hc::array_view<int> &queue_one, 
-                                            hc::array_view<int> &csrRowPtrA, 
-                                            hc::array_view<int> &csrColIndA, 
-                                            hc::array_view<T> &csrValA, 
-                                            hc::array_view<int> &csrRowPtrB, 
-                                            hc::array_view<int> &csrColIndB, 
-                                            hc::array_view<T> &csrValB, 
-                                            hc::array_view<int> &csrRowPtrC, 
-                                            hc::array_view<int> &csrRowPtrCt, 
-                                            hc::array_view<int> &csrColIndCt, 
-                                            hc::array_view<T> &csrValCt, 
-                                            int n, 
-                                            const hcsparseControl* control)
+hcsparseStatus compute_nnzC_Ct_bitonic_scan (int num_blocks, int j, int position, 
+                                             hc::array_view<int> &queue_one, 
+                                             hc::array_view<int> &csrRowPtrA, 
+                                             hc::array_view<int> &csrColIndA, 
+                                             hc::array_view<T> &csrValA, 
+                                             hc::array_view<int> &csrRowPtrB, 
+                                             hc::array_view<int> &csrColIndB, 
+                                             hc::array_view<T> &csrValB, 
+                                             hc::array_view<int> &csrRowPtrC, 
+                                             hc::array_view<int> &csrRowPtrCt, 
+                                             hc::array_view<int> &csrColIndCt, 
+                                             hc::array_view<T> &csrValCt, 
+                                             int n, 
+                                             const hcsparseControl* control)
 {
     size_t szLocalWorkSize;
     size_t szGlobalWorkSize;
@@ -1101,20 +1102,20 @@ hcsparseStatus compute_nnzC_Ct_bitonic_scan(int num_blocks, int j, int position,
 }
 
 template <typename T>
-hcsparseStatus compute_nnzC_Ct_mergepath(int num_blocks, int j, int mergebuffer_size, int position, int *count_next, int mergepath_location, 
-                                         hc::array_view<int> &queue_one, 
-                                         hc::array_view<int> &csrRowPtrA, 
-                                         hc::array_view<int> &csrColIndA, 
-                                         hc::array_view<T> &csrValA, 
-                                         hc::array_view<int> &csrRowPtrB, 
-                                         hc::array_view<int> &csrColIndB, 
-                                         hc::array_view<T> &csrValB, 
-                                         hc::array_view<int> &csrRowPtrC, 
-                                         hc::array_view<int> &csrRowPtrCt, 
-                                         hc::array_view<int> &csrColIndCt, 
-                                         hc::array_view<T> &csrValCt, 
-                                         int *_nnzCt, int m, int *_h_queue_one, 
-                                         const hcsparseControl* control)
+hcsparseStatus compute_nnzC_Ct_mergepath (int num_blocks, int j, int mergebuffer_size, int position, int *count_next, int mergepath_location, 
+                                          hc::array_view<int> &queue_one, 
+                                          hc::array_view<int> &csrRowPtrA, 
+                                          hc::array_view<int> &csrColIndA, 
+                                          hc::array_view<T> &csrValA, 
+                                          hc::array_view<int> &csrRowPtrB, 
+                                          hc::array_view<int> &csrColIndB, 
+                                          hc::array_view<T> &csrValB, 
+                                          hc::array_view<int> &csrRowPtrC, 
+                                          hc::array_view<int> &csrRowPtrCt, 
+                                          hc::array_view<int> &csrColIndCt, 
+                                          hc::array_view<T> &csrValCt, 
+                                          int *_nnzCt, int m, int *_h_queue_one, 
+                                          const hcsparseControl* control)
 {
     size_t szLocalWorkSize;
     size_t szGlobalWorkSize;
@@ -1226,16 +1227,16 @@ hcsparseStatus compute_nnzC_Ct_mergepath(int num_blocks, int j, int mergebuffer_
                     }
                     // dump l1 to global
                     readwrite_mergedlist<T> (tidx, *d_key_merged, *d_val_merged, s_key_merged_l1, s_val_merged_l1,
-                                         merged_size_l1, merged_size_l2, 1);
+                                             merged_size_l1, merged_size_l2, 1);
                     tidx.barrier.wait();
                 
                     mergepath_global_2level_liu<T> (tidx, *d_key_merged, *d_val_merged, merged_size_l2,
-                                                d_key_merged[merged_size_l2], d_val_merged[merged_size_l2], merged_size_l1,
-                                                s_a_border, s_b_border,
-                                                reg_key, reg_val,
-                                                s_key_merged_l1, s_val_merged_l1,
-                                                d_key_merged[merged_size_l2 + merged_size_l1],
-                                                d_val_merged[merged_size_l2 + merged_size_l1]);
+                                                    d_key_merged[merged_size_l2], d_val_merged[merged_size_l2], merged_size_l1,
+                                                    s_a_border, s_b_border,
+                                                    reg_key, reg_val,
+                                                    s_key_merged_l1, s_val_merged_l1,
+                                                    d_key_merged[merged_size_l2 + merged_size_l1],
+                                                    d_val_merged[merged_size_l2 + merged_size_l1]);
                     return;
                 }
                 // write compact input to free place in merged list
@@ -1249,8 +1250,8 @@ hcsparseStatus compute_nnzC_Ct_mergepath(int num_blocks, int j, int mergebuffer_
                 // merge path partition on l1
                 reg_reuse1 = s_scan[local_size]; // reg_reuse1 = size_b;
                 mergepath_liu<T> (tidx, s_key_merged_l1, s_val_merged_l1, merged_size_l1, 
-                              &s_key_merged_l1[merged_size_l1], &s_val_merged_l1[merged_size_l1], reg_reuse1,
-                              s_a_border, s_b_border, reg_key, reg_val);
+                                  &s_key_merged_l1[merged_size_l1], &s_val_merged_l1[merged_size_l1], reg_reuse1,
+                                  s_a_border, s_b_border, reg_key, reg_val);
                 merged_size_l1 += reg_reuse1; // reg_reuse1 = size_b = s_scan[local_size];
                 start_col_index_B += local_size;
             }
@@ -1264,16 +1265,16 @@ hcsparseStatus compute_nnzC_Ct_mergepath(int num_blocks, int j, int mergebuffer_
         }
         // dump l1 to global
         readwrite_mergedlist<T> (tidx, *d_key_merged, *d_val_merged, s_key_merged_l1, s_val_merged_l1,
-                             merged_size_l1, merged_size_l2, 1);
-       tidx.barrier.wait(); 
+                                 merged_size_l1, merged_size_l2, 1);
+        tidx.barrier.wait(); 
     
         mergepath_global_2level_liu<T> (tidx, *d_key_merged, *d_val_merged, merged_size_l2,
-                                    d_key_merged[merged_size_l2], d_val_merged[merged_size_l2], merged_size_l1,
-                                    s_a_border, s_b_border,
-                                    reg_key, reg_val,
-                                    s_key_merged_l1, s_val_merged_l1,
-                                    d_key_merged[merged_size_l2 + merged_size_l1],
-                                    d_val_merged[merged_size_l2 + merged_size_l1]);
+                                        d_key_merged[merged_size_l2], d_val_merged[merged_size_l2], merged_size_l1,
+                                        s_a_border, s_b_border,
+                                        reg_key, reg_val,
+                                        s_key_merged_l1, s_val_merged_l1,
+                                        d_key_merged[merged_size_l2 + merged_size_l1],
+                                        d_val_merged[merged_size_l2 + merged_size_l1]);
     });
 
     int temp_queue [6] = {0, 0, 0, 0, 0, 0};
@@ -1325,20 +1326,20 @@ hcsparseStatus compute_nnzC_Ct_mergepath(int num_blocks, int j, int mergebuffer_
 }
  
 template <typename T>
-hcsparseStatus compute_nnzC_Ct_general(int *_h_counter_one, 
-                                       hc::array_view<int> &queue_one, 
-                                       hc::array_view<int> &csrRowPtrA, 
-                                       hc::array_view<int> &csrColIndA, 
-                                       hc::array_view<T> &csrValA, 
-                                       hc::array_view<int> &csrRowPtrB, 
-                                       hc::array_view<int> &csrColIndB, 
-                                       hc::array_view<T> &csrValB, 
-                                       hc::array_view<int> &csrRowPtrC, 
-                                       hc::array_view<int> &csrRowPtrCt, 
-                                       hc::array_view<int> &csrColIndCt, 
-                                       hc::array_view<T> &csrValCt, 
-                                       int _n, int _nnzCt, int m, int *queue_one_h, 
-                                       const hcsparseControl* control)
+hcsparseStatus compute_nnzC_Ct_general (int *_h_counter_one, 
+                                        hc::array_view<int> &queue_one, 
+                                        hc::array_view<int> &csrRowPtrA, 
+                                        hc::array_view<int> &csrColIndA, 
+                                        hc::array_view<T> &csrValA, 
+                                        hc::array_view<int> &csrRowPtrB, 
+                                        hc::array_view<int> &csrColIndB, 
+                                        hc::array_view<T> &csrValB, 
+                                        hc::array_view<int> &csrRowPtrC, 
+                                        hc::array_view<int> &csrRowPtrCt, 
+                                        hc::array_view<int> &csrColIndCt, 
+                                        hc::array_view<T> &csrValCt, 
+                                        int _n, int _nnzCt, int m, int *queue_one_h, 
+                                        const hcsparseControl* control)
 {
     int counter = 0;
     
@@ -1360,18 +1361,21 @@ hcsparseStatus compute_nnzC_Ct_general(int *_h_counter_one,
             {
                 int num_blocks = hc::fast_math::ceil((double)counter / (double)GROUPSIZE_256);
 
-                run_status = compute_nnzC_Ct_1<T> (num_blocks, j, counter, _h_counter_one[j], queue_one, csrRowPtrA, csrColIndA, csrValA, csrRowPtrB, csrColIndB, csrValB, csrRowPtrC, csrRowPtrCt, csrColIndCt, csrValCt, control);
+                run_status = compute_nnzC_Ct_1<T> (num_blocks, j, counter, _h_counter_one[j], queue_one, csrRowPtrA, csrColIndA, csrValA, csrRowPtrB,
+                                                   csrColIndB, csrValB, csrRowPtrC, csrRowPtrCt, csrColIndCt, csrValCt, control);
             }
             else if (j > 1 && j <= 32)
             {
                 int num_blocks = hc::fast_math::ceil((double)counter / (double)GROUPSIZE_256);
-                run_status = compute_nnzC_Ct_2heap_noncoalesced_local<T> (num_blocks, j, counter, _h_counter_one[j], queue_one, csrRowPtrA, csrColIndA, csrValA, csrRowPtrB, csrColIndB, csrValB, csrRowPtrC, csrRowPtrCt, csrColIndCt, csrValCt, control);
+                run_status = compute_nnzC_Ct_2heap_noncoalesced_local<T> (num_blocks, j, counter, _h_counter_one[j], queue_one, csrRowPtrA, csrColIndA, csrValA,
+                                                                          csrRowPtrB, csrColIndB, csrValB, csrRowPtrC, csrRowPtrCt, csrColIndCt, csrValCt, control);
             }
             else if (j > 32 && j <= 124)
             {
                 int num_blocks = counter;
 
-                run_status = compute_nnzC_Ct_bitonic_scan<T> (num_blocks, j, _h_counter_one[j], queue_one, csrRowPtrA, csrColIndA, csrValA, csrRowPtrB, csrColIndB, csrValB, csrRowPtrC, csrRowPtrCt, csrColIndCt, csrValCt, _n, control);
+                run_status = compute_nnzC_Ct_bitonic_scan<T> (num_blocks, j, _h_counter_one[j], queue_one, csrRowPtrA, csrColIndA, csrValA, csrRowPtrB,
+                                                              csrColIndB, csrValB, csrRowPtrC, csrRowPtrCt, csrColIndCt, csrValCt, _n, control);
             }
             else if (j == 127)
             {
@@ -1388,7 +1392,8 @@ hcsparseStatus compute_nnzC_Ct_general(int *_h_counter_one,
                     num_threads = num_threads_queue[4];
                     mergebuffer_size += mergebuffer_size_queue[4];
                       
-                    run_status = compute_nnzC_Ct_mergepath<T> (num_blocks, j, mergebuffer_size, _h_counter_one[j], &count_next, MERGEPATH_GLOBAL, queue_one, csrRowPtrA, csrColIndA, csrValA, csrRowPtrB, csrColIndB, csrValB, csrRowPtrC, csrRowPtrCt, csrColIndCt, csrValCt, &_nnzCt, m, queue_one_h, control);
+                    run_status = compute_nnzC_Ct_mergepath<T> (num_blocks, j, mergebuffer_size, _h_counter_one[j], &count_next, MERGEPATH_GLOBAL, queue_one, csrRowPtrA, csrColIndA,
+                                                               csrValA, csrRowPtrB, csrColIndB, csrValB, csrRowPtrC, csrRowPtrCt, csrColIndCt, csrValCt, &_nnzCt, m, queue_one_h, control);
 
                 }
 
@@ -1406,15 +1411,15 @@ hcsparseStatus compute_nnzC_Ct_general(int *_h_counter_one,
 }
 
 template <typename T>
-hcsparseStatus copy_Ct_to_C_Single(int num_blocks, int position, int size,
-                                   hc::array_view<T> &csrValC, 
-                                   hc::array_view<int> &csrRowPtrC, 
-                                   hc::array_view<int> &csrColIndC, 
-                                   hc::array_view<T> &csrValCt, 
-                                   hc::array_view<int> &csrRowPtrCt, 
-                                   hc::array_view<int> &csrColIndCt, 
-                                   hc::array_view<int> &queue_one, 
-                                   const hcsparseControl* control)
+hcsparseStatus copy_Ct_to_C_Single (int num_blocks, int position, int size,
+                                    hc::array_view<T> &csrValC, 
+                                    hc::array_view<int> &csrRowPtrC, 
+                                    hc::array_view<int> &csrColIndC, 
+                                    hc::array_view<T> &csrValCt, 
+                                    hc::array_view<int> &csrRowPtrCt, 
+                                    hc::array_view<int> &csrColIndCt, 
+                                    hc::array_view<int> &queue_one, 
+                                    const hcsparseControl* control)
 {
     size_t szLocalWorkSize;
     size_t szGlobalWorkSize;
@@ -1444,15 +1449,15 @@ hcsparseStatus copy_Ct_to_C_Single(int num_blocks, int position, int size,
 }
 
 template <typename T>
-hcsparseStatus copy_Ct_to_C_Loopless(int num_blocks, int position, 
-                                     hc::array_view<T> &csrValC, 
-                                     hc::array_view<int> &csrRowPtrC, 
-                                     hc::array_view<int> &csrColIndC, 
-                                     hc::array_view<T> &csrValCt, 
-                                     hc::array_view<int> &csrRowPtrCt, 
-                                     hc::array_view<int> &csrColIndCt, 
-                                     hc::array_view<int> &queue_one, 
-                                     const hcsparseControl* control)
+hcsparseStatus copy_Ct_to_C_Loopless (int num_blocks, int position, 
+                                      hc::array_view<T> &csrValC, 
+                                      hc::array_view<int> &csrRowPtrC, 
+                                      hc::array_view<int> &csrColIndC, 
+                                      hc::array_view<T> &csrValCt, 
+                                      hc::array_view<int> &csrRowPtrCt, 
+                                      hc::array_view<int> &csrColIndCt, 
+                                      hc::array_view<int> &queue_one, 
+                                      const hcsparseControl* control)
 {
     size_t szLocalWorkSize;
     size_t szGlobalWorkSize;
@@ -1482,15 +1487,15 @@ hcsparseStatus copy_Ct_to_C_Loopless(int num_blocks, int position,
 }
 
 template <typename T>
-hcsparseStatus copy_Ct_to_C_Loop(int num_blocks, int position, 
-                                 hc::array_view<T> &csrValC, 
-                                 hc::array_view<int> &csrRowPtrC, 
-                                 hc::array_view<int> &csrColIndC, 
-                                 hc::array_view<T> &csrValCt, 
-                                 hc::array_view<int> &csrRowPtrCt, 
-                                 hc::array_view<int> &csrColIndCt, 
-                                 hc::array_view<int> &queue_one, 
-                                 const hcsparseControl* control)
+hcsparseStatus copy_Ct_to_C_Loop (int num_blocks, int position, 
+                                  hc::array_view<T> &csrValC, 
+                                  hc::array_view<int> &csrRowPtrC, 
+                                  hc::array_view<int> &csrColIndC, 
+                                  hc::array_view<T> &csrValCt, 
+                                  hc::array_view<int> &csrRowPtrCt, 
+                                  hc::array_view<int> &csrColIndCt, 
+                                  hc::array_view<int> &queue_one, 
+                                  const hcsparseControl* control)
 {
     size_t szLocalWorkSize;
     size_t szGlobalWorkSize;
@@ -1531,15 +1536,15 @@ hcsparseStatus copy_Ct_to_C_Loop(int num_blocks, int position,
 }
 
 template <typename T>
-hcsparseStatus copy_Ct_to_C_general(int *counter_one, 
-                        hc::array_view<T> &csrValC, 
-                        hc::array_view<int> &csrRowPtrC, 
-                        hc::array_view<int> &csrColIndC, 
-                        hc::array_view<T> &csrValCt, 
-                        hc::array_view<int> &csrRowPtrCt, 
-                        hc::array_view<int> &csrColIndCt, 
-                        hc::array_view<int> &queue_one, 
-                        const hcsparseControl* control)
+hcsparseStatus copy_Ct_to_C_general (int *counter_one, 
+                                     hc::array_view<T> &csrValC, 
+                                     hc::array_view<int> &csrRowPtrC, 
+                                     hc::array_view<int> &csrColIndC, 
+                                     hc::array_view<T> &csrValCt, 
+                                     hc::array_view<int> &csrRowPtrCt, 
+                                     hc::array_view<int> &csrColIndCt, 
+                                     hc::array_view<int> &queue_one, 
+                                     const hcsparseControl* control)
 {
     int counter = 0;
 
@@ -1570,10 +1575,10 @@ hcsparseStatus copy_Ct_to_C_general(int *counter_one,
  
 template <typename T>
 hcsparseStatus
-csrSpGemm(const hcsparseCsrMatrix* matA,
-          const hcsparseCsrMatrix* matB,
-          hcsparseCsrMatrix* matC,
-          const hcsparseControl* control )
+csrSpGemm (const hcsparseCsrMatrix* matA,
+           const hcsparseCsrMatrix* matB,
+           hcsparseCsrMatrix* matC,
+           const hcsparseControl* control )
 {
     int m  = matA->num_rows;
     int k1 = matA->num_cols;
@@ -1622,7 +1627,8 @@ csrSpGemm(const hcsparseCsrMatrix* matA,
     hc::array_view<T> csrValCt(nnzCt, csrValCt_buf);   
  
     // STAGE 3 - STEP 1 : compute nnzC and Ct
-    status1 = compute_nnzC_Ct_general<T> (counter_one, queue_one_d, *csrRowPtrA, *csrColIndA, *csrValA, *csrRowPtrB, *csrColIndB, *csrValB, *csrRowPtrC, csrRowPtrCt_d, csrColIndCt, csrValCt, n, nnzCt, m, queue_one, control);
+    status1 = compute_nnzC_Ct_general<T> (counter_one, queue_one_d, *csrRowPtrA, *csrColIndA, *csrValA, *csrRowPtrB, *csrColIndB,
+                                          *csrValB, *csrRowPtrC, csrRowPtrCt_d, csrColIndCt, csrValCt, n, nnzCt, m, queue_one, control);
 
     int old_val, new_val;
     old_val = (*csrRowPtrC)[0];

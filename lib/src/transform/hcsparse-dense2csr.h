@@ -2,9 +2,9 @@
 
 template <typename T>
 hcsparseStatus
-dense2csr(const hcdenseMatrix* A,
-          hcsparseCsrMatrix* csr,
-          const hcsparseControl* control)
+dense2csr (const hcdenseMatrix* A,
+           hcsparseCsrMatrix* csr,
+           const hcsparseControl* control)
 {
     int dense_size = A->num_cols * A->num_rows;
 
