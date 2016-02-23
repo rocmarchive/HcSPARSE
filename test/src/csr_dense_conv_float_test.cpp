@@ -118,7 +118,23 @@ int main(int argc, char *argv[])
     }
     std::cout << (ispassed?"TEST PASSED":"TEST FAILED") << std::endl;
 
+    av_csr_values.synchronize();
+    av_csr_rowOff.synchronize();
+    av_csr_colIndices.synchronize();
+    av_csr_res_values.synchronize();
+    av_csr_res_rowOff.synchronize();
+    av_csr_res_colIndices.synchronize();
+    av_A_values.synchronize();
+
     hcsparseTeardown();
+
+    free(csr_values);
+    free(csr_rowOff);
+    free(csr_colIndices);
+    free(csr_res_values);
+    free(csr_res_rowOff);
+    free(csr_res_colIndices);
+    free(A_values);
 
     return 0; 
 }

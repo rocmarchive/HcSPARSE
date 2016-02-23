@@ -135,7 +135,24 @@ int main(int argc, char *argv[])
 
     std::cout << (isPassed?"TEST PASSED":"TEST FAILED") << std::endl;
 
+    dev_X.synchronize();
+    dev_Y.synchronize();
+    dev_alpha.synchronize();
+    dev_beta.synchronize();
+    av_values.synchronize();
+    av_rowOff.synchronize();
+    av_colIndices.synchronize();
+
     hcsparseTeardown();
+
+    free(host_res);
+    free(host_X);
+    free(host_Y);
+    free(host_alpha);
+    free(host_beta);
+    free(values);
+    free(rowIndices);
+    free(colIndices);
 
     return 0; 
 }

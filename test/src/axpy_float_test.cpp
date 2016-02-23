@@ -76,7 +76,18 @@ int main()
 
     std::cout << (ispassed?"TEST PASSED":"TEST FAILED") << std::endl;
 
+    dev_R.synchronize();
+    dev_X.synchronize();
+    dev_Y.synchronize();
+    dev_alpha.synchronize();
+
     hcsparseTeardown();
+
+    free(host_R);
+    free(host_res);
+    free(host_X);
+    free(host_Y);
+    free(host_alpha);
 
     return 0; 
 }
