@@ -80,5 +80,20 @@ TEST(axpby_double_test, func_check)
         double diff = std::abs(host_res[i] - (*av_res)[i]);
         EXPECT_LT(diff, TOLERANCE);
     }
+
+    dev_R.synchronize();    
+    dev_X.synchronize();    
+    dev_Y.synchronize();    
+    dev_alpha.synchronize();    
+    dev_beta.synchronize();    
+
     hcsparseTeardown();
+
+    free(host_R);
+    free(host_res);
+    free(host_X);
+    free(host_Y);
+    free(host_alpha);
+    free(host_beta);
+
 }

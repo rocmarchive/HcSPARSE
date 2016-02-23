@@ -155,5 +155,31 @@ TEST(spcsrmm_float_test, func_check)
         EXPECT_LT(diff, 0.01);
     }*/
 
+    av_dense_val_A.synchronize();
+    av_dense_val_B.synchronize();
+    av_dense_val_C.synchronize();
+    av_values_A.synchronize();
+    av_rowOff_A.synchronize();
+    av_colIndices_A.synchronize();
+    av_values_B.synchronize();
+    av_rowOff_B.synchronize();
+    av_colIndices_B.synchronize();
+    av_values_C.synchronize();
+    av_rowOff_C.synchronize();
+    av_colIndices_C.synchronize();
+
     hcsparseTeardown();
+
+    free(dense_val_A);
+    free(dense_val_B);
+    free(dense_val_C);
+    free(values_A);
+    free(rowIndices_A);
+    free(colIndices_A);
+    free(values_B);
+    free(rowIndices_B);
+    free(colIndices_B);
+    free(values_C);
+    free(rowIndices_C);
+    free(colIndices_C);
 }

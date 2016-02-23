@@ -54,5 +54,12 @@ TEST(reduce_double_test, func_check)
     double diff = std::abs(host_res[0] - (*av_res)[0]);
     EXPECT_LT(diff, TOLERANCE);
 
+    dev_X.synchronize();
+    dev_R.synchronize();
+
     hcsparseTeardown();
+
+    free(host_res);
+    free(host_X);
+    free(host_R);
 }

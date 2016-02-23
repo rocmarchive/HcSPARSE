@@ -63,5 +63,14 @@ TEST(scale_float_test, func_check)
         EXPECT_EQ(host_res[i], (*av_res)[i]);
     }
 
+    dev_X.synchronize();
+    dev_Y.synchronize();
+    dev_alpha.synchronize();
+
     hcsparseTeardown();
+
+    free(host_res);
+    free(host_X);
+    free(host_Y);
+    free(host_alpha);
 }

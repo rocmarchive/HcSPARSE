@@ -99,6 +99,22 @@ TEST(csr_dense_conv_double_test, func_check)
         EXPECT_EQ(av_csr_rowOff[i], av_csr_res_rowOff[i]);
     }
 
+    av_csr_values.synchronize();
+    av_csr_rowOff.synchronize();
+    av_csr_colIndices.synchronize();
+    av_csr_res_values.synchronize();
+    av_csr_res_rowOff.synchronize();
+    av_csr_res_colIndices.synchronize();
+    av_A_values.synchronize();
+
     hcsparseTeardown();
+
+    free(csr_values);
+    free(csr_rowOff);
+    free(csr_colIndices);
+    free(csr_res_values);
+    free(csr_res_rowOff);
+    free(csr_res_colIndices);
+    free(A_values);
 }
 

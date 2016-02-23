@@ -92,6 +92,17 @@ TEST(bicgStab_noprecond_float_test, func_check)
 
     hcsparseScsrbicgStab(&gX, &gA, &gB, solver_control, &control); 
 
+    dev_X.synchronize();
+    dev_B.synchronize();
+    av_values.synchronize();
+    av_rowOff.synchronize();
+    av_colIndices.synchronize();
+
     hcsparseTeardown();
 
+    free(host_X);
+    free(host_B);
+    free(values);
+    free(rowIndices);
+    free(colIndices);
 }

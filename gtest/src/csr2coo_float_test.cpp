@@ -113,6 +113,26 @@ TEST(csr2coo_float_test, func_check)
         EXPECT_EQ((*av_ref_row)[i], (*av_res_row)[i]);
     }
 
+    av_csr_values.synchronize();
+    av_csr_rowOff.synchronize();
+    av_csr_colIndices.synchronize();
+    av_coo_ref_values.synchronize();
+    av_coo_ref_rowIndices.synchronize();
+    av_coo_ref_colIndices.synchronize();
+    av_coo_res_values.synchronize();
+    av_coo_res_rowIndices.synchronize();
+    av_coo_res_colIndices.synchronize();
+
     hcsparseTeardown();
+
+    free(csr_values);
+    free(csr_rowOff);
+    free(csr_colIndices);
+    free(coo_ref_values);
+    free(coo_ref_rowIndices);
+    free(coo_ref_colIndices);
+    free(coo_res_values);
+    free(coo_res_rowIndices);
+    free(coo_res_colIndices);
 }
 
