@@ -8,9 +8,10 @@ This repository hosts the HCC implementation of SPARSE subroutines. The followin
 2. csrmm  : Sparse Matrix - dense Matrix multiply (SpM-dM)
 3. conjugate-gradients : Iterative conjugate gradient solver (CG)
 4. biconjugate-gradients-stabilized : Iterative biconjugate gradient stabilized solver (BiCGStab)
-5. clsparse-dense2csr : Dense to CSR conversions
-6. clsparse-coo2csr : COO to CSR conversions 
-7. mm-reader : Functions to read matrix market files in COO or CSR format
+5. dense2csr : Dense to CSR conversions
+6. csr2dense : CSR to Dense conversions
+7. coo2csr : COO to CSR conversions 
+8. mm-reader : Functions to read matrix market files in COO or CSR format
 
 ##Prerequisites: ##
 
@@ -58,10 +59,18 @@ This repository hosts the HCC implementation of SPARSE subroutines. The followin
                     
                     c. sudo make install
                     
- (iii) Build tests
+ (iii) Build unit tests
  
                     a. cd hcsparse/test/build/linux
                      
                     b. sh build.sh
                     
                     c. make
+
+ (iv) Build gtest
+ 
+                    a. cd hcsparse/gtest/build/linux
+                     
+                    b. sh build.sh
+                    
+                    c. make                   
