@@ -17,7 +17,7 @@ TEST(spcsrmm_float_test, func_check)
 
     hcsparseControl control(accl_view);
 
-    const char* filename = "../../../../../input_sparse/cant.mtx";
+    const char* filename = "../../../src/input.mtx";
 
     int num_nonzero, num_row, num_col;
 
