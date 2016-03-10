@@ -49,19 +49,31 @@ SET (TESTSRCS
 
   # MCW HCC Specific. Version >= 0.3 is Must
   ADD_DEFINITIONS(-DLINUX)
-  execute_process(COMMAND ${HCC_CONFIG} --cxxflags
-    OUTPUT_VARIABLE HCC_CXXFLAGS)
+
+  if(EXISTS ${MCWHCCBUILD})
+    execute_process(COMMAND ${HCC_CONFIG} --build --cxxflags
+                             OUTPUT_VARIABLE HCC_CXXFLAGS)
+    execute_process(COMMAND ${HCC_CONFIG} --build --ldflags 
+                            OUTPUT_VARIABLE HCC_LDFLAGS)
+  else(EXISTS ${MCWHCCBUILD})
+    execute_process(COMMAND ${HCC_CONFIG} --install --cxxflags
+                             OUTPUT_VARIABLE HCC_CXXFLAGS)
+    execute_process(COMMAND ${HCC_CONFIG} --install --ldflags 
+                            OUTPUT_VARIABLE HCC_LDFLAGS)
+  endif(EXISTS ${MCWHCCBUILD})
+
   string(STRIP "${HCC_CXXFLAGS}" HCC_CXXFLAGS)
   set (HCC_CXXFLAGS "${HCC_CXXFLAGS}")
-  execute_process(COMMAND ${HCC_CONFIG} --ldflags 
-    OUTPUT_VARIABLE HCC_LDFLAGS)
   string(STRIP "${HCC_LDFLAGS}" HCC_LDFLAGS)
-  set (HCC_LDFLAGS "${HCC_LDFLAGS}")
+  set (HCC_LDFLAGS "${HCC_LDFLAGS} -Wl,--defsym=_binary_kernel_spir_end=0 -Wl,--defsym=_binary_kernel_spir_start=0 -Wl,--defsym=_binary_kernel_cl_start=0 -Wl,--defsym=_binary_kernel_cl_end=0")
+
   SET (LINK "-lhcsparse")
+
   FOREACH(test_file ${TESTSRCS})
     SET_PROPERTY(SOURCE ${test_file} APPEND_STRING PROPERTY COMPILE_FLAGS " ${HCC_CXXFLAGS}")
     STRING( REPLACE "_test.cpp" "" testname ${test_file} )
     ADD_EXECUTABLE( bin/${testname} ${test_file} )
+    TARGET_LINK_LIBRARIES("bin/${testname}" hc_am)
     SET_PROPERTY(TARGET bin/${testname} APPEND_STRING PROPERTY LINK_FLAGS " ${HCC_LDFLAGS} ${LINK}")
   ENDFOREACH()
 

@@ -1,5 +1,6 @@
 #include <hcsparse.h>
 #include <iostream>
+#include "hc_am.hpp"
 int main()
 {
     hcsparseScalar gAlpha;
@@ -19,6 +20,17 @@ int main()
     double *host_Y = (double*) calloc(num_elements, sizeof(double));
     double *host_alpha = (double*) calloc(1, sizeof(double));
 
+    hcsparseSetup();
+    hcsparseInitScalar(&gAlpha);
+    hcsparseInitVector(&gR);
+    hcsparseInitVector(&gX);
+    hcsparseInitVector(&gY);
+
+    gR.values = am_alloc(sizeof(double) * num_elements, acc[1], 0);
+    gX.values = am_alloc(sizeof(double) * num_elements, acc[1], 0);
+    gY.values = am_alloc(sizeof(double) * num_elements, acc[1], 0);
+    gAlpha.value = am_alloc(sizeof(double) * 1, acc[1], 0);
+
     srand (time(NULL));
     for (int i = 0; i < num_elements; i++)
     {
@@ -29,21 +41,10 @@ int main()
     
     host_alpha[0] = rand()%100;
 
-    array_view<double> dev_R(num_elements, host_R);
-    array_view<double> dev_X(num_elements, host_X);
-    array_view<double> dev_Y(num_elements, host_Y);
-    array_view<double> dev_alpha(1, host_alpha);
-
-    hcsparseSetup();
-    hcsparseInitScalar(&gAlpha);
-    hcsparseInitVector(&gR);
-    hcsparseInitVector(&gX);
-    hcsparseInitVector(&gY);
-
-    gAlpha.value = &dev_alpha;
-    gR.values = &dev_R;
-    gX.values = &dev_X;
-    gY.values = &dev_Y;
+    am_copy(gR.values, host_R, sizeof(double) * num_elements);
+    am_copy(gX.values, host_X, sizeof(double) * num_elements);
+    am_copy(gY.values, host_Y, sizeof(double) * num_elements);
+    am_copy(gAlpha.value, host_alpha, sizeof(double) * 1);
 
     gAlpha.offValue = 0;
     gR.offValues = 0;
@@ -64,10 +65,12 @@ int main()
     }
 
     bool ispassed = 1;
-    array_view<double> *av_res = static_cast<array_view<double> *>(gR.values);
+
+    am_copy(host_R, gR.values, sizeof(double) * num_elements);
+
     for (int i = 0; i < num_elements; i++)
     {
-        if (host_res[i] != (*av_res)[i])
+        if (host_res[i] != host_R[i])
         {
             ispassed = 0;
             break;
@@ -76,11 +79,6 @@ int main()
 
     std::cout << (ispassed?"TEST PASSED":"TEST FAILED") << std::endl;
 
-    dev_R.synchronize();
-    dev_X.synchronize();
-    dev_Y.synchronize();
-    dev_alpha.synchronize();
-
     hcsparseTeardown();
 
     free(host_R);
@@ -88,6 +86,10 @@ int main()
     free(host_X);
     free(host_Y);
     free(host_alpha);
+    am_free(gR.values);
+    am_free(gX.values);
+    am_free(gY.values);
+    am_free(gAlpha.value);
 
     return 0; 
 }
