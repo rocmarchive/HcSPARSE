@@ -4,15 +4,15 @@
 
 template <typename  T, ElementWiseOperator OP>
 void axpby_kernel (const long size,
-                   hc::array_view<T> &pR,
+                   T *pR,
                    const long pROffset,
-                   hc::array_view<T> &pX,
+                   T *pX,
                    const long pXOffset,
-                   const hc::array_view<T> &pY,
+                   const T *pY,
                    const long pYOffset,
-                   const hc::array_view<T> &pAlpha,
+                   const T *pAlpha,
                    const long pAlphaOffset,
-                   const hc::array_view<T> &pBeta,
+                   const T *pBeta,
                    const long pBetaOffset,
                    const int globalSize,
                    const hcsparseControl* control)
@@ -44,13 +44,13 @@ axpby (hcdenseVector *r,
     int blocksNum = (size + BLOCK_SIZE - 1) / BLOCK_SIZE;
     int globalSize = blocksNum * BLOCK_SIZE;
 
-    hc::array_view<T> *avR = static_cast<hc::array_view<T>*>(r->values);
-    hc::array_view<T> *avX = static_cast<hc::array_view<T>*>(x->values);
-    hc::array_view<T> *avY = static_cast<hc::array_view<T>*>(y->values);
-    hc::array_view<T> *avAlpha = static_cast<hc::array_view<T>*>(alpha->value);
-    hc::array_view<T> *avBeta = static_cast<hc::array_view<T>*>(beta->value);
+    T *avR = static_cast<T*>(r->values);
+    T *avX = static_cast<T*>(x->values);
+    T *avY = static_cast<T*>(y->values);
+    T *avAlpha = static_cast<T*>(alpha->value);
+    T *avBeta = static_cast<T*>(beta->value);
 
-    axpby_kernel<T, OP> (size, *avR, r->offValues, *avX, x->offValues, *avY, y->offValues, *avAlpha, alpha->offValue, *avBeta, beta->offValue, globalSize, control);
+    axpby_kernel<T, OP> (size, avR, r->offValues, avX, x->offValues, avY, y->offValues, avAlpha, alpha->offValue, avBeta, beta->offValue, globalSize, control);
 
     return hcsparseSuccess;
 }
