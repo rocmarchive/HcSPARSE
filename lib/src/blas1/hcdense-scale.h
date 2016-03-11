@@ -3,11 +3,11 @@
 
 template <typename  T>
 void scale_kernel (const long size,
-                   hc::array_view<T> &pR,
+                   T *pR,
                    const long pROffset,
-                   const hc::array_view<T> &pY,
+                   const T *pY,
                    const long pYOffset,
-                   const hc::array_view<T> &pAlpha,
+                   const T *pAlpha,
                    const long pAlphaOffset,
                    const int globalSize,
                    const hcsparseControl* control)
@@ -36,11 +36,11 @@ scale (hcdenseVector* r,
     int blocksNum = (size + BLOCK_SIZE - 1) / BLOCK_SIZE;
     int globalSize = blocksNum * BLOCK_SIZE;
 
-    hc::array_view<T> *avR = static_cast<hc::array_view<T>*>(r->values);
-    hc::array_view<T> *avY = static_cast<hc::array_view<T>*>(y->values);
-    hc::array_view<T> *avAlpha = static_cast<hc::array_view<T>*>(alpha->value);
+    T *avR = static_cast<T*>(r->values);
+    T *avY = static_cast<T*>(y->values);
+    T *avAlpha = static_cast<T*>(alpha->value);
 
-    scale_kernel<T> (size, *avR, r->offValues, *avY, y->offValues, *avAlpha, alpha->offValue, globalSize, control);
+    scale_kernel<T> (size, avR, r->offValues, avY, y->offValues, avAlpha, alpha->offValue, globalSize, control);
 
     return hcsparseSuccess;
 }

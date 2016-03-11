@@ -4,11 +4,11 @@
 
 template <typename T, ReduceOperator G_OP, ReduceOperator F_OP>
 void global_reduce (const long size,
-                    hc::array_view<T> &pR,
+                    T *pR,
                     const long pROffset,
-                    hc::array_view<T> &pX,
+                    T *pX,
                     const long pXOffset,
-                    hc::array_view<T> &partial,
+                    T *partial,
                     const int REDUCE_BLOCKS_NUMBER,
                     const hcsparseControl* control)
 {
@@ -42,7 +42,7 @@ void global_reduce (const long size,
             }
             partial[block_idx] = sum;
         }
-    }).wait();
+    });
 
     hc::extent<1> grdExt1(1);
     hc::tiled_extent<1> t_ext1 = grdExt1.tile(1);
@@ -54,7 +54,7 @@ void global_reduce (const long size,
             sum += partial[i];
         }
         pR[pROffset] = reduceOperation<T, F_OP>(sum);
-    }).wait();
+    });
 }
 
 template <typename T, ReduceOperator G_OP, ReduceOperator F_OP = RO_DUMMY>
@@ -66,13 +66,14 @@ reduce (hcsparseScalar* pR,
     int size = pX->num_values;
     int REDUCE_BLOCKS_NUMBER = size/BLOCK_SIZE + 1;
 
-    T *partial = (T*) calloc(REDUCE_BLOCKS_NUMBER, sizeof(T));
+    hc::accelerator acc = (control->accl_view).get_accelerator();
 
-    hc::array_view<T> *avR = static_cast<hc::array_view<T>*>(pR->value);
-    hc::array_view<T> *avX = static_cast<hc::array_view<T>*>(pX->values);
-    hc::array_view<T> avPartial(REDUCE_BLOCKS_NUMBER, partial);
+    T *partial = (T*) am_alloc(sizeof(T) * REDUCE_BLOCKS_NUMBER, acc, 0);
 
-    global_reduce<T, G_OP, F_OP> (size, *avR, pR->offValue, *avX, pX->offValues, avPartial, REDUCE_BLOCKS_NUMBER, control);
+    T *avR = static_cast<T*>(pR->value);
+    T *avX = static_cast<T*>(pX->values);
+
+    global_reduce<T, G_OP, F_OP> (size, avR, pR->offValue, avX, pX->offValues, partial, REDUCE_BLOCKS_NUMBER, control);
 
     return hcsparseSuccess;
 }
