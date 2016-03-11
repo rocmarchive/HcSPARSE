@@ -4,13 +4,13 @@
 
 template <typename T>
 void inner_product (const long size,
-                    hc::array_view<T> &pR,
+                    T *pR,
                     const long pROffset,
-                    hc::array_view<T> &pX,
+                    T *pX,
                     const long pXOffset,
-                    hc::array_view<T> &pY,
+                    T *pY,
                     const long pYOffset,
-                    hc::array_view<T> &partial,
+                    T *partial,
                     const int REDUCE_BLOCKS_NUMBER,
                     const hcsparseControl* control)
 {
@@ -68,14 +68,15 @@ dot (hcsparseScalar* pR,
     int size = pX->num_values;
     int REDUCE_BLOCKS_NUMBER = size/BLOCK_SIZE + 1;
 
-    T *partial = (T*) calloc(REDUCE_BLOCKS_NUMBER, sizeof(T));
+    hc::accelerator acc = (control->accl_view).get_accelerator();
 
-    hc::array_view<T> *avR = static_cast<hc::array_view<T>*>(pR->value);
-    hc::array_view<T> *avX = static_cast<hc::array_view<T>*>(pX->values);
-    hc::array_view<T> *avY = static_cast<hc::array_view<T>*>(pY->values);
-    hc::array_view<T> avPartial(REDUCE_BLOCKS_NUMBER, partial);
+    T *partial = (T*) am_alloc(sizeof(T) * REDUCE_BLOCKS_NUMBER, acc, 0);
 
-    inner_product<T> (size, *avR, pR->offValue, *avX, pX->offValues, *avY, pY->offValues, avPartial, REDUCE_BLOCKS_NUMBER, control);
+    T *avR = static_cast<T*>(pR->value);
+    T *avX = static_cast<T*>(pX->values);
+    T *avY = static_cast<T*>(pY->values);
+
+    inner_product<T> (size, avR, pR->offValue, avX, pX->offValues, avY, pY->offValues, partial, REDUCE_BLOCKS_NUMBER, control);
 
     return hcsparseSuccess;
 }

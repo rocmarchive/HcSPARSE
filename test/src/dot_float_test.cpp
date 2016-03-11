@@ -1,5 +1,6 @@
 #include <hcsparse.h>
 #include <iostream>
+#include "hc_am.hpp"
 int main()
 {
     hcsparseScalar gR;
@@ -17,6 +18,15 @@ int main()
     float *host_Y = (float*) calloc(num_elements, sizeof(float));
     float *host_R = (float*) calloc(1, sizeof(float));
 
+    hcsparseSetup();
+    hcsparseInitScalar(&gR);
+    hcsparseInitVector(&gX);
+    hcsparseInitVector(&gY);
+
+    gR.value = am_alloc(sizeof(float) * 1, acc[1], 0);
+    gX.values = am_alloc(sizeof(float) * num_elements, acc[1], 0);
+    gY.values = am_alloc(sizeof(float) * num_elements, acc[1], 0);
+
     srand (time(NULL));
     for (int i = 0; i < num_elements; i++)
     {
@@ -24,18 +34,9 @@ int main()
         host_Y[i] = rand()%100;
     }
     
-    array_view<float> dev_X(num_elements, host_X);
-    array_view<float> dev_Y(num_elements, host_Y);
-    array_view<float> dev_R(1, host_R);
-
-    hcsparseSetup();
-    hcsparseInitScalar(&gR);
-    hcsparseInitVector(&gX);
-    hcsparseInitVector(&gY);
-
-    gR.value = &dev_R;
-    gX.values = &dev_X;
-    gY.values = &dev_Y;
+    am_copy(gR.value, host_R, sizeof(float) * 1);
+    am_copy(gX.values, host_X, sizeof(float) * num_elements);
+    am_copy(gY.values, host_Y, sizeof(float) * num_elements);
 
     gR.offValue = 0;
     gX.offValues = 0;
@@ -54,17 +55,15 @@ int main()
     }
 
     bool ispassed = 1;
-    array_view<float> *av_res = static_cast<array_view<float> *>(gR.value);
-    if (host_res[0] != (*av_res)[0])
+
+    am_copy(host_R, gR.value, sizeof(float) * 1);
+
+    if (host_res[0] != host_R[0])
     {
         ispassed = 0;
     }
 
     std::cout << (ispassed?"TEST PASSED":"TEST FAILED") << std::endl;
-
-    dev_X.synchronize();
-    dev_Y.synchronize();
-    dev_R.synchronize();
 
     hcsparseTeardown();
 
@@ -72,6 +71,9 @@ int main()
     free(host_X);
     free(host_Y);
     free(host_R);
+    am_free(gR.value);
+    am_free(gX.values);
+    am_free(gY.values);
 
     return 0; 
 }

@@ -1,4 +1,5 @@
 #include "hcsparse.h"
+#include "hc_am.hpp"
 #include "blas2/csrmv.h"
 #include "blas3/csrmm.h"
 #include "blas3/hcsparse-spm-spm.h"
