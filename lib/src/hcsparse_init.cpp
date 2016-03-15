@@ -693,15 +693,15 @@ hcsparseSCooMatrixfromFile (hcsparseCooMatrix* cooMatx, const char* filePath, hc
 
     std::sort( coords, coords + cooMatx->num_nonzeros, CoordinateCompare< float > );
 
-    hc::array_view<float> *values = static_cast<hc::array_view<float> *>(cooMatx->values);
-    hc::array_view<int> *rowIndices = static_cast<hc::array_view<int> *>(cooMatx->rowIndices);
-    hc::array_view<int> *colIndices = static_cast<hc::array_view<int> *>(cooMatx->colIndices);
+    float *values = static_cast<float*>(cooMatx->values);
+    int *rowIndices = static_cast<int*>(cooMatx->rowIndices);
+    int *colIndices = static_cast<int*>(cooMatx->colIndices);
 
     for( int c = 0; c < cooMatx->num_nonzeros; ++c )
     {
-        (*(rowIndices))[ c ] = coords[c].x;
-        (*(colIndices))[ c ] = coords[c].y;
-        (*(values))[ c ] = coords[c].val;
+        rowIndices[ c ] = coords[c].x;
+        colIndices[ c ] = coords[c].y;
+        values[ c ] = coords[c].val;
     }
 
     return hcsparseSuccess;
@@ -734,15 +734,15 @@ hcsparseDCooMatrixfromFile (hcsparseCooMatrix* cooMatx, const char* filePath, hc
 
     std::sort( coords, coords + cooMatx->num_nonzeros, CoordinateCompare<double> );
 
-    hc::array_view<double> *values = static_cast<hc::array_view<double> *>(cooMatx->values);
-    hc::array_view<int> *rowIndices = static_cast<hc::array_view<int> *>(cooMatx->rowIndices);
-    hc::array_view<int> *colIndices = static_cast<hc::array_view<int> *>(cooMatx->colIndices);
+    double *values = static_cast<double*>(cooMatx->values);
+    int *rowIndices = static_cast<int*>(cooMatx->rowIndices);
+    int *colIndices = static_cast<int*>(cooMatx->colIndices);
 
     for( int c = 0; c < cooMatx->num_nonzeros; ++c )
     {
-        (*(rowIndices))[ c ] = coords[c].x;
-        (*(colIndices))[ c ] = coords[c].y;
-        (*(values))[ c ] = coords[c].val;
+        rowIndices[ c ] = coords[c].x;
+        colIndices[ c ] = coords[c].y;
+        values[ c ] = coords[c].val;
     }
 
     return hcsparseSuccess;
@@ -764,7 +764,6 @@ hcsparseSCsrMatrixfromFile (hcsparseCsrMatrix* csrMatx, const char* filePath, hc
     }
     else
         return hcsparseInvalid;
-
     // Read data from a file on disk into CPU buffers
     // Data is read natively as COO format with the reader
     MatrixMarketReader< float > mm_reader;
@@ -783,23 +782,31 @@ hcsparseSCsrMatrixfromFile (hcsparseCsrMatrix* csrMatx, const char* filePath, hc
 
     std::sort( coords, coords + csrMatx->num_nonzeros, CoordinateCompare< float > );
 
-    hc::array_view<float> *values = static_cast<hc::array_view<float> *>(csrMatx->values);
-    hc::array_view<int> *rowOffsets = static_cast<hc::array_view<int> *>(csrMatx->rowOffsets);
-    hc::array_view<int> *colIndices = static_cast<hc::array_view<int> *>(csrMatx->colIndices);
+    float *values = (float*)calloc(csrMatx->num_nonzeros, sizeof(float));
+    int *rowOffsets = (int*)calloc((csrMatx->num_rows)+1, sizeof(int));
+    int *colIndices = (int*)calloc(csrMatx->num_nonzeros, sizeof(int));
 
     int current_row = 0;
-    (*(rowOffsets))[ 0 ] = 0;
+    rowOffsets[ 0 ] = 0;
     for( int i = 0; i < csrMatx->num_nonzeros; i++ )
     {
-        (*(colIndices))[ i ] = coords[i].y;
-        (*(values))[ i ] = coords[i].val;
+        colIndices[ i ] = coords[i].y;
+        values[ i ] = coords[i].val;
 
         while( coords[i].x >= current_row )
-            (*(rowOffsets))[ current_row++ ] = i;
+            rowOffsets[ current_row++ ] = i;
     }
-    (*(rowOffsets))[ current_row ] = csrMatx->num_nonzeros;
+    rowOffsets[ current_row ] = csrMatx->num_nonzeros;
     while( current_row <= csrMatx->num_rows )
-        (*(rowOffsets))[ current_row++ ] = csrMatx->num_nonzeros;
+        rowOffsets[ current_row++ ] = csrMatx->num_nonzeros;
+
+    am_copy(csrMatx->values, values, sizeof(float) * csrMatx->num_nonzeros);
+    am_copy(csrMatx->rowOffsets, rowOffsets, sizeof(int) * (csrMatx->num_rows+1));
+    am_copy(csrMatx->colIndices, colIndices, sizeof(int) * csrMatx->num_nonzeros);
+
+    free(values);
+    free(rowOffsets);
+    free(colIndices);
 
     return hcsparseSuccess;
 }
@@ -834,23 +841,31 @@ hcsparseDCsrMatrixfromFile (hcsparseCsrMatrix* csrMatx, const char* filePath, hc
 
     std::sort( coords, coords + csrMatx->num_nonzeros, CoordinateCompare<double> );
 
-    hc::array_view<double> *values = static_cast<hc::array_view<double> *>(csrMatx->values);
-    hc::array_view<int> *rowOffsets = static_cast<hc::array_view<int> *>(csrMatx->rowOffsets);
-    hc::array_view<int> *colIndices = static_cast<hc::array_view<int> *>(csrMatx->colIndices);
+    double *values = (double*)calloc(csrMatx->num_nonzeros, sizeof(double));
+    int *rowOffsets = (int*)calloc(csrMatx->num_rows+1, sizeof(int));
+    int *colIndices = (int*)calloc(csrMatx->num_nonzeros, sizeof(int));
 
-    int current_row = 1;
-    (*(rowOffsets))[ 0 ] = 0;
+    int current_row = 0;
+    rowOffsets[ 0 ] = 0;
     for( int i = 0; i < csrMatx->num_nonzeros; i++ )
     {
-        (*(colIndices))[ i ] = coords[i].y;
-        (*(values))[ i ] = coords[i].val;
+        colIndices[ i ] = coords[i].y;
+        values[ i ] = coords[i].val;
 
         while( coords[i].x >= current_row )
-            (*(rowOffsets))[ current_row++ ] = i;
+            rowOffsets[ current_row++ ] = i;
     }
-    (*(rowOffsets))[ current_row ] = csrMatx->num_nonzeros;
+    rowOffsets[ current_row ] = csrMatx->num_nonzeros;
     while( current_row <= csrMatx->num_rows )
-        (*(rowOffsets))[ current_row++ ] = csrMatx->num_nonzeros;
+        rowOffsets[ current_row++ ] = csrMatx->num_nonzeros;
+
+    am_copy(csrMatx->values, values, sizeof(double) * csrMatx->num_nonzeros);
+    am_copy(csrMatx->rowOffsets, rowOffsets, sizeof(int) * (csrMatx->num_rows+1));
+    am_copy(csrMatx->colIndices, colIndices, sizeof(int) * csrMatx->num_nonzeros);
+
+    free(values);
+    free(rowOffsets);
+    free(colIndices);
 
     return hcsparseSuccess;
 }
@@ -858,10 +873,14 @@ hcsparseDCsrMatrixfromFile (hcsparseCsrMatrix* csrMatx, const char* filePath, hc
 hcsparseStatus
 hcsparseCsrMetaSize (hcsparseCsrMatrix* csrMatx, hcsparseControl *control)
 {
-    hc::array_view<int> *rCsrRowOffsets = static_cast<hc::array_view<int> *>(csrMatx->rowOffsets);
-    int * dataRO = rCsrRowOffsets->data();
+    int *rCsrRowOffsets = (int*)calloc(csrMatx->num_rows+1, sizeof(int));
+    am_copy(rCsrRowOffsets, csrMatx->rowOffsets, sizeof(int) * (csrMatx->num_rows+1));
 
-    csrMatx->rowBlockSize = ComputeRowBlocksSize( dataRO, csrMatx->num_rows, BLOCKSIZE, BLOCK_MULTIPLIER, ROWS_FOR_VECTOR );
+    csrMatx->rowBlockSize = ComputeRowBlocksSize( rCsrRowOffsets, csrMatx->num_rows, BLOCKSIZE, BLOCK_MULTIPLIER, ROWS_FOR_VECTOR );
+
+    am_copy(csrMatx->rowOffsets, rCsrRowOffsets, sizeof(int) * (csrMatx->num_rows+1));
+
+    free(rCsrRowOffsets);
 
     return hcsparseSuccess;
 }
@@ -876,12 +895,19 @@ hcsparseCsrMetaCompute (hcsparseCsrMatrix* csrMatx, hcsparseControl *control)
         return hcsparseInvalid;
     }
 
-    hc::array_view<int> *rCsrRowOffsets = static_cast<hc::array_view<int> *>(csrMatx->rowOffsets);
-    int *dataRO = rCsrRowOffsets->data();
-    hc::array_view<ulong> *rRowBlocks = static_cast<hc::array_view<ulong> *>(csrMatx->rowBlocks);
-    ulong *dataRB = rRowBlocks->data();
+    int *rCsrRowOffsets = (int*)calloc(csrMatx->num_rows+1, sizeof(int));
+    ulong *rRowBlocks = (ulong*)calloc(csrMatx->num_nonzeros, sizeof(ulong));
 
-    ComputeRowBlocks(dataRB, csrMatx->rowBlockSize, dataRO, csrMatx->num_rows, BLOCKSIZE, BLOCK_MULTIPLIER, ROWS_FOR_VECTOR, true );
+    am_copy(rCsrRowOffsets, csrMatx->rowOffsets, sizeof(int) * (csrMatx->num_rows+1));
+    am_copy(rRowBlocks, csrMatx->rowBlocks, sizeof(ulong) * csrMatx->num_nonzeros);
+
+    ComputeRowBlocks(rRowBlocks, csrMatx->rowBlockSize, rCsrRowOffsets, csrMatx->num_rows, BLOCKSIZE, BLOCK_MULTIPLIER, ROWS_FOR_VECTOR, true );
+
+    am_copy(csrMatx->rowOffsets, rCsrRowOffsets, sizeof(int) * (csrMatx->num_rows+1));
+    am_copy(csrMatx->rowBlocks, rRowBlocks, sizeof(ulong) * csrMatx->num_nonzeros);
+
+    free(rCsrRowOffsets);
+    free(rRowBlocks);
 
     return hcsparseSuccess;
 }
