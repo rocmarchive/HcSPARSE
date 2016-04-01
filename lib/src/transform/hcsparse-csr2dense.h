@@ -4,8 +4,8 @@
 
 template <typename T>
 void
-fill_zero (int size,
-           hc::array_view<T> &values,
+fill_zero (ulong size,
+           T *values,
            const hcsparseControl* control)
 {
     hc::extent<1> grdExt(BLOCK_SIZE * ((size - 1)/BLOCK_SIZE + 1));
@@ -24,19 +24,19 @@ csr2dense (const hcsparseCsrMatrix* csr,
            hcdenseMatrix* A,
            const hcsparseControl* control)
 {
-    int dense_size = csr->num_cols * csr->num_rows;
+    ulong dense_size = csr->num_cols * csr->num_rows;
 
     assert(csr->num_cols == A->num_cols && csr->num_rows == A->num_rows);
 
-    hc::array_view<int> *offsets = static_cast<hc::array_view<int> *>(csr->rowOffsets);
-    hc::array_view<int> *indices = static_cast<hc::array_view<int> *>(csr->colIndices);
-    hc::array_view<T> *values = static_cast<hc::array_view<T> *>(csr->values);
+    int *offsets = static_cast<int*>(csr->rowOffsets);
+    int *indices = static_cast<int*>(csr->colIndices);
+    T *values = static_cast<T*>(csr->values);
 
-    hc::array_view<T> *Avalues = static_cast<hc::array_view<T> *>(A->values);
+    T *Avalues = static_cast<T*>(A->values);
 
-    fill_zero<T> (dense_size, *Avalues, control);
+    fill_zero<T> (dense_size, Avalues, control);
 
-    return transform_csr_2_dense<T> (dense_size, *offsets, *indices, *values,
-                                     csr->num_rows, csr->num_cols, *Avalues, control);
+    return transform_csr_2_dense<T> (dense_size, offsets, indices, values,
+                                     csr->num_rows, csr->num_cols, Avalues, control);
 }
 

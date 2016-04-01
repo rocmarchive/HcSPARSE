@@ -7,22 +7,29 @@ template <typename T>
 hcsparseStatus
 indices_to_offsets (const int num_rows,
                     const int size,
-                    hc::array_view<T> &av_csrOffsets,
-                    const hc::array_view<T> &av_cooIndices,
+                    T *av_csrOffsets,
+                    const T *av_cooIndices,
                     const hcsparseControl* control)
 {
-    T *keys_output = (T*) calloc (size, sizeof(T));
+    hc::accelerator acc = (control->accl_view).get_accelerator();
+
     T *values = (T*) calloc (size, sizeof(T));
 
     for (int i = 0; i < size; i++)
         values[i] = 1;
 
-    hc::array_view<T> av_values(size, values);
-    hc::array_view<T> av_keys_output(size, keys_output);
+    T *av_values = (T*) am_alloc(size * sizeof(T), acc, 0);
+    T *av_keys_output = (T*) am_alloc(size * sizeof(T), acc, 0);
+
+    am_copy(av_values, values, size * sizeof(T));
 
     reduce_by_key<T> (size, av_keys_output, av_csrOffsets, av_cooIndices, av_values, control);
 
     exclusive_scan<T, EW_PLUS> (num_rows, av_csrOffsets, av_csrOffsets, control);
+
+    free(values);
+    am_free(av_values);
+    am_free(av_keys_output);
 
     return hcsparseSuccess;
 }
@@ -31,8 +38,8 @@ template <typename T>
 hcsparseStatus
 offsets_to_indices (const int num_rows,
                     const int size,
-                    hc::array_view<T> &av_cooIndices,
-                    const hc::array_view<T> &av_csrOffsets,
+                    T *av_cooIndices,
+                    const T *av_csrOffsets,
                     const hcsparseControl* control)
 {
     int subwave_size = WAVE_SIZE;
@@ -81,18 +88,18 @@ offsets_to_indices (const int num_rows,
 
 template<typename T>
 hcsparseStatus
-transform_csr_2_dense (int size,
-                       const hc::array_view<int> &row_offsets,
-                       const hc::array_view<int> &col_indices,
-                       const hc::array_view<T> &values,
+transform_csr_2_dense (ulong size,
+                       const int *row_offsets,
+                       const int *col_indices,
+                       const T *values,
                        const int num_rows,
                        const int num_cols,
-                       hc::array_view<T> &A,
+                       T *A,
                        const hcsparseControl* control)
 {
     int subwave_size = WAVE_SIZE;
 
-    int elements_per_row = size / num_rows; // assumed number elements per row;
+    ulong elements_per_row = size / num_rows; // assumed number elements per row;
 
     // adjust subwave_size according to elements_per_row;
     // each wavefront will be assigned to process to the row of the csr matrix
@@ -136,12 +143,16 @@ transform_csr_2_dense (int size,
 
 template <typename T>
 hcsparseStatus
-calculate_num_nonzeros (int dense_size,
-                        const hc::array_view<T> &A,
-                        hc::array_view<int> &nnz_locations,
+calculate_num_nonzeros (ulong dense_size,
+                        const T *A,
+                        int *nnz_locations1,
                         int& num_nonzeros,
                         const hcsparseControl* control)
 {
+    hc::accelerator acc = (control->accl_view).get_accelerator();
+
+    int *nnz_locations = (int*) am_alloc(dense_size * sizeof(int), acc, 0);
+
     int global_work_size = 0;
 
     if (dense_size % GROUP_SIZE == 0)
@@ -166,36 +177,40 @@ calculate_num_nonzeros (int dense_size,
         }
     }).wait();
 
-    int* nnz_buf = (int*) calloc (1, sizeof(int));
-    hc::array_view<int> av_nnz(1, nnz_buf);
+    am_copy(nnz_locations1, nnz_locations, dense_size * sizeof(int));
 
     hcsparseScalar nnz;
-    nnz.value = &av_nnz;
+    nnz.value  = (int*) am_alloc(1 * sizeof(int), acc, 0);
     nnz.offValue = 0;
 
     hcdenseVector nnz_location_vec;
     nnz_location_vec.num_values = dense_size;
-    nnz_location_vec.values = &nnz_locations;
+    nnz_location_vec.values = (int*) am_alloc(dense_size * sizeof(int), acc, 0);
     nnz_location_vec.offValues = 0;
+
+    am_copy(nnz_location_vec.values, nnz_locations, dense_size * sizeof(int));
 
     reduce<int, RO_PLUS>(&nnz, &nnz_location_vec, control);
 
-    num_nonzeros = av_nnz[0];
+    am_copy(&num_nonzeros, nnz.value, 1 * sizeof(int));
 
-    free(nnz_buf);
+    am_free(nnz.value);
+    am_free(nnz_location_vec.values);
+    am_free(nnz_locations);
+
     return hcsparseSuccess;
 }
 
 template<typename T>
 hcsparseStatus
-dense_to_coo (int dense_size,
+dense_to_coo (ulong dense_size,
               int num_cols,
-              hc::array_view<int> &row_indices,
-              hc::array_view<int> &col_indices,
-              hc::array_view<T> &values,
-              const hc::array_view<T> &A,
-              const hc::array_view<int> &nnz_locations,
-              const hc::array_view<int> &coo_indexes,
+              int *row_indices,
+              int *col_indices,
+              T *values,
+              const T *A,
+              const int *nnz_locations,
+              const int *coo_indexes,
               const hcsparseControl* control)
 {
     int global_work_size = 0;

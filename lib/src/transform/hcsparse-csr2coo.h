@@ -3,10 +3,10 @@
 #define BLOCK_SIZE 256
 
 template <typename T>
-void csr2coo_kernel (hc::array_view<int> &coo_col,
-                     hc::array_view<T> &coo_values,
-                     const hc::array_view<int> &csr_col,
-                     const hc::array_view<T> &csr_values,
+void csr2coo_kernel (int *coo_col,
+                     T *coo_values,
+                     const int *csr_col,
+                     const T *csr_values,
                      int size,
                      const hcsparseControl* control)
 {
@@ -34,20 +34,20 @@ csr2coo (const hcsparseCsrMatrix* csr,
     coo->num_cols = csr->num_cols;
     coo->num_nonzeros = csr->num_nonzeros;
 
-    hc::array_view<int> *coo_rowIndices = static_cast<hc::array_view<int> *>(coo->rowIndices);
-    hc::array_view<int> *coo_colIndices = static_cast<hc::array_view<int> *>(coo->colIndices);
-    hc::array_view<T> *coo_values = static_cast<hc::array_view<T> *>(coo->values);
+    int *coo_rowIndices = static_cast<int*>(coo->rowIndices);
+    int *coo_colIndices = static_cast<int*>(coo->colIndices);
+    T *coo_values = static_cast<T*>(coo->values);
 
-    hc::array_view<int> *csr_rowOffsets = static_cast<hc::array_view<int> *>(csr->rowOffsets);
-    hc::array_view<int> *csr_colIndices = static_cast<hc::array_view<int> *>(csr->colIndices);
-    hc::array_view<T> *csr_values = static_cast<hc::array_view<T> *>(csr->values);
+    int *csr_rowOffsets = static_cast<int*>(csr->rowOffsets);
+    int *csr_colIndices = static_cast<int*>(csr->colIndices);
+    T *csr_values = static_cast<T*>(csr->values);
 
     int size = csr->num_nonzeros;
 
     int num_rows = csr->num_rows;
 
-    csr2coo_kernel<T> (*coo_colIndices, *coo_values, *csr_colIndices, *csr_values, size, control);
+    csr2coo_kernel<T> (coo_colIndices, coo_values, csr_colIndices, csr_values, size, control);
 
-    return offsets_to_indices<int> (num_rows, size, *coo_rowIndices, *csr_rowOffsets, control);
+    return offsets_to_indices<int> (num_rows, size, coo_rowIndices, csr_rowOffsets, control);
 }
 

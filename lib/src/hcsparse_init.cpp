@@ -693,9 +693,9 @@ hcsparseSCooMatrixfromFile (hcsparseCooMatrix* cooMatx, const char* filePath, hc
 
     std::sort( coords, coords + cooMatx->num_nonzeros, CoordinateCompare< float > );
 
-    float *values = static_cast<float*>(cooMatx->values);
-    int *rowIndices = static_cast<int*>(cooMatx->rowIndices);
-    int *colIndices = static_cast<int*>(cooMatx->colIndices);
+    float *values = (float*) calloc(cooMatx->num_nonzeros, sizeof(float));
+    int *rowIndices = (int*) calloc(cooMatx->num_nonzeros, sizeof(int));
+    int *colIndices = (int*) calloc(cooMatx->num_nonzeros, sizeof(int));
 
     for( int c = 0; c < cooMatx->num_nonzeros; ++c )
     {
@@ -703,6 +703,14 @@ hcsparseSCooMatrixfromFile (hcsparseCooMatrix* cooMatx, const char* filePath, hc
         colIndices[ c ] = coords[c].y;
         values[ c ] = coords[c].val;
     }
+
+    am_copy(cooMatx->values, values, cooMatx->num_nonzeros * sizeof(float));
+    am_copy(cooMatx->rowIndices, rowIndices, cooMatx->num_nonzeros * sizeof(int));
+    am_copy(cooMatx->colIndices, colIndices, cooMatx->num_nonzeros * sizeof(int));
+
+    free(values);
+    free(rowIndices);
+    free(colIndices);
 
     return hcsparseSuccess;
 }
@@ -734,9 +742,9 @@ hcsparseDCooMatrixfromFile (hcsparseCooMatrix* cooMatx, const char* filePath, hc
 
     std::sort( coords, coords + cooMatx->num_nonzeros, CoordinateCompare<double> );
 
-    double *values = static_cast<double*>(cooMatx->values);
-    int *rowIndices = static_cast<int*>(cooMatx->rowIndices);
-    int *colIndices = static_cast<int*>(cooMatx->colIndices);
+    double *values = (double*) calloc(cooMatx->num_nonzeros, sizeof(double));
+    int *rowIndices = (int*) calloc(cooMatx->num_nonzeros, sizeof(int));
+    int *colIndices = (int*) calloc(cooMatx->num_nonzeros, sizeof(int));
 
     for( int c = 0; c < cooMatx->num_nonzeros; ++c )
     {
@@ -744,6 +752,14 @@ hcsparseDCooMatrixfromFile (hcsparseCooMatrix* cooMatx, const char* filePath, hc
         colIndices[ c ] = coords[c].y;
         values[ c ] = coords[c].val;
     }
+
+    am_copy(cooMatx->values, values, cooMatx->num_nonzeros * sizeof(double));
+    am_copy(cooMatx->rowIndices, rowIndices, cooMatx->num_nonzeros * sizeof(int));
+    am_copy(cooMatx->colIndices, colIndices, cooMatx->num_nonzeros * sizeof(int));
+
+    free(values);
+    free(rowIndices);
+    free(colIndices);
 
     return hcsparseSuccess;
 }

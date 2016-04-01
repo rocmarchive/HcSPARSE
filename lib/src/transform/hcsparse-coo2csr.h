@@ -3,10 +3,10 @@
 #define BLOCK_SIZE 256
 
 template <typename T>
-void coo2csr_kernel (const hc::array_view<int> &coo_col,
-                     const hc::array_view<T> &coo_values,
-                     hc::array_view<int> &csr_col,
-                     hc::array_view<T> &csr_values,
+void coo2csr_kernel (const int *coo_col,
+                     const T *coo_values,
+                     int *csr_col,
+                     T *csr_values,
                      int size,
                      const hcsparseControl* control)
 {
@@ -34,18 +34,18 @@ coo2csr (const hcsparseCooMatrix* coo,
     csr->num_cols = coo->num_cols;
     csr->num_nonzeros = coo->num_nonzeros;
 
-    hc::array_view<int> *coo_rowIndices = static_cast<hc::array_view<int> *>(coo->rowIndices);
-    hc::array_view<int> *coo_colIndices = static_cast<hc::array_view<int> *>(coo->colIndices);
-    hc::array_view<T> *coo_values = static_cast<hc::array_view<T> *>(coo->values);
+    int *coo_rowIndices = static_cast<int*>(coo->rowIndices);
+    int *coo_colIndices = static_cast<int*>(coo->colIndices);
+    T *coo_values = static_cast<T*>(coo->values);
 
-    hc::array_view<int> *csr_rowOffsets = static_cast<hc::array_view<int> *>(csr->rowOffsets);
-    hc::array_view<int> *csr_colIndices = static_cast<hc::array_view<int> *>(csr->colIndices);
-    hc::array_view<T> *csr_values = static_cast<hc::array_view<T> *>(csr->values);
+    int *csr_rowOffsets = static_cast<int*>(csr->rowOffsets);
+    int *csr_colIndices = static_cast<int*>(csr->colIndices);
+    T *csr_values = static_cast<T*>(csr->values);
 
     int size = coo->num_nonzeros;
     int num_rows = coo->num_rows + 1;
  
-    coo2csr_kernel<T> (*coo_colIndices, *coo_values, *csr_colIndices, *csr_values, size, control);
+    coo2csr_kernel<T> (coo_colIndices, coo_values, csr_colIndices, csr_values, size, control);
 
-    return indices_to_offsets<int> (num_rows, size, *csr_rowOffsets, *coo_rowIndices, control); 
+    return indices_to_offsets<int> (num_rows, size, csr_rowOffsets, coo_rowIndices, control); 
 }
