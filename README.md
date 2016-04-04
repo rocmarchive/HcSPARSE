@@ -53,24 +53,8 @@ This repository hosts the HCC implementation of SPARSE subroutines. The followin
                    
  (ii) Install hcsparse library
                     
-                    a. cd hcsparse/lib/build/linux
+                    run ./install.sh
                     
-                    b. sh build.sh
-                    
-                    c. sudo make install
-                    
- (iii) Build unit tests
+ (iii) Build and run test
  
-                    a. cd hcsparse/test/build/linux
-                     
-                    b. sh build.sh
-                    
-                    c. make
-
- (iv) Build gtest
- 
-                    a. cd hcsparse/gtest/build/linux
-                     
-                    b. sh build.sh
-                    
-                    c. make                   
+                    run ./install.sh --test=on  (this will build and run the gtest)
