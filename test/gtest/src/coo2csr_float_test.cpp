@@ -99,7 +99,7 @@ TEST(coo2csr_float_test, func_check)
 
     for (int i = 0; i < gCsrMat_res.num_nonzeros; i++)
     {
-        int diff = std::abs((*av_ref_val)[i] - (*av_res_val)[i]);
+        float diff = std::abs((*av_ref_val)[i] - (*av_res_val)[i]);
         EXPECT_LT(diff, TOLERANCE);
     }
 

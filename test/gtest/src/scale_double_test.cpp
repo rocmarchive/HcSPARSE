@@ -60,7 +60,8 @@ TEST(scale_double_test, func_check)
     array_view<double> *av_res = static_cast<array_view<double> *>(gX.values);
     for (int i = 0; i < num_elements; i++)
     {
-        EXPECT_EQ(host_res[i], (*av_res)[i]);
+        double diff = std::abs(host_res[i] - (*av_res)[i]);
+        EXPECT_LT(diff, 0.01);
     }
 
     dev_X.synchronize();

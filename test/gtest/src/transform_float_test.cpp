@@ -85,7 +85,7 @@ TEST(transform_float_test, func_check)
 
                 for (int i = 0; i < num_elements; i++)
                 {
-                    host_res[i] = host_X[i] / host_Y[i];
+                    host_res[i] = host_Y[i] == 0 ? 0 : (host_X[i] / host_Y[i]);
                 }
                 break;
         }
@@ -93,7 +93,8 @@ TEST(transform_float_test, func_check)
         array_view<float> *av_res = static_cast<array_view<float> *>(gR.values);
         for (int i = 0; i < num_elements; i++)
         {
-             EXPECT_EQ(host_res[i], (*av_res)[i]);
+             float diff = std::abs(host_res[i] - (*av_res)[i]);
+             EXPECT_LT(diff, 0.01);
         }
     }
 
