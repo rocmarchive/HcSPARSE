@@ -11,10 +11,10 @@ then
     cmake_cxx_compiler="$MCWHCCBUILD/compiler/bin/clang++"
   fi
 
-elif [ -x "/opt/hcc/bin/clang++" ];
+elif [ -x "/opt/rocm/hcc/bin/clang++" ];
 then
-  cmake_c_compiler="/opt/hcc/bin/clang"
-  cmake_cxx_compiler="/opt/hcc/bin/clang++"
+  cmake_c_compiler="/opt/rocm/hcc/bin/clang"
+  cmake_cxx_compiler="/opt/rocm/hcc/bin/clang++"
 else
   echo "Clang compiler not found"
   exit 1

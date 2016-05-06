@@ -50,11 +50,11 @@ if(EXISTS ${MCWHCCBUILD})
   set (HCC_CXXFLAGS "${HCC_CXXFLAGS} -Wall -Wno-deprecated-register -Wno-deprecated-declarations")
   set (HCC_LDFLAGS "${HCC_LDFLAGS}")
 
-elseif(EXISTS /opt/hcc/bin/clang++)
+elseif(EXISTS /opt/rocm/hcc/bin/clang++)
   find_path(HC++_BIN_DIR clang++
-           HINTS /opt/hcc/bin)
+           HINTS /opt/rocm/hcc/bin)
   find_path(HC++_CONFIGURE_DIR hcc-config
-           HINTS /opt/hcc/bin)
+           HINTS /opt/rocm/hcc/bin)
   include(FindPackageHandleStandardArgs)
   # handle the QUIETLY and REQUIRED arguments and set HC++_FOUND to TRUE
   # if all listed variables are TRUE
