@@ -62,10 +62,12 @@ SET (TESTSRCS
                             OUTPUT_VARIABLE HCC_LDFLAGS)
   endif(EXISTS ${MCWHCCBUILD})
 
+  SET(HCSPARSE_INCLUDE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../../lib/src/include/")
+  SET(HCSPARSE_LIBRARY_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../../build/lib/src/")
   string(STRIP "${HCC_CXXFLAGS}" HCC_CXXFLAGS)
-  set (HCC_CXXFLAGS "${HCC_CXXFLAGS}")
+  set (HCC_CXXFLAGS "${HCC_CXXFLAGS} -I${HCSPARSE_INCLUDE_PATH}")
   string(STRIP "${HCC_LDFLAGS}" HCC_LDFLAGS)
-  set (HCC_LDFLAGS "${HCC_LDFLAGS} -L $ENV{hcsparse_install}/lib/hcsparse")
+  set (HCC_LDFLAGS "${HCC_LDFLAGS} -L${HCSPARSE_LIBRARY_PATH}")
 
   SET (LINK "-lhcsparse")
 

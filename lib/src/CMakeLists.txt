@@ -6,8 +6,6 @@ SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/../../cma
 # Find HCC compiler
 FIND_PACKAGE(HC++ 1.0 REQUIRED)
 
-#ADD_SUBDIRECTORY(blas)
-
 #Setting a Project name
 SET(PROJECT_NAME "libhcsparse")
 PROJECT (${PROJECT_NAME})
@@ -47,7 +45,11 @@ SET (SRCS ${INIT_SRC})
   ADD_EXECUTABLE("${PROJECT_NAME}.so" ${SRCS})
   SET_PROPERTY(TARGET "${PROJECT_NAME}.so" APPEND_STRING PROPERTY LINK_FLAGS " ${HCC_LDFLAGS} ")
   TARGET_LINK_LIBRARIES("${PROJECT_NAME}.so" hc_am)
-  MESSAGE(STATUS "hcsparse_install path : $ENV{hcsparse_install}")
-  INSTALL(TARGETS "${PROJECT_NAME}.so" DESTINATION "$ENV{hcsparse_install}/lib/hcsparse")
-  INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/include/hcsparse.h" "${CMAKE_CURRENT_SOURCE_DIR}/include/hcsparse_struct.h" DESTINATION "$ENV{hcsparse_install}/include/hcsparse")
+  INSTALL(TARGETS "${PROJECT_NAME}.so" 
+    RUNTIME DESTINATION lib
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib
+  )
+
+  INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/include/hcsparse.h" "${CMAKE_CURRENT_SOURCE_DIR}/include/hcsparse_struct.h" DESTINATION include)
 
