@@ -51,10 +51,10 @@ This repository hosts the HCC implementation of SPARSE subroutines. The followin
  
                    git clone https://bitbucket.org/multicoreware/hcsparse.git
                    
- (ii) Install hcsparse library
+ (ii) Build hcsparse library
                     
-                    run ./install.sh
+                    run ./build.sh
                     
  (iii) Build and run test
  
-                    run ./install.sh --test=on  (this will build and run the gtest)
+                    run ./build.sh --test=on  (this will build and run the gtest)
