@@ -30,6 +30,32 @@
 
 int hcsparseInitialized = 0;
 
+// hcsparse Helper functions 
+
+// 1. hcsparseCreate()
+
+// This function initializes the HCSPARSE library and creates a handle to an opaque structure
+// holding the HCSPARSE library context.
+
+// Return Values
+// --------------------------------------------------------------------
+// HCSPARSE_STATUS_SUCCESS            initialization succeeded
+// HCSPARSE_STATUS_ALLOC_FAILED       the resources could not be allocated  
+
+hcsparseStatus_t hcsparseCreate(hcsparseHandle_t *handle, hc::accelerator *acc) {
+  if (handle == NULL) {
+    handle = new hcsparseHandle_t();
+  }
+   
+  *handle = new hcsparseControl(acc->get_default_view());
+
+  if(*handle == NULL) {
+    return HCSPARSE_STATUS_ALLOC_FAILED;
+  }
+  return HCSPARSE_STATUS_SUCCESS;
+}
+
+
 hcsparseStatus
 hcsparseSetup(void)
 {

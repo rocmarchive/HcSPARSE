@@ -29,6 +29,21 @@ enum hcsparseStatus_t {
   HCSPARSE_STATUS_INTERNAL_ERROR    // an internal HCSPARSE operation failed
 };
 
+// hcsparse Helper functions 
+
+// 1. hcsparseCreate()
+
+// This function initializes the HCSPARSE library and creates a handle to an opaque structure
+// holding the HCSPARSE library context.
+// Create the handle for use on the specified GPU.
+
+// Return Values
+// --------------------------------------------------------------------
+// HCSPARSE_STATUS_SUCCESS            initialization succeeded
+// HCSPARSE_STATUS_ALLOC_FAILED       the resources could not be allocated  
+
+hcsparseStatus_t hcsparseCreate(hcsparseHandle_t *handle, hc::accelerator *acc);
+
     /*!
     * \brief Initialize the hcsparse library
     * \note Must be called before any other hcsparse API function is invoked.
