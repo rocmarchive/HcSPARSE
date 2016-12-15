@@ -12,6 +12,23 @@
 
 typedef struct hcsparseControl* hcsparseHandle_t;
 
+// 2.2.2. hcsparseStatus_t
+
+// The type  hcsparseStatus  is used for function status returns. HCSPARSE 
+// helper functions return status directly, while the status of HCSPARSE 
+// core functions can be retrieved via  hcsparseGetError() . Currently, the 
+// following values are defined: 
+
+enum hcsparseStatus_t {
+  HCSPARSE_STATUS_SUCCESS,          // Function succeeds
+  HCSPARSE_STATUS_NOT_INITIALIZED,  // HCSPARSE library not initialized
+  HCSPARSE_STATUS_ALLOC_FAILED,     // resource allocation failed
+  HCSPARSE_STATUS_INVALID_VALUE,    // unsupported numerical value was passed to function
+  HCSPARSE_STATUS_MAPPING_ERROR,    // access to GPU memory space failed
+  HCSPARSE_STATUS_EXECUTION_FAILED, // GPU program failed to execute
+  HCSPARSE_STATUS_INTERNAL_ERROR    // an internal HCSPARSE operation failed
+};
+
     /*!
     * \brief Initialize the hcsparse library
     * \note Must be called before any other hcsparse API function is invoked.
