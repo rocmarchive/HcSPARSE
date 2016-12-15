@@ -3,6 +3,15 @@
 
 #include "hcsparse_struct.h"
 
+//2.2.1. hcsparseHandle_t
+
+// The hcsparseHandle_t type is a pointer to an opaque structure holding the hcBLAS library context. 
+// The hcBLAS library context must be initialized using hcsparseCreate() and the returned handle must be 
+// passed to all subsequent library function calls. The context should be destroyed at the end using 
+// hcsparseDestroy().
+
+typedef struct hcsparseControl* hcsparseHandle_t;
+
     /*!
     * \brief Initialize the hcsparse library
     * \note Must be called before any other hcsparse API function is invoked.
