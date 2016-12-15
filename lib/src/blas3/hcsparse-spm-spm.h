@@ -1277,7 +1277,7 @@ hcsparseStatus compute_nnzC_Ct_mergepath (int num_blocks, int j, int mergebuffer
                                         &d_val_merged[merged_size_l2 + merged_size_l1]);
     }).wait();
 
-    am_copy(_h_queue_one, queue_one, m * TUPLE_QUEUE * sizeof(int)); 
+    control->accl_view.copy(queue_one, _h_queue_one, m * TUPLE_QUEUE * sizeof(int)); 
 
     int temp_queue [6] = {0, 0, 0, 0, 0, 0};
     int counter = 0;
@@ -1314,7 +1314,7 @@ hcsparseStatus compute_nnzC_Ct_mergepath (int num_blocks, int j, int mergebuffer
         }
     }
  
-    am_copy(queue_one, _h_queue_one, m * TUPLE_QUEUE * sizeof(int)); 
+    control->accl_view.copy(_h_queue_one, queue_one, m * TUPLE_QUEUE * sizeof(int)); 
 
     if (counter > 0)
     {
@@ -1614,7 +1614,7 @@ csrSpGemm (const hcsparseCsrMatrix* matA,
     // STAGE 1
     compute_nnzCt<T> (m, csrRowPtrA, csrColIndA, csrRowPtrB, csrColIndB, csrRowPtrCt_d, control);
 
-    am_copy(csrRowPtrCt_h, csrRowPtrCt_d, (m + 1) * sizeof(int));   
+    control->accl_view.copy(csrRowPtrCt_d, csrRowPtrCt_h, (m + 1) * sizeof(int));   
  
     // statistics
     int* counter = (int*) calloc (NUM_SEGMENTS, sizeof(int));
@@ -1627,7 +1627,7 @@ csrSpGemm (const hcsparseCsrMatrix* matA,
     // STAGE 2 - STEP 2 : create Ct
 
     int *queue_one_d = (int*) am_alloc(m * TUPLE_QUEUE * sizeof(int), acc, 0);
-    am_copy(queue_one_d, queue_one, m * TUPLE_QUEUE * sizeof(int));
+    control->accl_view.copy(queue_one, queue_one_d, m * TUPLE_QUEUE * sizeof(int));
 
     int *csrColIndCt = (int*) am_alloc(nnzCt * sizeof(int), acc, 0);
     T *csrValCt = (T*) am_alloc(nnzCt * sizeof(T), acc, 0);
@@ -1637,7 +1637,7 @@ csrSpGemm (const hcsparseCsrMatrix* matA,
                                           csrValB, csrRowPtrC, csrRowPtrCt_d, csrColIndCt, csrValCt, n, nnzCt, m, queue_one, control);
 
     int *csrRowPtrC_h = (int*) calloc(m + 1, sizeof(int));
-    am_copy(csrRowPtrC_h, csrRowPtrC, (m + 1) * sizeof(int));
+    control->accl_view.copy(csrRowPtrC, csrRowPtrC_h, (m + 1) * sizeof(int));
 
     int old_val, new_val;
     old_val = csrRowPtrC_h[0];
@@ -1651,7 +1651,7 @@ csrSpGemm (const hcsparseCsrMatrix* matA,
 
     int nnzC = csrRowPtrC_h[m];
 
-    am_copy(csrRowPtrC, csrRowPtrC_h, (m + 1) * sizeof(int));
+    control->accl_view.copy(csrRowPtrC_h, csrRowPtrC, (m + 1) * sizeof(int));
     
     int *csrColIndC = static_cast<int*>(matC->colIndices);
     T *csrValC = static_cast<T*>(matC->values);

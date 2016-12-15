@@ -21,7 +21,7 @@ indices_to_offsets (const int num_rows,
     T *av_values = (T*) am_alloc(size * sizeof(T), acc, 0);
     T *av_keys_output = (T*) am_alloc(size * sizeof(T), acc, 0);
 
-    am_copy(av_values, values, size * sizeof(T));
+    control->accl_view.copy(values, av_values, size * sizeof(T));
 
     reduce_by_key<T> (size, av_keys_output, av_csrOffsets, av_cooIndices, av_values, control);
 
@@ -177,7 +177,7 @@ calculate_num_nonzeros (ulong dense_size,
         }
     }).wait();
 
-    am_copy(nnz_locations1, nnz_locations, dense_size * sizeof(int));
+    control->accl_view.copy(nnz_locations, nnz_locations1, dense_size * sizeof(int));
 
     hcsparseScalar nnz;
     nnz.value  = (int*) am_alloc(1 * sizeof(int), acc, 0);
@@ -188,11 +188,11 @@ calculate_num_nonzeros (ulong dense_size,
     nnz_location_vec.values = (int*) am_alloc(dense_size * sizeof(int), acc, 0);
     nnz_location_vec.offValues = 0;
 
-    am_copy(nnz_location_vec.values, nnz_locations, dense_size * sizeof(int));
+    control->accl_view.copy(nnz_locations, nnz_location_vec.values, dense_size * sizeof(int));
 
     reduce<int, RO_PLUS>(&nnz, &nnz_location_vec, control);
 
-    am_copy(&num_nonzeros, nnz.value, 1 * sizeof(int));
+    control->accl_view.copy(nnz.value, &num_nonzeros, 1 * sizeof(int));
 
     am_free(nnz.value);
     am_free(nnz_location_vec.values);

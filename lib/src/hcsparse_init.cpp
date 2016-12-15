@@ -704,9 +704,9 @@ hcsparseSCooMatrixfromFile (hcsparseCooMatrix* cooMatx, const char* filePath, hc
         values[ c ] = coords[c].val;
     }
 
-    am_copy(cooMatx->values, values, cooMatx->num_nonzeros * sizeof(float));
-    am_copy(cooMatx->rowIndices, rowIndices, cooMatx->num_nonzeros * sizeof(int));
-    am_copy(cooMatx->colIndices, colIndices, cooMatx->num_nonzeros * sizeof(int));
+    control->accl_view.copy(values, cooMatx->values, cooMatx->num_nonzeros * sizeof(float));
+    control->accl_view.copy(rowIndices, cooMatx->rowIndices, cooMatx->num_nonzeros * sizeof(int));
+    control->accl_view.copy(colIndices, cooMatx->colIndices, cooMatx->num_nonzeros * sizeof(int));
 
     free(values);
     free(rowIndices);
@@ -753,9 +753,9 @@ hcsparseDCooMatrixfromFile (hcsparseCooMatrix* cooMatx, const char* filePath, hc
         values[ c ] = coords[c].val;
     }
 
-    am_copy(cooMatx->values, values, cooMatx->num_nonzeros * sizeof(double));
-    am_copy(cooMatx->rowIndices, rowIndices, cooMatx->num_nonzeros * sizeof(int));
-    am_copy(cooMatx->colIndices, colIndices, cooMatx->num_nonzeros * sizeof(int));
+    control->accl_view.copy(values, cooMatx->values, cooMatx->num_nonzeros * sizeof(double));
+    control->accl_view.copy(rowIndices, cooMatx->rowIndices, cooMatx->num_nonzeros * sizeof(int));
+    control->accl_view.copy(colIndices, cooMatx->colIndices, cooMatx->num_nonzeros * sizeof(int));
 
     free(values);
     free(rowIndices);
@@ -816,9 +816,9 @@ hcsparseSCsrMatrixfromFile (hcsparseCsrMatrix* csrMatx, const char* filePath, hc
     while( current_row <= csrMatx->num_rows )
         rowOffsets[ current_row++ ] = csrMatx->num_nonzeros;
 
-    am_copy(csrMatx->values, values, sizeof(float) * csrMatx->num_nonzeros);
-    am_copy(csrMatx->rowOffsets, rowOffsets, sizeof(int) * (csrMatx->num_rows+1));
-    am_copy(csrMatx->colIndices, colIndices, sizeof(int) * csrMatx->num_nonzeros);
+    control->accl_view.copy(values, csrMatx->values, sizeof(float) * csrMatx->num_nonzeros);
+    control->accl_view.copy(rowOffsets, csrMatx->rowOffsets, sizeof(int) * (csrMatx->num_rows+1));
+    control->accl_view.copy(colIndices, csrMatx->colIndices, sizeof(int) * csrMatx->num_nonzeros);
 
     free(values);
     free(rowOffsets);
@@ -875,9 +875,9 @@ hcsparseDCsrMatrixfromFile (hcsparseCsrMatrix* csrMatx, const char* filePath, hc
     while( current_row <= csrMatx->num_rows )
         rowOffsets[ current_row++ ] = csrMatx->num_nonzeros;
 
-    am_copy(csrMatx->values, values, sizeof(double) * csrMatx->num_nonzeros);
-    am_copy(csrMatx->rowOffsets, rowOffsets, sizeof(int) * (csrMatx->num_rows+1));
-    am_copy(csrMatx->colIndices, colIndices, sizeof(int) * csrMatx->num_nonzeros);
+    control->accl_view.copy(values, csrMatx->values, sizeof(double) * csrMatx->num_nonzeros);
+    control->accl_view.copy(rowOffsets, csrMatx->rowOffsets, sizeof(int) * (csrMatx->num_rows+1));
+    control->accl_view.copy(colIndices, csrMatx->colIndices, sizeof(int) * csrMatx->num_nonzeros);
 
     free(values);
     free(rowOffsets);
@@ -890,11 +890,11 @@ hcsparseStatus
 hcsparseCsrMetaSize (hcsparseCsrMatrix* csrMatx, hcsparseControl *control)
 {
     int *rCsrRowOffsets = (int*)calloc(csrMatx->num_rows+1, sizeof(int));
-    am_copy(rCsrRowOffsets, csrMatx->rowOffsets, sizeof(int) * (csrMatx->num_rows+1));
+    control->accl_view.copy(csrMatx->rowOffsets, rCsrRowOffsets, sizeof(int) * (csrMatx->num_rows+1));
 
     csrMatx->rowBlockSize = ComputeRowBlocksSize( rCsrRowOffsets, csrMatx->num_rows, BLOCKSIZE, BLOCK_MULTIPLIER, ROWS_FOR_VECTOR );
 
-    am_copy(csrMatx->rowOffsets, rCsrRowOffsets, sizeof(int) * (csrMatx->num_rows+1));
+    control->accl_view.copy(rCsrRowOffsets, csrMatx->rowOffsets, sizeof(int) * (csrMatx->num_rows+1));
 
     free(rCsrRowOffsets);
 
@@ -914,13 +914,13 @@ hcsparseCsrMetaCompute (hcsparseCsrMatrix* csrMatx, hcsparseControl *control)
     int *rCsrRowOffsets = (int*)calloc(csrMatx->num_rows+1, sizeof(int));
     ulong *rRowBlocks = (ulong*)calloc(csrMatx->num_nonzeros, sizeof(ulong));
 
-    am_copy(rCsrRowOffsets, csrMatx->rowOffsets, sizeof(int) * (csrMatx->num_rows+1));
-    am_copy(rRowBlocks, csrMatx->rowBlocks, sizeof(ulong) * csrMatx->num_nonzeros);
+    control->accl_view.copy(csrMatx->rowOffsets, rCsrRowOffsets, sizeof(int) * (csrMatx->num_rows+1));
+    control->accl_view.copy(csrMatx->rowBlocks, rRowBlocks, sizeof(ulong) * csrMatx->num_nonzeros);
 
     ComputeRowBlocks(rRowBlocks, csrMatx->rowBlockSize, rCsrRowOffsets, csrMatx->num_rows, BLOCKSIZE, BLOCK_MULTIPLIER, ROWS_FOR_VECTOR, true );
 
-    am_copy(csrMatx->rowOffsets, rCsrRowOffsets, sizeof(int) * (csrMatx->num_rows+1));
-    am_copy(csrMatx->rowBlocks, rRowBlocks, sizeof(ulong) * csrMatx->num_nonzeros);
+    control->accl_view.copy(rCsrRowOffsets, csrMatx->rowOffsets, sizeof(int) * (csrMatx->num_rows+1));
+    control->accl_view.copy(rRowBlocks, csrMatx->rowBlocks, sizeof(ulong) * csrMatx->num_nonzeros);
 
     free(rCsrRowOffsets);
     free(rRowBlocks);
