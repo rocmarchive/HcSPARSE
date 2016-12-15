@@ -55,6 +55,25 @@ hcsparseStatus_t hcsparseCreate(hcsparseHandle_t *handle, hc::accelerator *acc) 
   return HCSPARSE_STATUS_SUCCESS;
 }
 
+// 2. hcsparseDestory()
+
+// This function releases hardware resources used by the HCSPARSE library.
+// This function is usually the last call with a particular handle to the HCSPARSE library.
+
+// Return Values
+// ---------------------------------------------------------------------
+// HCSPARSE_STATUS_SUCCESS            the shut down succeeded
+// HCSPARSE_STATUS_NOT_INITIALIZED    the library was not initialized
+
+hcsparseStatus_t hcsparseDestroy(hcsparseHandle_t *handle){
+  if(handle == nullptr || *handle == nullptr || (*handle)->initialized == false)
+    return HCSPARSE_STATUS_NOT_INITIALIZED;
+  delete *handle;
+  *handle = nullptr;
+  handle = nullptr;
+  return HCSPARSE_STATUS_SUCCESS;
+}
+
 
 hcsparseStatus
 hcsparseSetup(void)

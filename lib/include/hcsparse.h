@@ -44,6 +44,18 @@ enum hcsparseStatus_t {
 
 hcsparseStatus_t hcsparseCreate(hcsparseHandle_t *handle, hc::accelerator *acc);
 
+// 2. hcsparseDestory()
+
+// This function releases hardware resources used by the HCSPARSE library.
+// This function is usually the last call with a particular handle to the HCSPARSE library.
+
+// Return Values
+// ---------------------------------------------------------------------
+// HCSPARSE_STATUS_SUCCESS            the shut down succeeded
+// HCSPARSE_STATUS_NOT_INITIALIZED    the library was not initialized
+
+hcsparseStatus_t hcsparseDestroy(hcsparseHandle_t *handle);
+
     /*!
     * \brief Initialize the hcsparse library
     * \note Must be called before any other hcsparse API function is invoked.
