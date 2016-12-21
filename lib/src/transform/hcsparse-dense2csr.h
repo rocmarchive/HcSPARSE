@@ -4,7 +4,7 @@ template <typename T>
 hcsparseStatus
 dense2csr (const hcdenseMatrix* A,
            hcsparseCsrMatrix* csr,
-           const hcsparseControl* control)
+           hcsparseControl* control)
 {
     hc::accelerator acc = (control->accl_view).get_accelerator();
 

@@ -9,7 +9,7 @@ indices_to_offsets (const int num_rows,
                     const int size,
                     T *av_csrOffsets,
                     const T *av_cooIndices,
-                    const hcsparseControl* control)
+                    hcsparseControl* control)
 {
     hc::accelerator acc = (control->accl_view).get_accelerator();
 
@@ -40,7 +40,7 @@ offsets_to_indices (const int num_rows,
                     const int size,
                     T *av_cooIndices,
                     const T *av_csrOffsets,
-                    const hcsparseControl* control)
+                    hcsparseControl* control)
 {
     int subwave_size = WAVE_SIZE;
 
@@ -95,7 +95,7 @@ transform_csr_2_dense (ulong size,
                        const int num_rows,
                        const int num_cols,
                        T *A,
-                       const hcsparseControl* control)
+                       hcsparseControl* control)
 {
     int subwave_size = WAVE_SIZE;
 
@@ -147,7 +147,7 @@ calculate_num_nonzeros (ulong dense_size,
                         const T *A,
                         int *nnz_locations1,
                         int& num_nonzeros,
-                        const hcsparseControl* control)
+                        hcsparseControl* control)
 {
     hc::accelerator acc = (control->accl_view).get_accelerator();
 
@@ -211,7 +211,7 @@ dense_to_coo (ulong dense_size,
               const T *A,
               const int *nnz_locations,
               const int *coo_indexes,
-              const hcsparseControl* control)
+              hcsparseControl* control)
 {
     int global_work_size = 0;
 

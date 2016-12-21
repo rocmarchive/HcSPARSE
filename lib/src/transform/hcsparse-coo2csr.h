@@ -8,7 +8,7 @@ void coo2csr_kernel (const int *coo_col,
                      int *csr_col,
                      T *csr_values,
                      int size,
-                     const hcsparseControl* control)
+                     hcsparseControl* control)
 {
 
     hc::extent<1> grdExt(BLOCK_SIZE * ((size - 1)/BLOCK_SIZE + 1));
@@ -28,7 +28,7 @@ template <typename T>
 hcsparseStatus
 coo2csr (const hcsparseCooMatrix* coo,
          hcsparseCsrMatrix* csr,
-         const hcsparseControl* control)
+         hcsparseControl* control)
 {
     csr->num_rows = coo->num_rows;
     csr->num_cols = coo->num_cols;

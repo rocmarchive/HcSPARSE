@@ -808,7 +808,7 @@ hcsparseStatus compute_nnzCt (int m,
                               int *csrRowPtrB, 
                               int *csrColIndB, 
                               int *csrRowPtrCt, 
-                              const hcsparseControl* control)
+                              hcsparseControl* control)
 {  
     size_t szLocalWorkSize;
     size_t szGlobalWorkSize;
@@ -850,7 +850,7 @@ hcsparseStatus compute_nnzC_Ct_0 (int num_blocks, int j,
                                   int counter, int position, 
                                   int *queue_one, 
                                   int *csrRowPtrC, 
-                                  const hcsparseControl* control)
+                                  hcsparseControl* control)
 {
     size_t szLocalWorkSize;
     size_t szGlobalWorkSize;
@@ -887,7 +887,7 @@ hcsparseStatus compute_nnzC_Ct_1 (int num_blocks, int j,
                                   int *csrRowPtrCt, 
                                   int *csrColIndCt, 
                                   T *csrValCt, 
-                                  const hcsparseControl* control)
+                                  hcsparseControl* control)
 {
     size_t szLocalWorkSize;
     size_t szGlobalWorkSize;
@@ -938,7 +938,7 @@ hcsparseStatus compute_nnzC_Ct_2heap_noncoalesced_local (int num_blocks, int j,
                                                          int *csrRowPtrCt, 
                                                          int *csrColIndCt, 
                                                          T *csrValCt, 
-                                                         const hcsparseControl* control)
+                                                         hcsparseControl* control)
 {
     size_t szLocalWorkSize;
     size_t szGlobalWorkSize;
@@ -1011,7 +1011,7 @@ hcsparseStatus compute_nnzC_Ct_bitonic_scan (int num_blocks, int j, int position
                                              int *csrColIndCt, 
                                              T *csrValCt, 
                                              int n, 
-                                             const hcsparseControl* control)
+                                             hcsparseControl* control)
 {
     size_t szLocalWorkSize;
     size_t szGlobalWorkSize;
@@ -1115,7 +1115,7 @@ hcsparseStatus compute_nnzC_Ct_mergepath (int num_blocks, int j, int mergebuffer
                                           int *csrColIndCt, 
                                           T *csrValCt, 
                                           int *_nnzCt, int m, int *_h_queue_one, 
-                                          const hcsparseControl* control)
+                                          hcsparseControl* control)
 {
     size_t szLocalWorkSize;
     size_t szGlobalWorkSize;
@@ -1343,7 +1343,7 @@ hcsparseStatus compute_nnzC_Ct_general (int *_h_counter_one,
                                         int *csrColIndCt, 
                                         T *csrValCt, 
                                         int _n, int _nnzCt, int m, int *queue_one_h, 
-                                        const hcsparseControl* control)
+                                        hcsparseControl* control)
 {
     int counter = 0;
     
@@ -1423,7 +1423,7 @@ hcsparseStatus copy_Ct_to_C_Single (int num_blocks, int position, int size,
                                     int *csrRowPtrCt, 
                                     int *csrColIndCt, 
                                     int *queue_one, 
-                                    const hcsparseControl* control)
+                                    hcsparseControl* control)
 {
     size_t szLocalWorkSize;
     size_t szGlobalWorkSize;
@@ -1461,7 +1461,7 @@ hcsparseStatus copy_Ct_to_C_Loopless (int num_blocks, int position,
                                       int *csrRowPtrCt, 
                                       int *csrColIndCt, 
                                       int *queue_one, 
-                                      const hcsparseControl* control)
+                                      hcsparseControl* control)
 {
     size_t szLocalWorkSize;
     size_t szGlobalWorkSize;
@@ -1499,7 +1499,7 @@ hcsparseStatus copy_Ct_to_C_Loop (int num_blocks, int position,
                                   int *csrRowPtrCt, 
                                   int *csrColIndCt, 
                                   int *queue_one, 
-                                  const hcsparseControl* control)
+                                  hcsparseControl* control)
 {
     size_t szLocalWorkSize;
     size_t szGlobalWorkSize;
@@ -1548,7 +1548,7 @@ hcsparseStatus copy_Ct_to_C_general (int *counter_one,
                                      int *csrRowPtrCt, 
                                      int *csrColIndCt, 
                                      int *queue_one, 
-                                     const hcsparseControl* control)
+                                     hcsparseControl* control)
 {
     int counter = 0;
 
@@ -1582,7 +1582,7 @@ hcsparseStatus
 csrSpGemm (const hcsparseCsrMatrix* matA,
            const hcsparseCsrMatrix* matB,
            hcsparseCsrMatrix* matC,
-           const hcsparseControl* control )
+           hcsparseControl* control )
 {
     int m  = matA->num_rows;
     int k1 = matA->num_cols;

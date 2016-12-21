@@ -12,7 +12,7 @@ void inner_product (const long size,
                     const long pYOffset,
                     T *partial,
                     const int REDUCE_BLOCKS_NUMBER,
-                    const hcsparseControl* control)
+                    hcsparseControl* control)
 {
     hc::extent<1> grdExt(REDUCE_BLOCKS_NUMBER * BLOCK_SIZE);
     hc::tiled_extent<1> t_ext = grdExt.tile(BLOCK_SIZE);
@@ -63,7 +63,7 @@ hcsparseStatus
 dot (hcsparseScalar* pR,
      const hcdenseVector* pX,
      const hcdenseVector* pY,
-     const hcsparseControl* control)
+     hcsparseControl* control)
 {
     int size = pX->num_values;
     int REDUCE_BLOCKS_NUMBER = size/BLOCK_SIZE + 1;

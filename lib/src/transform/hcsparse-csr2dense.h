@@ -6,7 +6,7 @@ template <typename T>
 void
 fill_zero (ulong size,
            T *values,
-           const hcsparseControl* control)
+           hcsparseControl* control)
 {
     hc::extent<1> grdExt(BLOCK_SIZE * ((size - 1)/BLOCK_SIZE + 1));
     hc::tiled_extent<1> t_ext = grdExt.tile(BLOCK_SIZE);
@@ -22,7 +22,7 @@ template <typename T>
 hcsparseStatus
 csr2dense (const hcsparseCsrMatrix* csr,
            hcdenseMatrix* A,
-           const hcsparseControl* control)
+           hcsparseControl* control)
 {
     ulong dense_size = csr->num_cols * csr->num_rows;
 

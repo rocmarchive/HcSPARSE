@@ -269,7 +269,7 @@ void csrmv_vector_kernel (const INDEX_TYPE num_rows,
                           T *y,
                           const SIZE_TYPE off_y,
                           const uint global_work_size,
-                          const hcsparseControl *control)
+                          hcsparseControl *control)
 {
     hc::extent<1> grdExt(global_work_size);
     hc::tiled_extent<1> t_ext = grdExt.tile(WG_SIZE);
@@ -339,7 +339,7 @@ csrmv_vector(const hcsparseScalar* pAlpha,
              const hcdenseVector* pX,
              const hcsparseScalar* pBeta,
              hcdenseVector* pY,
-             const hcsparseControl *control)
+             hcsparseControl *control)
 {
     uint nnz_per_row = pMatx->nnz_per_row(); //average nnz per row
 
@@ -413,7 +413,7 @@ csrmv_adaptive_kernel (const T *vals,
                        const T *pAlpha,
                        const T *pBeta,
                        const uint global_work_size,
-                       const hcsparseControl *control)
+                       hcsparseControl *control)
 {
     hc::extent<1> grdExt(global_work_size);
     hc::tiled_extent<1> t_ext = grdExt.tile(WG_SIZE);
@@ -787,7 +787,7 @@ csrmv_adaptive( const hcsparseScalar* pAlpha,
                 const hcdenseVector* pX,
                 const hcsparseScalar* pBeta,
                 hcdenseVector* pY,
-                const hcsparseControl *control )
+                hcsparseControl *control )
 {
     // if NVIDIA is used it does not allow to run the group size
     // which is not a multiplication of WG_SIZE. Don't know if that
@@ -826,7 +826,7 @@ csrmv (const hcsparseScalar *pAlpha,
        const hcdenseVector *pX,
        const hcsparseScalar *pBeta,
        hcdenseVector *pY,
-       const hcsparseControl *control)
+       hcsparseControl *control)
 {
     if( (pCsrMatx->rowBlocks == nullptr) && (pCsrMatx->rowBlockSize == 0) )
     {

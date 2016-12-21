@@ -7,7 +7,7 @@ hcsparseStatus
 scan (int size,
       T *output,
       const T *input,
-      const hcsparseControl* control,
+      hcsparseControl* control,
       int exclusive)
 {
     hc::accelerator acc = (control->accl_view).get_accelerator();
@@ -262,7 +262,7 @@ hcsparseStatus
 exclusive_scan (int size,
                 T *output,
                 const T *input,
-                const hcsparseControl* control)
+                hcsparseControl* control)
 {
    return scan<T, OP>(size, output, input, control, (int)true);
 }
@@ -272,7 +272,7 @@ hcsparseStatus
 inclusive_scan (int size,
                 T *output,
                 const T *input,
-                const hcsparseControl* control)
+                hcsparseControl* control)
 {
   return scan<T, OP>(size, output, input, control, (int)false);
 }

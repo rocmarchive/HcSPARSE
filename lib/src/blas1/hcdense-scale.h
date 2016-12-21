@@ -10,7 +10,7 @@ void scale_kernel (const long size,
                    const T *pAlpha,
                    const long pAlphaOffset,
                    const int globalSize,
-                   const hcsparseControl* control)
+                   hcsparseControl* control)
 {
     hc::extent<1> grdExt( globalSize );
     hc::tiled_extent<1> t_ext = grdExt.tile(BLOCK_SIZE);
@@ -30,7 +30,7 @@ hcsparseStatus
 scale (hcdenseVector* r,
        const hcsparseScalar* alpha,
        const hcdenseVector* y,
-       const hcsparseControl* control)
+       hcsparseControl* control)
 {
     int size = r->num_values;
     int blocksNum = (size + BLOCK_SIZE - 1) / BLOCK_SIZE;

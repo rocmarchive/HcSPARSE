@@ -9,7 +9,7 @@ reduce_by_key (int size,
                T *values_output,
                const T *keys_input,
                const T *values_input,
-               const hcsparseControl* control)
+               hcsparseControl* control)
 {
     hc::accelerator acc = (control->accl_view).get_accelerator();
 

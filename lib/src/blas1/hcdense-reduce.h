@@ -10,7 +10,7 @@ void global_reduce (const long size,
                     const long pXOffset,
                     T *partial,
                     const int REDUCE_BLOCKS_NUMBER,
-                    const hcsparseControl* control)
+                    hcsparseControl* control)
 {
 
     hc::extent<1> grdExt(REDUCE_BLOCKS_NUMBER * BLOCK_SIZE);
@@ -61,7 +61,7 @@ template <typename T, ReduceOperator G_OP, ReduceOperator F_OP = RO_DUMMY>
 hcsparseStatus
 reduce (hcsparseScalar* pR,
         const hcdenseVector* pX,
-        const hcsparseControl* control)
+        hcsparseControl* control)
 {
     int size = pX->num_values;
     int REDUCE_BLOCKS_NUMBER = size/BLOCK_SIZE + 1;

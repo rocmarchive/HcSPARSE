@@ -21,7 +21,7 @@ csrmv_kernel( const int num_rows,
               const size_t ldy,
               const long off_y,
               int curr_col,
-              const hcsparseControl *control )
+              hcsparseControl *control )
 {
     int predicted = subwave_size * num_rows;
 
@@ -100,7 +100,7 @@ void csrmv_batched( const int num_rows,
                     const size_t num_cols_C,
                     const size_t ldC,
                     const long off_C,
-                    const hcsparseControl *control )
+                    hcsparseControl *control )
 {
     int subwave_size = WAVE_SIZE;
 
@@ -132,7 +132,7 @@ csrmm( const hcsparseScalar *pAlpha,
        const hcdenseMatrix *pDenseB,
        const hcsparseScalar *pBeta,
        hcdenseMatrix *pDenseC,
-       const hcsparseControl *control )
+       hcsparseControl *control )
 {
     int nnz_per_row = pSparseCsrA->nnz_per_row();
 
