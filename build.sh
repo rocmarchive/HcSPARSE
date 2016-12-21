@@ -88,8 +88,8 @@ elif ( [ "$testing" = "on" ] ); then
    set -e
    make
 
-#  cd $current_work_dir/build/test/gtest/bin/
-#  ./unittest
+  cd $current_work_dir/build/test/gtest/bin/
+  ./unittest
 fi
 
 #if grep --quiet hcsparse ~/.bashrc; then

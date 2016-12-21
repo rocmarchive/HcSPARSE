@@ -46,8 +46,9 @@ hcsparseStatus_t hcsparseCreate(hcsparseHandle_t *handle, hc::accelerator *acc) 
   if (handle == NULL) {
     handle = new hcsparseHandle_t();
   }
-   
-  *handle = new hcsparseControl(acc->get_default_view());
+
+  hc::accelerator_view accl_view = acc->get_default_view();
+  *handle = new hcsparseControl_(accl_view);
 
   if(*handle == NULL) {
     return HCSPARSE_STATUS_ALLOC_FAILED;
@@ -66,7 +67,7 @@ hcsparseStatus_t hcsparseCreate(hcsparseHandle_t *handle, hc::accelerator *acc) 
 // HCSPARSE_STATUS_NOT_INITIALIZED    the library was not initialized
 
 hcsparseStatus_t hcsparseDestroy(hcsparseHandle_t *handle){
-  if(handle == nullptr || *handle == nullptr || (*handle)->initialized == false)
+  if(handle == nullptr || *handle == nullptr)
     return HCSPARSE_STATUS_NOT_INITIALIZED;
   delete *handle;
   *handle = nullptr;

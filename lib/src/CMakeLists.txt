@@ -37,7 +37,7 @@ SET (SRCS ${INIT_SRC})
   string(STRIP "${HCC_CXXFLAGS}" HCC_CXXFLAGS)
   string(STRIP "${HCC_LDFLAGS}" HCC_LDFLAGS)
   set (HCC_CXXFLAGS "${HCC_CXXFLAGS} -I${CMAKE_CURRENT_SOURCE_DIR}/../include")
-  set (HCC_LDFLAGS "${HCC_LDFLAGS} -Wl,--defsym=_binary_kernel_spir_end=0 -Wl,--defsym=_binary_kernel_spir_start=0 -Wl,--defsym=_binary_kernel_cl_start=0 -Wl,--defsym=_binary_kernel_cl_end=0")
+  set (HCC_LDFLAGS "${HCC_LDFLAGS}")
 
   FOREACH(src_file ${SRCS})
 	  SET_PROPERTY(SOURCE ${src_file} APPEND_STRING PROPERTY COMPILE_FLAGS " ${HCC_CXXFLAGS} ")
@@ -52,5 +52,5 @@ SET (SRCS ${INIT_SRC})
     ARCHIVE DESTINATION lib
   )
 
-  INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/include/hcsparse.h" "${CMAKE_CURRENT_SOURCE_DIR}/include/hcsparse_struct.h" DESTINATION include)
+  INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/../include/hcsparse.h" "${CMAKE_CURRENT_SOURCE_DIR}/../include/hcsparse_struct.h" DESTINATION include)
 

@@ -91,7 +91,7 @@ typedef struct hcdenseVector_
     }
 } hcdenseVector;
 
-typedef struct hcsparseControl_
+struct hcsparseControl_
 {
     hc::accelerator_view accl_view;
 
@@ -114,7 +114,8 @@ typedef struct hcsparseControl_
         dpfp_support(false), max_compute_units( 0 )
     {}
 
-} hcsparseControl;
+};
+typedef struct hcsparseControl_ hcsparseControl;
 
 /*! \brief Structure to encapsulate sparse matrix data encoded in CSR
  * form to hcsparse API

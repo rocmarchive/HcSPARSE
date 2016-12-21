@@ -10,7 +10,7 @@
 // passed to all subsequent library function calls. The context should be destroyed at the end using 
 // hcsparseDestroy().
 
-typedef struct hcsparseControl* hcsparseHandle_t;
+typedef struct hcsparseControl_* hcsparseHandle_t;
 
 // 2.2.2. hcsparseStatus_t
 
@@ -42,7 +42,7 @@ enum hcsparseStatus_t {
 // HCSPARSE_STATUS_SUCCESS            initialization succeeded
 // HCSPARSE_STATUS_ALLOC_FAILED       the resources could not be allocated  
 
-hcsparseStatus_t hcsparseCreate(hcsparseHandle_t *handle, hc::accelerator *acc);
+hcsparseStatus_t hcsparseCreate(hcsparseHandle_t* handle, hc::accelerator *acc);
 
 // 2. hcsparseDestory()
 
@@ -54,7 +54,7 @@ hcsparseStatus_t hcsparseCreate(hcsparseHandle_t *handle, hc::accelerator *acc);
 // HCSPARSE_STATUS_SUCCESS            the shut down succeeded
 // HCSPARSE_STATUS_NOT_INITIALIZED    the library was not initialized
 
-hcsparseStatus_t hcsparseDestroy(hcsparseHandle_t *handle);
+hcsparseStatus_t hcsparseDestroy(hcsparseHandle_t* handle);
 
     /*!
     * \brief Initialize the hcsparse library
