@@ -36,9 +36,9 @@ int main()
     
     host_alpha[0] = rand()%100;
 
-    am_copy(gX.values, host_X, sizeof(double) * num_elements);
-    am_copy(gY.values, host_Y, sizeof(double) * num_elements);
-    am_copy(gAlpha.value, host_alpha, sizeof(double) * 1);
+    control.accl_view.copy(host_X, gX.values, sizeof(double) * num_elements);
+    control.accl_view.copy(host_Y, gY.values, sizeof(double) * num_elements);
+    control.accl_view.copy(host_alpha, gAlpha.value, sizeof(double) * 1);
 
     gAlpha.offValue = 0;
     gX.offValues = 0;
@@ -58,7 +58,7 @@ int main()
 
     bool ispassed = 1;
 
-    am_copy(host_X, gX.values, sizeof(double) * num_elements);
+    control.accl_view.copy(gX.values, host_X, sizeof(double) * num_elements);
 
     for (int i = 0; i < num_elements; i++)
     {

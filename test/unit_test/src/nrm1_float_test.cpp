@@ -29,8 +29,8 @@ int main()
         host_X[i] = -rand()%100;
     }
     
-    am_copy(gX.values, host_X, sizeof(float) * num_elements);
-    am_copy(gR.value, host_R, sizeof(float) * 1);
+    control.accl_view.copy(host_X, gX.values, sizeof(float) * num_elements);
+    control.accl_view.copy(host_R, gR.value, sizeof(float) * 1);
 
     gR.offValue = 0;
     gX.offValues = 0;
@@ -48,7 +48,7 @@ int main()
 
     bool ispassed = 1;
 
-    am_copy(host_R, gR.value, sizeof(float) * 1);
+    control.accl_view.copy(gR.value, host_R, sizeof(float) * 1);
 
     if (host_res[0] != host_R[0])
     {

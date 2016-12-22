@@ -75,13 +75,13 @@ int main(int argc, char *argv[])
 
     hcsparseScoo2csr(&gCooMat, &gCsrMat_res, &control);
 
-    am_copy(csr_ref_values, gCsrMat_ref.values, num_nonzero * sizeof(float));
-    am_copy(csr_ref_rowOff, gCsrMat_ref.rowOffsets, (num_row+1) * sizeof(int));
-    am_copy(csr_ref_colIndices, gCsrMat_ref.colIndices, num_nonzero * sizeof(int));
+    control.accl_view.copy(gCsrMat_ref.values, csr_ref_values, num_nonzero * sizeof(float));
+    control.accl_view.copy(gCsrMat_ref.rowOffsets, csr_ref_rowOff, (num_row+1) * sizeof(int));
+    control.accl_view.copy(gCsrMat_ref.colIndices, csr_ref_colIndices, num_nonzero * sizeof(int));
 
-    am_copy(csr_res_values, gCsrMat_res.values, num_nonzero * sizeof(float));
-    am_copy(csr_res_rowOff, gCsrMat_res.rowOffsets, (num_row+1) * sizeof(int));
-    am_copy(csr_res_colIndices, gCsrMat_res.colIndices, num_nonzero * sizeof(int));
+    control.accl_view.copy(gCsrMat_res.values, csr_res_values, num_nonzero * sizeof(float));
+    control.accl_view.copy(gCsrMat_res.rowOffsets, csr_res_rowOff, (num_row+1) * sizeof(int));
+    control.accl_view.copy(gCsrMat_res.colIndices, csr_res_colIndices, num_nonzero * sizeof(int));
 
     bool ispassed = 1;
 

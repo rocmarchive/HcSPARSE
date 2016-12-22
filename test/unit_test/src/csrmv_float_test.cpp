@@ -66,10 +66,10 @@ int main(int argc, char *argv[])
     host_alpha[0] = rand()%100;
     host_beta[0] = rand()%100;
 
-    am_copy(gX.values, host_X, sizeof(float) * num_col);
-    am_copy(gY.values, host_Y, sizeof(float) * num_row);
-    am_copy(gAlpha.value, host_alpha, sizeof(float) * 1);
-    am_copy(gBeta.value, host_beta, sizeof(float) * 1);
+    control.accl_view.copy(gX.values, host_X, sizeof(float) * num_col);
+    control.accl_view.copy(gY.values, host_Y, sizeof(float) * num_row);
+    control.accl_view.copy(gAlpha.value, host_alpha, sizeof(float) * 1);
+    control.accl_view.copy(gBeta.value, host_beta, sizeof(float) * 1);
 
     gAlpha.offValue = 0;
     gBeta.offValue = 0;
@@ -93,9 +93,9 @@ int main(int argc, char *argv[])
 
     status = hcsparseSCsrMatrixfromFile(&gCsrMat, filename, &control, false);
    
-    am_copy(values, gCsrMat.values, sizeof(float) * num_nonzero);
-    am_copy(rowOffsets, gCsrMat.rowOffsets, sizeof(int) * (num_row+1));
-    am_copy(colIndices, gCsrMat.colIndices, sizeof(int) * num_nonzero);
+    control.accl_view.copy(values, gCsrMat.values, sizeof(float) * num_nonzero);
+    control.accl_view.copy(rowOffsets, gCsrMat.rowOffsets, sizeof(int) * (num_row+1));
+    control.accl_view.copy(colIndices, gCsrMat.colIndices, sizeof(int) * num_nonzero);
 
     if (status != hcsparseSuccess)
     {
@@ -115,7 +115,7 @@ int main(int argc, char *argv[])
         }
     }
 
-    am_copy(host_Y, gY.values, sizeof(float) * num_row);
+    control.accl_view.copy(host_Y, gY.values, sizeof(float) * num_row);
 
     bool isPassed = 1;  
  

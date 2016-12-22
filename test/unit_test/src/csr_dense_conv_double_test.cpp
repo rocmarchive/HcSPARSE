@@ -72,15 +72,15 @@ int main(int argc, char *argv[])
 
     hcsparseDcsr2dense(&gCsrMat, &gMat, &control);
 
-    am_copy(csr_values, gCsrMat.values, num_nonzero * sizeof(double));
-    am_copy(csr_rowOff, gCsrMat.rowOffsets, (num_row+1) * sizeof(int));
-    am_copy(csr_colIndices, gCsrMat.colIndices, num_nonzero * sizeof(int));
+    control.accl_view.copy(gCsrMat.values, csr_values, num_nonzero * sizeof(double));
+    control.accl_view.copy(gCsrMat.rowOffsets, csr_rowOff, (num_row+1) * sizeof(int));
+    control.accl_view.copy(gCsrMat.colIndices, csr_colIndices, num_nonzero * sizeof(int));
 
     hcsparseDdense2csr(&gMat, &gCsrMat_res, &control);
 
-    am_copy(csr_res_values, gCsrMat_res.values, num_nonzero * sizeof(double));
-    am_copy(csr_res_rowOff, gCsrMat_res.rowOffsets, (num_row+1) * sizeof(int));
-    am_copy(csr_res_colIndices, gCsrMat_res.colIndices, num_nonzero * sizeof(int));
+    control.accl_view.copy(gCsrMat_res.values, csr_res_values, num_nonzero * sizeof(double));
+    control.accl_view.copy(gCsrMat_res.rowOffsets, csr_res_rowOff, (num_row+1) * sizeof(int));
+    control.accl_view.copy(gCsrMat_res.colIndices, csr_res_colIndices, num_nonzero * sizeof(int));
 
     bool ispassed = 1;
 
