@@ -79,7 +79,7 @@ csrmv_kernel( const int num_rows,
                     y[ off_y + ( row * ldy ) + curr_col ] = sum + _beta * y[ off_y + ( row * ldy ) + curr_col ];
             }
         }
-    });
+    }).wait();
 }
 
 template<typename T>

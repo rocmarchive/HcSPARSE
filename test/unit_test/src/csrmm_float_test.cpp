@@ -77,6 +77,8 @@ int main(int argc, char *argv[])
     control.accl_view.copy(host_Y, gY.values, sizeof(float) * num_row_Y * num_col_Y);
     control.accl_view.copy(host_alpha, gAlpha.value, sizeof(float) * 1);
     control.accl_view.copy(host_beta, gBeta.value, sizeof(float) * 1);
+
+    gAlpha.offValue = 0;
     gBeta.offValue = 0;
     gX.offValues = 0;
     gY.offValues = 0;
