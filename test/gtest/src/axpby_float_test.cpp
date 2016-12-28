@@ -16,6 +16,12 @@ TEST(axpby_float_test, func_check)
     accelerator_view accl_view = (acc[1].create_view()); 
 
     hcsparseControl control(accl_view);
+    hcsparseSetup();
+    hcsparseInitScalar(&gAlpha);
+    hcsparseInitScalar(&gBeta);
+    hcsparseInitVector(&gR);
+    hcsparseInitVector(&gX);
+    hcsparseInitVector(&gY);
 
     int num_elements = 100;
     float *host_R = (float*) calloc(num_elements, sizeof(float));
@@ -36,24 +42,11 @@ TEST(axpby_float_test, func_check)
     host_alpha[0] = rand()%100;
     host_beta[0] = rand()%100;
 
-    array_view<float> dev_R(num_elements, host_R);
-    array_view<float> dev_X(num_elements, host_X);
-    array_view<float> dev_Y(num_elements, host_Y);
-    array_view<float> dev_alpha(1, host_alpha);
-    array_view<float> dev_beta(1, host_beta);
-
-    hcsparseSetup();
-    hcsparseInitScalar(&gAlpha);
-    hcsparseInitScalar(&gBeta);
-    hcsparseInitVector(&gR);
-    hcsparseInitVector(&gX);
-    hcsparseInitVector(&gY);
-
-    gAlpha.value = &dev_alpha;
-    gBeta.value = &dev_beta;
-    gR.values = &dev_R;
-    gX.values = &dev_X;
-    gY.values = &dev_Y;
+    gR.values = am_alloc(sizeof(float) * num_elements, acc[1], 0);
+    gX.values = am_alloc(sizeof(float) * num_elements, acc[1], 0);
+    gY.values = am_alloc(sizeof(float) * num_elements, acc[1], 0);
+    gAlpha.value = am_alloc(sizeof(float) * 1, acc[1], 0);
+    gBeta.value = am_alloc(sizeof(float) * 1, acc[1], 0);
 
     gAlpha.offValue = 0;
     gBeta.offValue = 0;
@@ -64,6 +57,12 @@ TEST(axpby_float_test, func_check)
     gR.num_values = num_elements;
     gX.num_values = num_elements;
     gY.num_values = num_elements;
+
+    control.accl_view.copy(host_R, gR.values, sizeof(float) * num_elements);
+    control.accl_view.copy(host_X, gX.values, sizeof(float) * num_elements);
+    control.accl_view.copy(host_Y, gY.values, sizeof(float) * num_elements);
+    control.accl_view.copy(host_alpha, gAlpha.value, sizeof(float) * 1);
+    control.accl_view.copy(host_beta, gBeta.value, sizeof(float) * 1);
 
     hcsparseStatus status;
 
@@ -81,12 +80,6 @@ TEST(axpby_float_test, func_check)
         EXPECT_LT(diff, TOLERANCE);
     }
 
-    dev_R.synchronize();    
-    dev_X.synchronize();    
-    dev_Y.synchronize();    
-    dev_alpha.synchronize();    
-    dev_beta.synchronize();    
-
     hcsparseTeardown();
 
     free(host_R);
@@ -95,5 +88,10 @@ TEST(axpby_float_test, func_check)
     free(host_Y);
     free(host_alpha);
     free(host_beta);
+    am_free(gR.values);
+    am_free(gX.values);
+    am_free(gY.values);
+    am_free(gAlpha.value);
+    am_free(gBeta.value);
 
 }
