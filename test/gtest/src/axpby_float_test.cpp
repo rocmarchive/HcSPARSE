@@ -1,5 +1,6 @@
 #include <hcsparse.h>
 #include <iostream>
+#include <hc_am.hpp>
 #include "gtest/gtest.h"
 
 #define TOLERANCE 0.01
@@ -73,10 +74,10 @@ TEST(axpby_float_test, func_check)
         host_res[i] = host_alpha[0] * host_X[i] + host_beta[0] * host_Y[i];
     }
 
-    array_view<float> *av_res = static_cast<array_view<float> *>(gR.values);
+    control.accl_view.copy(gR.values, host_R, sizeof(float) * num_elements);
     for (int i = 0; i < num_elements; i++)
     {
-        float diff = std::abs(host_res[i] - (*av_res)[i]);
+        float diff = std::abs(host_res[i] - host_R[i]);
         EXPECT_LT(diff, TOLERANCE);
     }
 

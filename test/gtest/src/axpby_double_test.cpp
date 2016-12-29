@@ -1,5 +1,6 @@
 #include <hcsparse.h>
 #include <iostream>
+#include <hc_am.hpp>
 #include "gtest/gtest.h"
 
 #define TOLERANCE 0.01
@@ -49,12 +50,6 @@ TEST(axpby_double_test, func_check)
     gAlpha.value = am_alloc(sizeof(double) * 1, acc[1], 0);
     gBeta.value = am_alloc(sizeof(double) * 1, acc[1], 0);
 
-    control.accl_view.copy(host_R, gR.values, sizeof(double) * num_elements);
-    control.accl_view.copy(host_X, gX.values, sizeof(double) * num_elements);
-    control.accl_view.copy(host_Y, gY.values, sizeof(double) * num_elements);
-    control.accl_view.copy(host_alpha, gAlpha.value, sizeof(double) * 1);
-    control.accl_view.copy(host_beta, gBeta.value, sizeof(double) * 1);
-
     gAlpha.offValue = 0;
     gBeta.offValue = 0;
     gR.offValues = 0;
@@ -64,6 +59,12 @@ TEST(axpby_double_test, func_check)
     gR.num_values = num_elements;
     gX.num_values = num_elements;
     gY.num_values = num_elements;
+
+    control.accl_view.copy(host_R, gR.values, sizeof(double) * num_elements);
+    control.accl_view.copy(host_X, gX.values, sizeof(double) * num_elements);
+    control.accl_view.copy(host_Y, gY.values, sizeof(double) * num_elements);
+    control.accl_view.copy(host_alpha, gAlpha.value, sizeof(double) * 1);
+    control.accl_view.copy(host_beta, gBeta.value, sizeof(double) * 1);
 
     hcsparseStatus status;
 
@@ -78,7 +79,7 @@ TEST(axpby_double_test, func_check)
 
     for (int i = 0; i < num_elements; i++)
     {
-        double diff = std::abs(host_res[i] - (*av_res)[i]);
+        double diff = std::abs(host_res[i] - host_R[i]);
         EXPECT_LT(diff, TOLERANCE);
     }
 
