@@ -67,7 +67,7 @@ TEST(axpy_double_test, func_check)
         host_res[i] = host_alpha[0] * host_X[i] + host_Y[i];
     }
 
-    control.accl_view.copy(gR.values, host_R, sizeof(float) * num_elements);
+    control.accl_view.copy(gR.values, host_R, sizeof(double) * num_elements);
 
     for (int i = 0; i < num_elements; i++)
     {
