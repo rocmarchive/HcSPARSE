@@ -35,9 +35,9 @@ int main()
         host_Y[i] = rand()%100;
     }
     
-    control.accl_view.copy(host_X, gX.values, sizeof(double) * num_elements);
-    control.accl_view.copy(host_Y, gY.values, sizeof(double) * num_elements);
-    control.accl_view.copy(host_R, gR.values, sizeof(double) * num_elements);
+    control.accl_view.copy(host_X, gX.values, sizeof(float) * num_elements);
+    control.accl_view.copy(host_Y, gY.values, sizeof(float) * num_elements);
+    control.accl_view.copy(host_R, gR.values, sizeof(float) * num_elements);
 
     gR.offValues = 0;
     gX.offValues = 0;
@@ -89,7 +89,7 @@ int main()
                 break;
         }
 
-        control.accl_view.copy(gR.values, host_R, sizeof(double) * num_elements);
+        control.accl_view.copy(gR.values, host_R, sizeof(float) * num_elements);
 
         for (int i = 0; i < num_elements; i++)
         {
