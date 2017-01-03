@@ -25,11 +25,10 @@ public:
         int status;
 
         int size = std::min(A->num_rows, A->num_cols);
-
+        hc::accelerator acc = (control->accl_view).get_accelerator();
+        
         invBuff = (T*) calloc ( size, sizeof(T));
-        hc::array_view<T> av_invBuff(size, invBuff);
- 
-        invDiag_A.values = &av_invBuff;
+        invDiag_A.values = am_alloc(sizeof(T)*size, acc, 0);
         invDiag_A.num_values = size;
         invDiag_A.offValues = 0;
 
@@ -37,10 +36,8 @@ public:
         // easy to check with poisson matrix;
         status = extract_diagonal<T, true>(&invDiag_A, A, control);
 
-        hc::array_view<T> *avInvDiag = static_cast<hc::array_view<T> *>(invDiag_A.values);         
-
-        for (int i = 0; i < size; i++)
-            invBuff[i] = (*avInvDiag)[i];
+        T *avInvDiag = static_cast<T *>(invDiag_A.values);         
+        control->accl_view.copy(invDiag_A.values, invBuff, sizeof(T)*size);
     }
 
     // apply preconditioner
@@ -49,8 +46,8 @@ public:
                      hcsparseControl* control)    
     {
 
-        hc::array_view<T> av_invBuff(invDiag_A.num_values, invBuff);
-        invDiag_A.values = &av_invBuff;
+        if (invDiag_A.values != NULL)
+          control->accl_view.copy(invBuff, invDiag_A.values, sizeof(T)*invDiag_A.num_values);
 
         //element wise multiply y = x*invDiag_A;
         elementwise_transform<T, EW_MULTIPLY>(y, x, &invDiag_A, control);
