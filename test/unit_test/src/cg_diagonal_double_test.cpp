@@ -1,5 +1,7 @@
 #include <hcsparse.h>
 #include <iostream>
+#include <hc_am.hpp>
+
 int main(int argc, char *argv[])
 {
     hcsparseCsrMatrix gA;
@@ -45,16 +47,16 @@ int main(int argc, char *argv[])
         host_B[i] = rand()%100;
     }
 
-    array_view<double> dev_X(num_col, host_X);
-    array_view<double> dev_B(num_row, host_B);
-
     hcsparseSetup();
     hcsparseInitCsrMatrix(&gA);
     hcsparseInitVector(&gX);
     hcsparseInitVector(&gB);
 
-    gX.values = &dev_X;
-    gB.values = &dev_B;
+    gX.values = am_alloc(sizeof(double) * num_col, acc[1], 0);
+    gB.values = am_alloc(sizeof(double) * num_row, acc[1], 0);
+
+    control.accl_view.copy(host_X, gX.values, sizeof(double) * num_col);
+    control.accl_view.copy(host_B, gB.values, sizeof(double) * num_row);
 
     gX.offValues = 0;
     gB.offValues = 0;
@@ -67,16 +69,12 @@ int main(int argc, char *argv[])
     gA.offRowOff = 0;
 
     double *values = (double*)calloc(num_nonzero, sizeof(double));
-    int *rowIndices = (int*)calloc(num_row+1, sizeof(int));
+    int *rowOffsets = (int*)calloc(num_row+1, sizeof(int));
     int *colIndices = (int*)calloc(num_nonzero, sizeof(int));
 
-    array_view<double> av_values(num_nonzero, values);
-    array_view<int> av_rowOff(num_row+1, rowIndices);
-    array_view<int> av_colIndices(num_nonzero, colIndices);
-
-    gA.values = &av_values;
-    gA.rowOffsets = &av_rowOff;
-    gA.colIndices = &av_colIndices;
+    gA.values = am_alloc(sizeof(double) * num_nonzero, acc[1], 0);
+    gA.rowOffsets = am_alloc(sizeof(int) * (num_row+1), acc[1], 0);
+    gA.colIndices = am_alloc(sizeof(int) * num_nonzero, acc[1], 0);
 
     status = hcsparseDCsrMatrixfromFile(&gA, filename, &control, false);
    
@@ -85,6 +83,10 @@ int main(int argc, char *argv[])
         std::cout<<"The input file should be in mtx format"<<std::endl;
         return 0;
     }
+
+    control.accl_view.copy(gA.values, values, sizeof(double) * num_nonzero);
+    control.accl_view.copy(gA.rowOffsets, rowOffsets, sizeof(int) * (num_row+1));
+    control.accl_view.copy(gA.colIndices, colIndices, sizeof(int) * num_nonzero);
 
     int maxIter = 1000;
     double relTol = 0.0001;
@@ -96,19 +98,18 @@ int main(int argc, char *argv[])
 
     hcsparseDcsrcg(&gX, &gA, &gB, solver_control, &control); 
 
-    dev_X.synchronize();
-    dev_B.synchronize();
-    av_values.synchronize();
-    av_rowOff.synchronize();
-    av_colIndices.synchronize();
-
     hcsparseTeardown();
 
     free(host_X);
     free(host_B);
     free(values);
-    free(rowIndices);
+    free(rowOffsets);
     free(colIndices);
+    am_free(gX.values);
+    am_free(gB.values);
+    am_free(gA.values);
+    am_free(gA.rowOffsets);
+    am_free(gA.colIndices);
 
     return 0; 
 }
