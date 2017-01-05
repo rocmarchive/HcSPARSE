@@ -138,7 +138,7 @@ cg (hcdenseVector *pX,
     M(&r, &z, control);
 
     //copy inital z to p
-    control->accl_view.copy(p.values, z.values, sizeof(T)*N);
+    control->accl_view.copy(z.values, p.values, sizeof(T)*N);
 
     //rz = <r, z>, here actually should be conjugate(r)) but we do not support complex type.
     T *rz_Buff = (T*) calloc(1, sizeof(T));
