@@ -8,6 +8,58 @@
 using namespace hc;
 using namespace hc::precise_math;
 
+/* Class which implements the hcsparse library */
+class hcsparseLibrary
+{
+public:
+
+    // Add current Accerator field
+    hc::accelerator currentAccl;
+
+    // Filed to check if library is initialized
+    bool initialized = false;
+
+    hc::accelerator_view currentAcclView;
+
+    // StreamInfo
+    void* currentStream = NULL;
+
+    // for NV(32) for AMD(64)
+    size_t wavefront_size = 0;
+    size_t max_wg_size = 0;
+
+    // Should we attempt to perform compensated summation?
+    bool extended_precision = false;
+
+    // Does our device have double precision support?
+    bool dpfp_support = false;
+
+    // current device max compute units;
+    uint max_compute_units = 0;
+
+    // Constructor to initialize the library with the given accelerator
+    hcsparseLibrary(hc::accelerator *acc)
+        : currentAcclView(acc->get_default_view())
+    {
+      std::vector<accelerator> accs = accelerator::get_all();
+      for (int i=0;i<accs.size();i++) {
+        if (accs[i] == *acc) {
+          this-> initialized = true;
+          break;
+        }
+      }
+      assert(this->initialized);
+      this->currentAccl = *acc;
+    }
+
+    ~hcsparseLibrary()
+    {
+       // Deinitialize the library
+       this->initialized = false;
+    }
+
+};
+
 template<typename T>
 struct Coordinate
 {
