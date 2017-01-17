@@ -109,6 +109,45 @@ hcsparseStatus_t  hcsparseGetAcclView(hcsparseHandle_t handle, hc::accelerator_v
   return HCSPARSE_STATUS_SUCCESS;
 }
 
+// 5. hcsparseCreateMatDescr()
+
+// This function initializes the matrix descriptor. It sets the fields MatrixType
+// and IndexBase to the default values HCSPARSE_MATRIX_TYPE_GENERAL and
+// HCSPARSE_INDEX_BASE_ZERO, respectively, while leaving other fields uninitialized.
+
+// Return Values
+// --------------------------------------------------------------------
+// HCSPARSE_STATUS_SUCCESS            initialization succeeded
+// HCSPARSE_STATUS_ALLOC_FAILED       the resources could not be allocated  
+hcsparseStatus_t
+hcsparseCreateMatDescr(hcsparseMatDescr_t *descrA) {
+  if (descrA == nullptr) {
+    return HCSPARSE_STATUS_ALLOC_FAILED;
+  }
+
+  descrA->MatrixType = HCSPARSE_MATRIX_TYPE_GENERAL;
+  descrA->IndexBase = HCSPARSE_INDEX_BASE_ZERO;
+  return HCSPARSE_STATUS_SUCCESS;
+}
+
+// 6. hcsparseDestroyMatDescr()
+
+// This function releases the memory allocated for the matrix descriptor.
+
+// Return Values
+// --------------------------------------------------------------------
+// HCSPARSE_STATUS_SUCCESS            initialization succeeded
+
+hcsparseStatus_t
+hcsparseDestroyMatDescr(hcsparseMatDescr_t *descrA) {
+  if (descrA != NULL) {
+    delete descrA;
+    descrA = NULL;
+  }
+  return HCSPARSE_STATUS_SUCCESS;
+}
+
+
 hcsparseStatus
 hcsparseSetup(void)
 {

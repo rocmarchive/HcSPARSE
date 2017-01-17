@@ -113,6 +113,53 @@ hcsparseStatus_t hcsparseCreate(hcsparseHandle_t* handle, hc::accelerator *acc);
 
 hcsparseStatus_t hcsparseDestroy(hcsparseHandle_t* handle);
 
+// 3. hcsparseSetAcclView()
+
+//This function sets the hcSPARSE library stream, which will be used to execute all subsequent calls to the hcSPARSE library functions. If the hcSPARSE library stream is not set, all kernels use the defaultNULL stream. In particular, this routine can be used to change the stream between kernel launches and then to reset the hcSPARSE library stream back to NULL.
+
+// Return Values
+// ---------------------------------------------------------------------
+// HCSPARSE_STATUS_SUCCESS         :the stream was set successfully
+// HCSPARSE_STATUS_NOT_INITIALIZED :the library was not initialized
+hcsparseStatus_t hcsparseSetAcclView(hcsparseHandle_t handle, hc::accelerator_view accl_view, void* stream);
+
+ // 4. hcsparseGetAcclView()
+
+// This function gets the hcSPARSE library stream, which is being used to execute all calls to the hcSPARSE library functions. If the hcSPARSE library stream is not set, all kernels use the defaultNULL stream.
+
+// Return Values
+// ---------------------------------------------------------------------
+// HCSPARSE_STATUS_SUCCESS : the stream was returned successfully
+// HCSPARSE_STATUS_NOT_INITIALIZED : the library was not initialized
+
+hcsparseStatus_t  hcsparseGetAcclView(hcsparseHandle_t handle, hc::accelerator_view **accl_view, void** stream);
+ 
+
+// 5. hcsparseCreateMatDescr()
+
+// This function initializes the matrix descriptor. It sets the fields MatrixType
+// and IndexBase to the default values HCSPARSE_MATRIX_TYPE_GENERAL and
+// HCSPARSE_INDEX_BASE_ZERO, respectively, while leaving other fields uninitialized.
+
+// Return Values
+// --------------------------------------------------------------------
+// HCSPARSE_STATUS_SUCCESS            initialization succeeded
+// HCSPARSE_STATUS_ALLOC_FAILED       the resources could not be allocated  
+
+hcsparseStatus_t
+hcsparseCreateMatDescr(hcsparseMatDescr_t *descrA);
+
+// 6. hcsparseDestroyMatDescr()
+
+// This function releases the memory allocated for the matrix descriptor.
+
+// Return Values
+// --------------------------------------------------------------------
+// HCSPARSE_STATUS_SUCCESS            initialization succeeded
+
+hcsparseStatus_t
+hcsparseDestroyMatDescr(hcsparseMatDescr_t *descrA);
+
     /*!
     * \brief Initialize the hcsparse library
     * \note Must be called before any other hcsparse API function is invoked.
