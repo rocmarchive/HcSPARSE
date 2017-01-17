@@ -30,6 +30,62 @@ enum hcsparseStatus_t {
   HCSPARSE_STATUS_INTERNAL_ERROR    // an internal HCSPARSE operation failed
 };
 
+// 2.2.3. hcsparseDiagType_t
+
+// This type indicates if the matrix diagonal entries are unity. 
+// The diagonal elements are always assumed to be present, but if HCSPARSE_DIAG_TYPE_UNIT 
+// is passed to an API routine, then the routine assumes that all diagonal entries are unity
+// and will not read or modify those entries. 
+// Note that in this case the routine assumes the diagonal entries are equal to one, 
+// regardless of what those entries are actually set to in memory.
+
+enum hcsparseDiagType_t {
+  HCSPARSE_DIAG_TYPE_NON_UNIT, // the matrix diagonal has non-unit elements.
+  HCSPARSE_DIAG_TYPE_UNIT      // the matrix diagonal has unit elements.
+};
+
+// 2.2.4. hcsparseFillMode_t
+
+// This type indicates if the lower or upper part of a matrix is stored in sparse storage.
+
+enum hcsparseFillMode_t {
+  HCSPARSE_FILL_MODE_LOWER,  // the lower triangular part is stored.
+  HCSPARSE_FILL_MODE_UPPER   // the upper triangular part is stored.
+};
+
+// 2.2.5 hcsparseIndexBase_t
+
+// This type indicates if the base of the matrix indices is zero or one.
+
+enum hcsparseIndexBase_t {
+  HCSPARSE_INDEX_BASE_ZERO,  // the base index is zero.
+  HCSPARSE_INDEX_BASE_ONE
+};
+
+// 2.2.6. hcsparseMatrixType_t
+
+// This type indicates the type of matrix stored in sparse storage. 
+// Notice that for symmetric, Hermitian and triangular matrices only their lower 
+// or upper part is assumed to be stored.
+
+enum hcsparseMatrixType_t {
+  HCSPARSE_MATRIX_TYPE_GENERAL,    // the matrix is general.
+  HCSPARSE_MATRIX_TYPE_SYMMETRIC,  // the matrix is symmetric.
+  HCSPARSE_MATRIX_TYPE_HERMITIAN,  // the matrix is hermitian.
+  HCSPARSE_MATRIX_TYPE_TRIANGULAR  // the matrix is triangular.
+};
+
+// 2.2.7. hcsparseMatDescr_t
+
+// This structure is used to describe the shape and properties of a matrix.
+
+typedef struct {
+    hcsparseMatrixType_t MatrixType;
+    hcsparseFillMode_t FillMode;
+    hcsparseDiagType_t DiagType;
+    hcsparseIndexBase_t IndexBase;
+} hcsparseMatDescr_t;
+
 // hcsparse Helper functions 
 
 // 1. hcsparseCreate()
