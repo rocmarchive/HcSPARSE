@@ -47,8 +47,7 @@ hcsparseStatus_t hcsparseCreate(hcsparseHandle_t *handle, hc::accelerator *acc) 
     handle = new hcsparseHandle_t();
   }
 
-  hc::accelerator_view accl_view = acc->get_default_view();
-  *handle = new hcsparseControl_(accl_view);
+  *handle = new hcsparseLibrary(acc);
 
   if(*handle == NULL) {
     return HCSPARSE_STATUS_ALLOC_FAILED;
@@ -75,6 +74,40 @@ hcsparseStatus_t hcsparseDestroy(hcsparseHandle_t *handle){
   return HCSPARSE_STATUS_SUCCESS;
 }
 
+// 3. hcsparseSetAcclView()
+
+//This function sets the hcSPARSE library stream, which will be used to execute all subsequent calls to the hcSPARSE library functions. If the hcSPARSE library stream is not set, all kernels use the defaultNULL stream. In particular, this routine can be used to change the stream between kernel launches and then to reset the hcSPARSE library stream back to NULL.
+
+// Return Values
+// ---------------------------------------------------------------------
+// HCSPARSE_STATUS_SUCCESS         :the stream was set successfully
+// HCSPARSE_STATUS_NOT_INITIALIZED :the library was not initialized
+hcsparseStatus_t hcsparseSetAcclView(hcsparseHandle_t handle, hc::accelerator_view accl_view, void* stream) {
+  if (handle == nullptr || handle->initialized == false) {
+    return HCSPARSE_STATUS_NOT_INITIALIZED;    
+  }
+  handle->currentAcclView = accl_view;
+  handle->currentStream = stream;
+  return HCSPARSE_STATUS_SUCCESS;
+}
+
+// 4. hcsparseGetAcclView()
+
+// This function gets the hcSPARSE library stream, which is being used to execute all calls to the hcSPARSE library functions. If the hcSPARSE library stream is not set, all kernels use the defaultNULL stream.
+
+// Return Values
+// ---------------------------------------------------------------------
+// HCSPARSE_STATUS_SUCCESS : the stream was returned successfully
+// HCSPARSE_STATUS_NOT_INITIALIZED : the library was not initialized
+
+hcsparseStatus_t  hcsparseGetAcclView(hcsparseHandle_t handle, hc::accelerator_view **accl_view, void** stream) {
+  if (handle == nullptr) {
+    return HCSPARSE_STATUS_NOT_INITIALIZED;    
+  }
+  *accl_view = &handle->currentAcclView;
+  stream = &(handle->currentStream);
+  return HCSPARSE_STATUS_SUCCESS;
+}
 
 hcsparseStatus
 hcsparseSetup(void)

@@ -5,12 +5,13 @@
 
 //2.2.1. hcsparseHandle_t
 
-// The hcsparseHandle_t type is a pointer to an opaque structure holding the hcBLAS library context. 
-// The hcBLAS library context must be initialized using hcsparseCreate() and the returned handle must be 
+// The hcsparseHandle_t type is a pointer to an opaque structure holding the hcsparse library context. 
+// The hcsparse library context must be initialized using hcsparseCreate() and the returned handle must be 
 // passed to all subsequent library function calls. The context should be destroyed at the end using 
 // hcsparseDestroy().
 
-typedef struct hcsparseControl_* hcsparseHandle_t;
+typedef struct hcsparseLibrary* hcsparseHandle_t;
+typedef int hcsparseStream_t;
 
 // 2.2.2. hcsparseStatus_t
 
