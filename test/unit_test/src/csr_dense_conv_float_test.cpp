@@ -132,5 +132,61 @@ int main(int argc, char *argv[])
     am_free(gCsrMat_res.colIndices);
     am_free(gMat.values);
 
+     /* Test New APIs */
+    hcsparseHandle_t handle;
+    hcsparseStatus_t status1;
+    hc::accelerator accl;
+    hc::accelerator_view av = accl.get_default_view();
+
+    status1 = hcsparseCreate(&handle, &av);
+    if (status1 != HCSPARSE_STATUS_SUCCESS) {
+      std::cout << "Error Initializing the sparse library."<<std::endl;
+      return -1;
+    }
+    std::cout << "Successfully initialized sparse library"<<std::endl;
+
+    hcsparseMatDescr_t descrA;
+
+    status1 = hcsparseCreateMatDescr(&descrA);
+    if (status1 != HCSPARSE_STATUS_SUCCESS) {
+      std::cout << "error creating mat descrptr"<<std::endl;
+      return -1;
+    }
+    std::cout << "successfully created mat descriptor"<<std::endl;
+
+    float* csrValA = (float*) am_alloc(num_nonzero * sizeof(float), handle->currentAccl, 0);
+    int* csrRowPtrA = (int*) am_alloc((num_row+1) * sizeof(int), handle->currentAccl, 0);
+    int* csrColIndA = (int*) am_alloc(num_nonzero * sizeof(int), handle->currentAccl, 0);
+    float* A = (float*) am_alloc(num_row*num_col * sizeof(float), handle->currentAccl, 0);
+
+    control.accl_view.copy(gCsrMat.values, csrValA, num_nonzero * sizeof(double));
+    control.accl_view.copy(gCsrMat.rowOffsets, csrRowPtrA, (num_row+1) * sizeof(int));
+    control.accl_view.copy(gCsrMat.colIndices, csrColIndA, num_nonzero * sizeof(int));
+
+    std::cout << "hcsparse conv call" << std::endl;
+    status1 = hcsparseScsr2dense(handle, num_row, num_col,
+                                 descrA, csrValA, csrRowPtrA, csrColIndA, A, num_row ,num_nonzero);
+    if (status1 != HCSPARSE_STATUS_SUCCESS) {
+      std::cout << "Error csr2dense conversion "<<std::endl;
+      return -1;
+    }
+    std::cout << "csr2dense conv. - success"<<std::endl;
+
+    status1 = hcsparseDestroyMatDescr(&descrA);
+    if (status1 != HCSPARSE_STATUS_SUCCESS) {
+      std::cout << "error creating mat descrptr"<<std::endl;
+      return -1;
+    }
+    std::cout << "successfully created mat descriptor"<<std::endl;
+
+    status1 = hcsparseDestroy(&handle);
+    if (status1 != HCSPARSE_STATUS_SUCCESS) {
+      std::cout << "Error DeInitializing the sparse library."<<std::endl;
+      return -1;
+    }
+    std::cout << "Successfully deinitialized sparse library"<<std::endl;
+   
+    /* End - Test of New APIs */
+
     return 0; 
 }

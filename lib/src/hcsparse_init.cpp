@@ -42,12 +42,12 @@ int hcsparseInitialized = 0;
 // HCSPARSE_STATUS_SUCCESS            initialization succeeded
 // HCSPARSE_STATUS_ALLOC_FAILED       the resources could not be allocated  
 
-hcsparseStatus_t hcsparseCreate(hcsparseHandle_t *handle, hc::accelerator *acc) {
+hcsparseStatus_t hcsparseCreate(hcsparseHandle_t *handle, hc::accelerator_view *accl_view) {
   if (handle == NULL) {
     handle = new hcsparseHandle_t();
   }
 
-  *handle = new hcsparseLibrary(acc);
+  *handle = new hcsparseLibrary(accl_view);
 
   if(*handle == NULL) {
     return HCSPARSE_STATUS_ALLOC_FAILED;
@@ -122,7 +122,9 @@ hcsparseStatus_t  hcsparseGetAcclView(hcsparseHandle_t handle, hc::accelerator_v
 hcsparseStatus_t
 hcsparseCreateMatDescr(hcsparseMatDescr_t *descrA) {
   if (descrA == nullptr) {
-    return HCSPARSE_STATUS_ALLOC_FAILED;
+    descrA = (hcsparseMatDescr_t*)malloc(sizeof(hcsparseMatDescr_t));
+    if (descrA == NULL)
+      return HCSPARSE_STATUS_ALLOC_FAILED;
   }
 
   descrA->MatrixType = HCSPARSE_MATRIX_TYPE_GENERAL;
@@ -141,7 +143,6 @@ hcsparseCreateMatDescr(hcsparseMatDescr_t *descrA) {
 hcsparseStatus_t
 hcsparseDestroyMatDescr(hcsparseMatDescr_t *descrA) {
   if (descrA != NULL) {
-    delete descrA;
     descrA = NULL;
   }
   return HCSPARSE_STATUS_SUCCESS;
@@ -1292,6 +1293,66 @@ hcsparseDcsr2coo (const hcsparseCsrMatrix* csr,
     return csr2coo<double> (csr, coo, control);
 }
 
+hcsparseStatus_t hcsparseScsr2dense(hcsparseHandle_t handle,
+                                    int m, 
+                                    int n, 
+                                    const hcsparseMatDescr_t descrA,  
+                                    const float *csrValA, 
+                                    const int *csrRowPtrA, 
+                                    const int *csrColIndA,
+                                    float *A, 
+                                    int lda, int nnz)
+{
+  if (handle == nullptr) 
+    return HCSPARSE_STATUS_NOT_INITIALIZED;
+
+  if (!csrValA || !csrRowPtrA || !csrColIndA || !A)
+    return HCSPARSE_STATUS_ALLOC_FAILED;
+
+  if (descrA.MatrixType != HCSPARSE_MATRIX_TYPE_GENERAL)
+    return HCSPARSE_STATUS_INVALID_VALUE;
+
+  hcsparseCsrMatrix *csr;
+  hcsparseInitCsrMatrix(csr);
+
+  std::cout << "check 1" <<std::endl;
+  csr->offValues = 0;
+  csr->offColInd = 0;
+  csr->offRowOff = 0;
+
+  // Implement calc num_nonzero function and remove the code in future
+  int num_nonzero = nnz;
+  int num_row = m;
+  int num_col = n;
+
+  std::cout << "check 1" <<std::endl;
+  csr->values = (float*) am_alloc(num_nonzero * sizeof(float), handle->currentAccl, 0);
+  csr->rowOffsets = (int*) am_alloc((num_row+1) * sizeof(int), handle->currentAccl, 0);
+  csr->colIndices = (int*) am_alloc(num_nonzero * sizeof(int), handle->currentAccl, 0);
+
+  std::cout << "check 2" <<std::endl;
+  // Temp code: used for functionality check
+  hcsparseControl control(handle->currentAcclView);
+
+  std::cout << "check 3" <<std::endl;
+  control.accl_view.copy(csrValA, csr->values, num_nonzero * sizeof(double));
+  control.accl_view.copy(csrRowPtrA, csr->rowOffsets, (num_row+1) * sizeof(int));
+  control.accl_view.copy(csrColIndA, csr->colIndices, num_nonzero * sizeof(int));
+
+  std::cout << "check 4" <<std::endl;
+  hcdenseMatrix *denA;
+  denA->offValues = 0;
+  denA->values = (float*) am_alloc(num_row*num_col*sizeof(float), handle->currentAccl, 0);
+
+  std::cout << "check 5" <<std::endl;
+  hcsparseStatus status = csr2dense<float>(csr, denA, &control);
+
+  std::cout << "check 6" <<std::endl;
+  if (status == hcsparseSuccess)
+   return HCSPARSE_STATUS_SUCCESS;
+
+  return HCSPARSE_STATUS_INVALID_VALUE;
+}
 hcsparseStatus
 hcsparseScsr2dense (const hcsparseCsrMatrix* csr,
                     hcdenseMatrix* A,
