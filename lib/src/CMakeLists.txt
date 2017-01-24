@@ -1,3 +1,4 @@
+
 CMAKE_MINIMUM_REQUIRED (VERSION 2.8.8) 
 MESSAGE(STATUS "CMAKE VERSION ${CMAKE_VERSION}")
 
@@ -21,22 +22,22 @@ SET (INIT_SRC
 SET (SRCS ${INIT_SRC})
 
   # Choice to take compilation flags from source or package
-  if(EXISTS ${MCWHCCBUILD})
+  if(EXISTS ${HCC_HOME})
     execute_process(COMMAND ${HCC_CONFIG} --build --cxxflags
                             OUTPUT_VARIABLE HCC_CXXFLAGS)
     execute_process(COMMAND ${HCC_CONFIG} --build --ldflags --shared
                             OUTPUT_VARIABLE HCC_LDFLAGS)
-  else(EXISTS ${MCWHCCBUILD})
+  else(EXISTS ${HCC_HOME})
     execute_process(COMMAND ${HCC_CONFIG} --install --cxxflags
                             OUTPUT_VARIABLE HCC_CXXFLAGS)
     execute_process(COMMAND ${HCC_CONFIG} --install --ldflags --shared
                             OUTPUT_VARIABLE HCC_LDFLAGS)
-  endif(EXISTS ${MCWHCCBUILD})
+  endif(EXISTS ${HCC_HOME})
  
   string(STRIP "${HCC_CXXFLAGS}" HCC_CXXFLAGS)
   string(STRIP "${HCC_LDFLAGS}" HCC_LDFLAGS)
-  set (HCC_CXXFLAGS "${HCC_CXXFLAGS} -I${CMAKE_CURRENT_SOURCE_DIR}/include")
-  set (HCC_LDFLAGS "${HCC_LDFLAGS}" )
+  set (HCC_CXXFLAGS "${HCC_CXXFLAGS} -I${CMAKE_CURRENT_SOURCE_DIR}/../include")
+  set (HCC_LDFLAGS "${HCC_LDFLAGS}")
 
   FOREACH(src_file ${SRCS})
 	  SET_PROPERTY(SOURCE ${src_file} APPEND_STRING PROPERTY COMPILE_FLAGS " ${HCC_CXXFLAGS} ")
@@ -51,5 +52,5 @@ SET (SRCS ${INIT_SRC})
     ARCHIVE DESTINATION lib
   )
 
-  INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/include/hcsparse.h" "${CMAKE_CURRENT_SOURCE_DIR}/include/hcsparse_struct.h" DESTINATION include)
+  INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/../include/hcsparse.h" "${CMAKE_CURRENT_SOURCE_DIR}/../include/hcsparse_struct.h" DESTINATION include)
 

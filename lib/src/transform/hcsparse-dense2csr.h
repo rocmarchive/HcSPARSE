@@ -4,22 +4,22 @@ template <typename T>
 hcsparseStatus
 dense2csr (const hcdenseMatrix* A,
            hcsparseCsrMatrix* csr,
-           const hcsparseControl* control)
+           hcsparseControl* control)
 {
-    int dense_size = A->num_cols * A->num_rows;
+    hc::accelerator acc = (control->accl_view).get_accelerator();
+
+    ulong dense_size = A->num_cols * A->num_rows;
 
     //calculate nnz
-    int* nnz_location_buf = (int*) calloc (dense_size, sizeof(int));
-    hc::array_view<int> nnz_locations(dense_size, nnz_location_buf);
+    int *nnz_locations = (int*) am_alloc(dense_size * sizeof(int), acc, 0);
 
-    hc::array_view<T> *Avalues = static_cast<hc::array_view<T> *>(A->values);
+    T *Avalues = static_cast<T*>(A->values);
 
     int num_nonzeros = 0;
 
-    calculate_num_nonzeros<T> (dense_size, *Avalues, nnz_locations, num_nonzeros, control);
+    calculate_num_nonzeros<T> (dense_size, Avalues, nnz_locations, num_nonzeros, control);
 
-    int* coo_indexes_buf = (int*) calloc (dense_size, sizeof(int));
-    hc::array_view<int> coo_indexes(dense_size, coo_indexes_buf);
+    int *coo_indexes = (int*) am_alloc(dense_size * sizeof(int), acc, 0);
 
     exclusive_scan<int, EW_PLUS>(dense_size, coo_indexes, nnz_locations, control);
 
@@ -35,31 +35,22 @@ dense2csr (const hcdenseMatrix* A,
     coo.num_rows = A->num_rows;
     coo.num_cols = A->num_cols;
 
-    int* colInd_buf = (int*) calloc (num_nonzeros, sizeof(int));
-    int* rowInd_buf = (int*) calloc (num_nonzeros, sizeof(int));
-    T* val_buf = (T*) calloc (num_nonzeros, sizeof(T));
+    coo.colIndices = (int*) am_alloc(num_nonzeros * sizeof(int), acc, 0);
+    coo.rowIndices = (int*) am_alloc(num_nonzeros * sizeof(int), acc, 0);
+    coo.values = (T*) am_alloc(num_nonzeros * sizeof(T), acc, 0);
 
-    hc::array_view<int> colInd(num_nonzeros, colInd_buf);
-    hc::array_view<int> rowInd(num_nonzeros, rowInd_buf);
-    hc::array_view<T> values(num_nonzeros, val_buf);
-
-    coo.values = &values;
-    coo.colIndices = &colInd;
-    coo.rowIndices = &rowInd;
-
-    dense_to_coo<T> (dense_size, A->num_cols, rowInd, colInd, values, *Avalues, nnz_locations, coo_indexes, control);
+    dense_to_coo<T> (dense_size, A->num_cols, static_cast<int*>(coo.rowIndices), static_cast<int*>(coo.colIndices), static_cast<T*>(coo.values), Avalues, nnz_locations, coo_indexes, control);
 
     if (typeid(T) == typeid(double))
         hcsparseDcoo2csr(&coo, csr, control);
     else
         hcsparseScoo2csr(&coo, csr, control);
 
-    colInd.synchronize();
-    rowInd.synchronize();
-    values.synchronize();
+    am_free(nnz_locations);
+    am_free(coo_indexes);
+    am_free(coo.colIndices);
+    am_free(coo.rowIndices);
+    am_free(coo.values);
 
-    free(colInd_buf);
-    free(rowInd_buf);
-    free(val_buf);
     return hcsparseSuccess;
 }

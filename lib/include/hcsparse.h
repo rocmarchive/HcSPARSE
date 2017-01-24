@@ -3,6 +3,59 @@
 
 #include "hcsparse_struct.h"
 
+//2.2.1. hcsparseHandle_t
+
+// The hcsparseHandle_t type is a pointer to an opaque structure holding the hcBLAS library context. 
+// The hcBLAS library context must be initialized using hcsparseCreate() and the returned handle must be 
+// passed to all subsequent library function calls. The context should be destroyed at the end using 
+// hcsparseDestroy().
+
+typedef struct hcsparseControl_* hcsparseHandle_t;
+
+// 2.2.2. hcsparseStatus_t
+
+// The type  hcsparseStatus  is used for function status returns. HCSPARSE 
+// helper functions return status directly, while the status of HCSPARSE 
+// core functions can be retrieved via  hcsparseGetError() . Currently, the 
+// following values are defined: 
+
+enum hcsparseStatus_t {
+  HCSPARSE_STATUS_SUCCESS,          // Function succeeds
+  HCSPARSE_STATUS_NOT_INITIALIZED,  // HCSPARSE library not initialized
+  HCSPARSE_STATUS_ALLOC_FAILED,     // resource allocation failed
+  HCSPARSE_STATUS_INVALID_VALUE,    // unsupported numerical value was passed to function
+  HCSPARSE_STATUS_MAPPING_ERROR,    // access to GPU memory space failed
+  HCSPARSE_STATUS_EXECUTION_FAILED, // GPU program failed to execute
+  HCSPARSE_STATUS_INTERNAL_ERROR    // an internal HCSPARSE operation failed
+};
+
+// hcsparse Helper functions 
+
+// 1. hcsparseCreate()
+
+// This function initializes the HCSPARSE library and creates a handle to an opaque structure
+// holding the HCSPARSE library context.
+// Create the handle for use on the specified GPU.
+
+// Return Values
+// --------------------------------------------------------------------
+// HCSPARSE_STATUS_SUCCESS            initialization succeeded
+// HCSPARSE_STATUS_ALLOC_FAILED       the resources could not be allocated  
+
+hcsparseStatus_t hcsparseCreate(hcsparseHandle_t* handle, hc::accelerator *acc);
+
+// 2. hcsparseDestory()
+
+// This function releases hardware resources used by the HCSPARSE library.
+// This function is usually the last call with a particular handle to the HCSPARSE library.
+
+// Return Values
+// ---------------------------------------------------------------------
+// HCSPARSE_STATUS_SUCCESS            the shut down succeeded
+// HCSPARSE_STATUS_NOT_INITIALIZED    the library was not initialized
+
+hcsparseStatus_t hcsparseDestroy(hcsparseHandle_t* handle);
+
     /*!
     * \brief Initialize the hcsparse library
     * \note Must be called before any other hcsparse API function is invoked.
@@ -387,7 +440,7 @@
         hcdenseSscale( hcdenseVector* r,
                        const hcsparseScalar* alpha,
                        const hcdenseVector* y,
-                       const hcsparseControl *control );
+                       hcsparseControl *control );
 
     /*!
      * \brief Double precision scale dense vector by a scalar
@@ -403,7 +456,7 @@
         hcdenseDscale( hcdenseVector* r,
                        const hcsparseScalar* alpha,
                        const hcdenseVector* y,
-                       const hcsparseControl *control );
+                       hcsparseControl *control );
 
     /*!
      * \brief Single precision scale dense vector and add dense vector
@@ -420,7 +473,7 @@
         hcdenseSaxpy( hcdenseVector* r,
                       const hcsparseScalar* alpha, const hcdenseVector* x,
                       const hcdenseVector* y,
-                      const hcsparseControl *control );
+                      hcsparseControl *control );
 
     /*!
      * \brief Double precision scale dense vector and add dense vector
@@ -437,7 +490,7 @@
         hcdenseDaxpy( hcdenseVector* r,
                       const hcsparseScalar* alpha, const hcdenseVector* x,
                       const hcdenseVector* y,
-                      const hcsparseControl *control );
+                      hcsparseControl *control );
 
     /*!
      * \brief Single precision scale dense vector and add scaled dense vector
@@ -456,7 +509,7 @@
                        const hcsparseScalar* alpha, const hcdenseVector* x,
                        const hcsparseScalar* beta,
                        const hcdenseVector* y,
-                       const hcsparseControl *control );
+                       hcsparseControl *control );
 
     /*!
      * \brief Double precision scale dense vector and add scaled dense vector
@@ -475,7 +528,7 @@
                        const hcsparseScalar* alpha, const hcdenseVector* x,
                        const hcsparseScalar* beta,
                        const hcdenseVector* y,
-                       const hcsparseControl *control );
+                       hcsparseControl *control );
 
     /*!
      * \brief Reduce integer elements of a dense vector into a scalar value
@@ -489,7 +542,7 @@
     hcsparseStatus
         hcdenseIreduce( hcsparseScalar* s,
                         const hcdenseVector* x,
-                        const hcsparseControl *control );
+                        hcsparseControl *control );
 
     /*!
      * \brief Reduce single precision elements of a dense vector into a scalar value
@@ -503,7 +556,7 @@
     hcsparseStatus
         hcdenseSreduce( hcsparseScalar* s,
                         const hcdenseVector* x,
-                        const hcsparseControl *control );
+                        hcsparseControl *control );
 
     /*!
      * \brief Reduce double precision elements of a dense vector into a scalar value
@@ -517,7 +570,7 @@
     hcsparseStatus
         hcdenseDreduce( hcsparseScalar* s,
                         const hcdenseVector* x,
-                        const hcsparseControl *control );
+                        hcsparseControl *control );
 
     /*!
      * \brief Calculate the single precision L1 norm of a dense vector
@@ -530,7 +583,7 @@
     hcsparseStatus
         hcdenseSnrm1( hcsparseScalar* s,
                       const hcdenseVector* x,
-                      const hcsparseControl *control );
+                      hcsparseControl *control );
 
     /*!
      * \brief Calculate the double precision L1 norm of a dense vector
@@ -543,7 +596,7 @@
     hcsparseStatus
         hcdenseDnrm1( hcsparseScalar *s,
                       const hcdenseVector* x,
-                      const hcsparseControl *control );
+                      hcsparseControl *control );
 
     /*!
      * \brief Calculate the single precision L2 norm of a dense vector
@@ -556,7 +609,7 @@
     hcsparseStatus
         hcdenseSnrm2( hcsparseScalar* s,
                       const hcdenseVector* x,
-                      const hcsparseControl *control );
+                      hcsparseControl *control );
 
     /*!
      * \brief Calculate the double precision L2 norm of a dense vector
@@ -569,7 +622,7 @@
     hcsparseStatus
         hcdenseDnrm2( hcsparseScalar* s,
                       const hcdenseVector* x,
-                      const hcsparseControl *control );
+                      hcsparseControl *control );
 
     /*!
      * \brief Calculates the single precision dot-product of a dense vector
@@ -584,7 +637,7 @@
         hcdenseSdot( hcsparseScalar* r,
                      const hcdenseVector* x,
                      const hcdenseVector* y,
-                     const hcsparseControl *control );
+                     hcsparseControl *control );
 
     /*!
      * \brief Calculates the double precision dot-product of a dense vector
@@ -599,7 +652,7 @@
         hcdenseDdot( hcsparseScalar* r,
                      const hcdenseVector* x,
                      const hcdenseVector* y,
-                     const hcsparseControl *control );
+                     hcsparseControl *control );
 
                  /* element-wise operations for dense vectors +, -, *, / */
 
@@ -616,7 +669,7 @@
         hcdenseSadd( hcdenseVector* r,
                      const hcdenseVector* x,
                      const hcdenseVector* y,
-                     const hcsparseControl *control );
+                     hcsparseControl *control );
 
     /*!
      * \brief Element-wise double precision addition of two dense vectors
@@ -631,7 +684,7 @@
         hcdenseDadd( hcdenseVector* r,
                      const hcdenseVector* x,
                      const hcdenseVector* y,
-                     const hcsparseControl *control );
+                     hcsparseControl *control );
 
     /*!
      * \brief Element-wise single precision subtraction of two dense vectors
@@ -646,7 +699,7 @@
         hcdenseSsub( hcdenseVector* r,
                      const hcdenseVector* x,
                      const hcdenseVector* y,
-                     const hcsparseControl *control );
+                     hcsparseControl *control );
 
     /*!
      * \brief Element-wise double precision subtraction of two dense vectors
@@ -661,7 +714,7 @@
         hcdenseDsub( hcdenseVector* r,
                      const hcdenseVector* x,
                      const hcdenseVector* y,
-                     const hcsparseControl *control );
+                     hcsparseControl *control );
 
     /*!
      * \brief Element-wise single precision multiplication of two dense vectors
@@ -676,7 +729,7 @@
         hcdenseSmul( hcdenseVector* r,
                      const hcdenseVector* x,
                      const hcdenseVector* y,
-                     const hcsparseControl *control );
+                     hcsparseControl *control );
 
     /*!
      * \brief Element-wise double precision multiplication of two dense vectors
@@ -691,7 +744,7 @@
         hcdenseDmul( hcdenseVector* r,
                      const hcdenseVector* x,
                      const hcdenseVector* y,
-                     const hcsparseControl *control );
+                     hcsparseControl *control );
 
     /*!
      * \brief Element-wise single precision division of two dense vectors
@@ -706,7 +759,7 @@
         hcdenseSdiv( hcdenseVector* r,
                      const hcdenseVector* x,
                      const hcdenseVector* y,
-                     const hcsparseControl *control );
+                     hcsparseControl *control );
 
     /*!
      * \brief Element-wise double precision division of two dense vectors
@@ -721,7 +774,7 @@
         hcdenseDdiv( hcdenseVector* r,
                      const hcdenseVector* x,
                      const hcdenseVector* y,
-                     const hcsparseControl *control );
+                     hcsparseControl *control );
     /**@}*/
 
     /*!
@@ -745,7 +798,7 @@
                         const hcdenseVector* x,
                         const hcsparseScalar* beta,
                         hcdenseVector* y,
-                        const hcsparseControl *control );
+                        hcsparseControl *control );
 
     /*!
      * \brief Double precision CSR sparse matrix times dense vector
@@ -768,7 +821,7 @@
                         const hcdenseVector* x,
                         const hcsparseScalar* beta,
                         hcdenseVector* y,
-                        const hcsparseControl *control );
+                        hcsparseControl *control );
 
 
     /*!
@@ -789,7 +842,7 @@
                         const hcdenseVector* x,
                         const hcsparseScalar* beta,
                         hcdenseVector* y,
-                        const hcsparseControl *control );
+                        hcsparseControl *control );
 
     /*!
      * \brief Double precision COO sparse matrix times dense vector
@@ -809,7 +862,7 @@
                         const hcdenseVector* x,
                         const hcsparseScalar* beta,
                         hcdenseVector* y,
-                        const hcsparseControl *control );
+                        hcsparseControl *control );
     /**@}*/
 
     /*!
@@ -842,7 +895,7 @@
                         const hcdenseMatrix* denseMatB,
                         const hcsparseScalar* beta,
                         hcdenseMatrix* denseMatC,
-                        const hcsparseControl *control );
+                        hcsparseControl *control );
 
     /*!
      * \brief Double precision CSR sparse matrix times dense matrix
@@ -864,7 +917,7 @@
                         const hcdenseMatrix* denseMatB,
                         const hcsparseScalar* beta,
                         hcdenseMatrix* denseMatC,
-                        const hcsparseControl *control );
+                        hcsparseControl *control );
 
     /*!
      * \brief Single Precision CSR Sparse Matrix times Sparse Matrix
@@ -880,7 +933,7 @@
       hcsparseScsrSpGemm( const hcsparseCsrMatrix* sparseMatA,
                           const hcsparseCsrMatrix* sparseMatB,
                                 hcsparseCsrMatrix* sparseMatC,
-                          const hcsparseControl *control );
+                          hcsparseControl *control );
     /**@}*/
 
     /*!
@@ -905,7 +958,7 @@
     hcsparseStatus
         hcsparseScsr2coo( const hcsparseCsrMatrix* csr,
                           hcsparseCooMatrix* coo,
-                          const hcsparseControl *control );
+                          hcsparseControl *control );
 
     /*!
      * \brief Convert a double precision CSR encoded sparse matrix into a COO encoded sparse matrix
@@ -919,7 +972,7 @@
     hcsparseStatus
         hcsparseDcsr2coo( const hcsparseCsrMatrix* csr,
                           hcsparseCooMatrix* coo,
-                          const hcsparseControl *control );
+                          hcsparseControl *control );
 
     /*!
      * \brief Convert a single precision COO encoded sparse matrix into a CSR encoded sparse matrix
@@ -933,7 +986,7 @@
     hcsparseStatus
         hcsparseScoo2csr( const hcsparseCooMatrix* coo,
                           hcsparseCsrMatrix* csr,
-                          const hcsparseControl *control );
+                          hcsparseControl *control );
 
     /*!
      * \brief Convert a double precision COO encoded sparse matrix into a CSR encoded sparse matrix
@@ -947,7 +1000,7 @@
     hcsparseStatus
         hcsparseDcoo2csr( const hcsparseCooMatrix* coo,
                           hcsparseCsrMatrix* csr,
-                          const hcsparseControl *control );
+                          hcsparseControl *control );
 
     /*!
      * \brief Convert a single precision CSR encoded sparse matrix into a dense matrix
@@ -961,7 +1014,7 @@
     hcsparseStatus
         hcsparseScsr2dense( const hcsparseCsrMatrix* csr,
                             hcdenseMatrix* A,
-                            const hcsparseControl *control );
+                            hcsparseControl *control );
 
     /*!
      * \brief Convert a double precision CSR encoded sparse matrix into a dense matrix
@@ -975,7 +1028,7 @@
     hcsparseStatus
         hcsparseDcsr2dense( const hcsparseCsrMatrix* csr,
                             hcdenseMatrix* A,
-                            const hcsparseControl *control );
+                            hcsparseControl *control );
 
     /*!
      * \brief Convert a single precision dense matrix into a CSR encoded sparse matrix
@@ -989,7 +1042,7 @@
     hcsparseStatus
         hcsparseSdense2csr( const hcdenseMatrix* A,
                             hcsparseCsrMatrix* csr,
-                            const hcsparseControl *control );
+                            hcsparseControl *control );
 
     /*!
      * \brief Convert a double precision dense matrix into a CSR encoded sparse matrix
@@ -1002,7 +1055,7 @@
      */
     hcsparseStatus
         hcsparseDdense2csr( const hcdenseMatrix* A, hcsparseCsrMatrix* csr,
-                            const hcsparseControl *control );
+                            hcsparseControl *control );
     /**@}*/
 
 #endif // _HC_SPARSE_H_

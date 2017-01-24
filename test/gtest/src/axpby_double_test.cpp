@@ -1,5 +1,6 @@
 #include <hcsparse.h>
 #include <iostream>
+#include <hc_am.hpp>
 #include "gtest/gtest.h"
 
 #define TOLERANCE 0.01
@@ -36,12 +37,6 @@ TEST(axpby_double_test, func_check)
     host_alpha[0] = rand()%100;
     host_beta[0] = rand()%100;
 
-    array_view<double> dev_R(num_elements, host_R);
-    array_view<double> dev_X(num_elements, host_X);
-    array_view<double> dev_Y(num_elements, host_Y);
-    array_view<double> dev_alpha(1, host_alpha);
-    array_view<double> dev_beta(1, host_beta);
-
     hcsparseSetup();
     hcsparseInitScalar(&gAlpha);
     hcsparseInitScalar(&gBeta);
@@ -49,11 +44,11 @@ TEST(axpby_double_test, func_check)
     hcsparseInitVector(&gX);
     hcsparseInitVector(&gY);
 
-    gAlpha.value = &dev_alpha;
-    gBeta.value = &dev_beta;
-    gR.values = &dev_R;
-    gX.values = &dev_X;
-    gY.values = &dev_Y;
+    gR.values = am_alloc(sizeof(double) * num_elements, acc[1], 0);
+    gX.values = am_alloc(sizeof(double) * num_elements, acc[1], 0);
+    gY.values = am_alloc(sizeof(double) * num_elements, acc[1], 0);
+    gAlpha.value = am_alloc(sizeof(double) * 1, acc[1], 0);
+    gBeta.value = am_alloc(sizeof(double) * 1, acc[1], 0);
 
     gAlpha.offValue = 0;
     gBeta.offValue = 0;
@@ -65,6 +60,12 @@ TEST(axpby_double_test, func_check)
     gX.num_values = num_elements;
     gY.num_values = num_elements;
 
+    control.accl_view.copy(host_R, gR.values, sizeof(double) * num_elements);
+    control.accl_view.copy(host_X, gX.values, sizeof(double) * num_elements);
+    control.accl_view.copy(host_Y, gY.values, sizeof(double) * num_elements);
+    control.accl_view.copy(host_alpha, gAlpha.value, sizeof(double) * 1);
+    control.accl_view.copy(host_beta, gBeta.value, sizeof(double) * 1);
+
     hcsparseStatus status;
 
     status = hcdenseDaxpby(&gR, &gAlpha, &gX, &gBeta, &gY, &control);
@@ -74,18 +75,13 @@ TEST(axpby_double_test, func_check)
         host_res[i] = host_alpha[0] * host_X[i] + host_beta[0] * host_Y[i];
     }
 
-    array_view<double> *av_res = static_cast<array_view<double> *>(gR.values);
+    control.accl_view.copy(gR.values, host_R, sizeof(double) * num_elements);
+
     for (int i = 0; i < num_elements; i++)
     {
-        double diff = std::abs(host_res[i] - (*av_res)[i]);
+        double diff = std::abs(host_res[i] - host_R[i]);
         EXPECT_LT(diff, TOLERANCE);
     }
-
-    dev_R.synchronize();    
-    dev_X.synchronize();    
-    dev_Y.synchronize();    
-    dev_alpha.synchronize();    
-    dev_beta.synchronize();    
 
     hcsparseTeardown();
 
@@ -95,5 +91,11 @@ TEST(axpby_double_test, func_check)
     free(host_Y);
     free(host_alpha);
     free(host_beta);
+
+    am_free(gR.values);
+    am_free(gX.values);
+    am_free(gY.values);
+    am_free(gAlpha.value);
+    am_free(gBeta.value);
 
 }

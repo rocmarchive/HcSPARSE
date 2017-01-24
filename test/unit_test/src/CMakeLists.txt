@@ -62,7 +62,7 @@ SET (TESTSRCS
                             OUTPUT_VARIABLE HCC_LDFLAGS)
   endif(EXISTS ${MCWHCCBUILD})
 
-  SET(HCSPARSE_INCLUDE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../../lib/src/include/")
+  SET(HCSPARSE_INCLUDE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../../lib/include/")
   SET(HCSPARSE_LIBRARY_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../../build/lib/src/")
   string(STRIP "${HCC_CXXFLAGS}" HCC_CXXFLAGS)
   set (HCC_CXXFLAGS "${HCC_CXXFLAGS} -I${HCSPARSE_INCLUDE_PATH}")
@@ -75,6 +75,7 @@ SET (TESTSRCS
     SET_PROPERTY(SOURCE ${test_file} APPEND_STRING PROPERTY COMPILE_FLAGS " ${HCC_CXXFLAGS}")
     STRING( REPLACE "_test.cpp" "" testname ${test_file} )
     ADD_EXECUTABLE( ../bin/${testname} ${test_file} )
+    TARGET_LINK_LIBRARIES("../bin/${testname}" hc_am)
     SET_PROPERTY(TARGET ../bin/${testname} APPEND_STRING PROPERTY LINK_FLAGS " ${HCC_LDFLAGS} ${LINK}")
   ENDFOREACH()
 

@@ -1,5 +1,6 @@
 #include <hcsparse.h>
 #include <iostream>
+#include "hc_am.hpp"
 int main(int argc, char *argv[])
 {
     hcsparseCsrMatrix gCsrMat;
@@ -46,6 +47,18 @@ int main(int argc, char *argv[])
     float *host_alpha = (float*) calloc(1, sizeof(float));
     float *host_beta = (float*) calloc(1, sizeof(float));
 
+    hcsparseSetup();
+    hcsparseInitCsrMatrix(&gCsrMat);
+    hcsparseInitScalar(&gAlpha);
+    hcsparseInitScalar(&gBeta);
+    hcdenseInitMatrix(&gX);
+    hcdenseInitMatrix(&gY);
+
+    gX.values = am_alloc(sizeof(float) * num_col_X * num_row_X, acc[1], 0);
+    gY.values = am_alloc(sizeof(float) * num_row_Y * num_col_Y, acc[1], 0);
+    gAlpha.value = am_alloc(sizeof(float) * 1, acc[1], 0);
+    gBeta.value = am_alloc(sizeof(float) * 1, acc[1], 0);
+
     srand (time(NULL));
     for (int i = 0; i < num_col_X * num_row_X; i++)
     {
@@ -60,22 +73,10 @@ int main(int argc, char *argv[])
     host_alpha[0] = rand()%100;
     host_beta[0] = rand()%100;
 
-    array_view<float> dev_X(num_col_X * num_row_X, host_X);
-    array_view<float> dev_Y(num_row_Y * num_col_Y, host_Y);
-    array_view<float> dev_alpha(1, host_alpha);
-    array_view<float> dev_beta(1, host_beta);
-
-    hcsparseSetup();
-    hcsparseInitCsrMatrix(&gCsrMat);
-    hcsparseInitScalar(&gAlpha);
-    hcsparseInitScalar(&gBeta);
-    hcdenseInitMatrix(&gX);
-    hcdenseInitMatrix(&gY);
-
-    gAlpha.value = &dev_alpha;
-    gBeta.value = &dev_beta;
-    gX.values = &dev_X;
-    gY.values = &dev_Y;
+    control.accl_view.copy(host_X, gX.values, sizeof(float) * num_col_X * num_row_X);
+    control.accl_view.copy(host_Y, gY.values, sizeof(float) * num_row_Y * num_col_Y);
+    control.accl_view.copy(host_alpha, gAlpha.value, sizeof(float) * 1);
+    control.accl_view.copy(host_beta, gBeta.value, sizeof(float) * 1);
 
     gAlpha.offValue = 0;
     gBeta.offValue = 0;
@@ -97,19 +98,19 @@ int main(int argc, char *argv[])
     gCsrMat.offRowOff = 0;
 
     float *values = (float*)calloc(num_nonzero, sizeof(float));
-    int *rowIndices = (int*)calloc(num_row_A+1, sizeof(int));
+    int *rowOffsets = (int*)calloc(num_row_A+1, sizeof(int));
     int *colIndices = (int*)calloc(num_nonzero, sizeof(int));
 
-    array_view<float> av_values(num_nonzero, values);
-    array_view<int> av_rowOff(num_row_A+1, rowIndices);
-    array_view<int> av_colIndices(num_nonzero, colIndices);
-
-    gCsrMat.values = &av_values;
-    gCsrMat.rowOffsets = &av_rowOff;
-    gCsrMat.colIndices = &av_colIndices;
+    gCsrMat.values = am_alloc(sizeof(float) * num_nonzero, acc[1], 0);
+    gCsrMat.rowOffsets = am_alloc(sizeof(int) * (num_row_A+1), acc[1], 0);
+    gCsrMat.colIndices = am_alloc(sizeof(int) * num_nonzero, acc[1], 0);
 
     status = hcsparseSCsrMatrixfromFile(&gCsrMat, filename, &control, false);
    
+    control.accl_view.copy(gCsrMat.values, values, sizeof(float) * num_nonzero);
+    control.accl_view.copy(gCsrMat.rowOffsets, rowOffsets, sizeof(int) * (num_row_A+1));
+    control.accl_view.copy(gCsrMat.colIndices, colIndices, sizeof(int) * num_nonzero);
+
     if (status != hcsparseSuccess)
     {
         std::cout<<"The input file should be in mtx format"<<std::endl;
@@ -118,48 +119,36 @@ int main(int argc, char *argv[])
  
     hcsparseScsrmm(&gAlpha, &gCsrMat, &gX, &gBeta, &gY, &control); 
 
-    array_view<float> *av_val = static_cast<array_view<float> *>(gCsrMat.values);
-    array_view<int> *av_row = static_cast<array_view<int> *>(gCsrMat.rowOffsets);
-    array_view<int> *av_col = static_cast<array_view<int> *>(gCsrMat.colIndices);
-
     for (int col = 0; col < num_col_X; col++)
     {
         int indx = 0;
         for (int row = 0; row < num_row_A; row++)
         {
             float sum = 0.0; 
-            for (; indx < (*av_row)[row+1]; indx++)
+            for (; indx < rowOffsets[row+1]; indx++)
             {
-                sum += host_alpha[0] * host_X[(*av_col)[indx] * num_col_X + col] * (*av_val)[indx];
+                sum += host_alpha[0] * host_X[colIndices[indx] * num_col_X + col] * values[indx];
             }
             host_res[row * num_col_Y + col] = sum + host_beta[0] * host_res[row * num_col_Y + col];
         }
     }
 
-    array_view<float> *av_res = static_cast<array_view<float> *>(gY.values);
+    control.accl_view.copy(gY.values, host_Y, sizeof(float) * num_row_Y * num_col_Y);
 
     bool isPassed = 1;  
 
     for (int i = 0; i < num_row_Y * num_col_Y; i++)
     {
-        float diff = std::abs(host_res[i] - (*av_res)[i]);
+        float diff = std::abs(host_res[i] - host_Y[i]);
         if (diff > 0.01)
         {
-        std::cout<<i<<" "<<host_res[i]<<" "<<(*av_res)[i]<< " "<<diff<<std::endl;
+            std::cout<<i<<" "<<host_res[i]<<" "<<host_Y[i]<< " "<<diff<<std::endl;
             isPassed = 0;
             break;
         }
     }
 
     std::cout << (isPassed?"TEST PASSED":"TEST FAILED") << std::endl;
-
-    dev_X.synchronize();
-    dev_Y.synchronize();
-    dev_alpha.synchronize();
-    dev_beta.synchronize();
-    av_values.synchronize();
-    av_rowOff.synchronize();
-    av_colIndices.synchronize();
 
     hcsparseTeardown();
 
@@ -169,8 +158,15 @@ int main(int argc, char *argv[])
     free(host_alpha);
     free(host_beta);
     free(values);
-    free(rowIndices);
+    free(rowOffsets);
     free(colIndices);
+    am_free(gX.values);
+    am_free(gY.values);
+    am_free(gAlpha.value);
+    am_free(gBeta.value);
+    am_free(gCsrMat.values);
+    am_free(gCsrMat.rowOffsets);
+    am_free(gCsrMat.colIndices);
 
     return 0; 
 }

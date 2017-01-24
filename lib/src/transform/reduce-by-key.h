@@ -5,18 +5,16 @@
 template <typename T>
 hcsparseStatus
 reduce_by_key (int size,
-               hc::array_view<T> &keys_output,
-               hc::array_view<T> &values_output,
-               const hc::array_view<T> &keys_input,
-               const hc::array_view<T> &values_input,
-               const hcsparseControl* control)
+               T *keys_output,
+               T *values_output,
+               const T *keys_input,
+               const T *values_input,
+               hcsparseControl* control)
 {
-    //this vector stores the places where input index is changing;
-    T* offsetArray_buff = (T*) calloc (size, sizeof(T));
-    T* offsetValArray_buff = (T*) calloc (size, sizeof(T));
+    hc::accelerator acc = (control->accl_view).get_accelerator();
 
-    hc::array_view<T> offsetArray(size, offsetArray_buff);
-    hc::array_view<T> offsetValArray(size, offsetValArray_buff);
+    T *offsetArray = (T*) am_alloc(size * sizeof(T), acc, 0);
+    T *offsetValArray = (T*) am_alloc(size * sizeof(T), acc, 0);
 
     int numWrkGrp = (size - 1)/BLOCK_SIZE + 1;
 
@@ -41,17 +39,13 @@ reduce_by_key (int size,
         {
              offsetArray[ gloId ] = 0;
         }
-    });
+    }).wait();
 
     inclusive_scan<T, EW_PLUS>(size, offsetArray, offsetArray, control);
 
-    T* keySumArray_buff = (T*) calloc (numWrkGrp, sizeof(T));
-    T* preSumArray_buff = (T*) calloc (numWrkGrp, sizeof(T));
-    T* postSumArray_buff = (T*) calloc (numWrkGrp, sizeof(T));
-
-    hc::array_view<T> keySumArray(numWrkGrp, keySumArray_buff);
-    hc::array_view<T> preSumArray(numWrkGrp, preSumArray_buff);
-    hc::array_view<T> postSumArray(numWrkGrp, postSumArray_buff);
+    T *keySumArray = (T*) am_alloc(numWrkGrp * sizeof(T), acc, 0);
+    T *preSumArray = (T*) am_alloc(numWrkGrp * sizeof(T), acc, 0);
+    T *postSumArray = (T*) am_alloc(numWrkGrp * sizeof(T), acc, 0);
 
     hc::parallel_for_each(control->accl_view, t_ext_numElm, [=] (hc::tiled_index<1> &tidx) __attribute__((hc, cpu))
     {
@@ -105,7 +99,7 @@ reduce_by_key (int size,
             keySumArray[ groId ] = ldsKeys[ wgSize-1 ];
             preSumArray[ groId ] = ldsVals[ wgSize-1 ];
         }
-    });
+    }).wait();
 
     int workPerThread = (numWrkGrp - 1) / BLOCK_SIZE + 1;
 
@@ -197,7 +191,7 @@ reduce_by_key (int size,
                 postSumArray[ mapId+offset ] = y;
             }
         }
-    });
+    }).wait();
 
     hc::parallel_for_each(control->accl_view, t_ext_numElm, [=] (hc::tiled_index<1> &tidx) __attribute__((hc, cpu))
     {
@@ -218,7 +212,7 @@ reduce_by_key (int size,
             T newResult = scanResult + postBlockSum;
             offsetValArray[ gloId ] = newResult;
         }
-    });
+    }).wait();
 
     hc::parallel_for_each(control->accl_view, t_ext_numElm, [=] (hc::tiled_index<1> &tidx) __attribute__((hc, cpu))
     {
@@ -237,9 +231,14 @@ reduce_by_key (int size,
             values_output[ numSections - 1 ] = offsetValArray [ gloId ];
             offsetArray [ gloId ] = numSections;
         }
-    });
+    }).wait();
+
+    am_free(offsetArray);
+    am_free(offsetValArray);
+    am_free(keySumArray);
+    am_free(preSumArray);
+    am_free(postSumArray);
 
     return hcsparseSuccess;
-
 }
 

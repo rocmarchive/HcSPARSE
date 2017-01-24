@@ -38,7 +38,7 @@
 #error "SUBWAVE_SIZE is not  a power of two!"
 #endif
 
-inline int clz(const unsigned int val) __attribute__ ((hc))
+inline int clz(const unsigned int val) __attribute__ ((hc, cpu))
 {
     unsigned int temp;
     int counter = 0;
@@ -53,22 +53,22 @@ inline int clz(const unsigned int val) __attribute__ ((hc))
 }
 
 inline unsigned long hcsparse_atomic_xor(unsigned long *ptr,
-                                         const unsigned long xor_val) __attribute__ ((hc))
+                                         const unsigned long xor_val) __attribute__ ((hc, cpu))
 {
     return atomic_fetch_xor((unsigned int*)ptr, (unsigned int)xor_val);
 }
 inline unsigned long hcsparse_atomic_max(unsigned long *ptr,
-                                         const unsigned long compare) __attribute__ ((hc))
+                                         const unsigned long compare) __attribute__ ((hc, cpu))
 {
     return atomic_fetch_max((unsigned int*)ptr, (unsigned int)compare);
 }
-inline unsigned long hcsparse_atomic_inc(unsigned long *inc_this) __attribute__ ((hc))
+inline unsigned long hcsparse_atomic_inc(unsigned long *inc_this) __attribute__ ((hc, cpu))
 {
     return atomic_fetch_inc((unsigned int*)inc_this);
 }
 inline unsigned long hcsparse_atomic_cmpxchg(unsigned long *ptr,
                                              const unsigned long compare,
-                                             const unsigned long val) __attribute__ ((hc))
+                                             const unsigned long val) __attribute__ ((hc, cpu))
 {
     return atomic_compare_exchange((unsigned int*)ptr, (unsigned int*)&compare, val);
 }
@@ -76,7 +76,7 @@ inline unsigned long hcsparse_atomic_cmpxchg(unsigned long *ptr,
 template <typename T>
 T atomic_add_float_extended(T *ptr,
                             const T temp,
-                            T *old_sum ) __attribute__ ((hc))
+                            T *old_sum ) __attribute__ ((hc, cpu))
 {
     unsigned long newVal;
     unsigned long prevVal;
@@ -93,7 +93,7 @@ T atomic_add_float_extended(T *ptr,
 }
 
 template <typename T>
-void atomic_add_float(void *ptr, const T temp ) __attribute__ ((hc))
+void atomic_add_float(void *ptr, const T temp ) __attribute__ ((hc, cpu))
 {
     atomic_add_float_extended<T> ((T*)ptr, temp, 0);
 }
@@ -108,7 +108,7 @@ void atomic_add_float(void *ptr, const T temp ) __attribute__ ((hc))
 template <typename T>
 inline T two_sum( T x,
                   T y,
-                   T &sumk_err) __attribute__((hc))
+                   T &sumk_err) __attribute__((hc, cpu))
 {
     const T sumk_s = x + y;
 #ifdef EXTENDED_PRECISION
@@ -150,7 +150,7 @@ template <typename T>
 inline T two_fma( const T x_vals,
                   const T x_vec,
                   T y,
-                  T &sumk_err ) __attribute__((hc))
+                  T &sumk_err ) __attribute__((hc, cpu))
 {
 #ifdef EXTENDED_PRECISION
     T x = x_vals * x_vec;
@@ -192,7 +192,7 @@ inline T sum2_reduce( T cur_sum,
                       const INDEX_TYPE thread_lane,
                       const INDEX_TYPE round,
                       const INDEX_TYPE max_size,
-                      hc::tiled_index<1> tidx) __attribute__((hc))
+                      hc::tiled_index<1> tidx) __attribute__((hc, cpu))
 {
     if (max_size > round)
     {
@@ -229,7 +229,7 @@ inline T sum2_reduce( T cur_sum,
 template <typename T>
 T atomic_two_sum_float (T *x_ptr,
                         T y,
-                        T *sumk_err ) __attribute__ ((hc))
+                        T *sumk_err ) __attribute__ ((hc, cpu))
 {
     // Have to wait until the return from the atomic op to know what X was.
     T sumk_s = 0.;
@@ -257,23 +257,23 @@ T atomic_two_sum_float (T *x_ptr,
 // SUBWAVE_SIZE - the length of a "sub-wave", a power of 2, i.e. 1,2,4,...,WAVE_SIZE, assigned to process a single matrix row
 template <typename T>
 void csrmv_vector_kernel (const INDEX_TYPE num_rows,
-                          const hc::array_view<T, 1> &alpha,
+                          const T *alpha,
                           const SIZE_TYPE off_alpha,
-                          const hc::array_view<int, 1> &row_offset,
-                          const hc::array_view<int, 1> &col,
-                          const hc::array_view<T, 1> &val,
-                          const hc::array_view<T, 1> &x,
+                          const int *row_offset,
+                          const int *col,
+                          const T *val,
+                          const T *x,
                           const SIZE_TYPE off_x,
-                          const hc::array_view<T, 1> &beta,
+                          const T *beta,
                           const SIZE_TYPE off_beta,
-                          hc::array_view<T, 1> &y,
+                          T *y,
                           const SIZE_TYPE off_y,
                           const uint global_work_size,
-                          const hcsparseControl *control)
+                          hcsparseControl *control)
 {
     hc::extent<1> grdExt(global_work_size);
     hc::tiled_extent<1> t_ext = grdExt.tile(WG_SIZE);
-    hc::parallel_for_each(control->accl_view, t_ext, [=] (hc::tiled_index<1> &tidx) __attribute__((hc))
+    hc::parallel_for_each(control->accl_view, t_ext, [=] (hc::tiled_index<1> &tidx) __attribute__((hc, cpu))
     {
         tile_static T sdata [WG_SIZE + SUBWAVE_SIZE / 2];
 
@@ -339,7 +339,7 @@ csrmv_vector(const hcsparseScalar* pAlpha,
              const hcdenseVector* pX,
              const hcsparseScalar* pBeta,
              hcdenseVector* pY,
-             const hcsparseControl *control)
+             hcsparseControl *control)
 {
     uint nnz_per_row = pMatx->nnz_per_row(); //average nnz per row
 
@@ -386,38 +386,38 @@ csrmv_vector(const hcsparseScalar* pAlpha,
         global_work_size = WG_SIZE;
     }
 
-    hc::array_view<T> *avAlpha = static_cast<hc::array_view<T> *>(pAlpha->value);
-    hc::array_view<int> *avMatx_rowOffsets = static_cast<hc::array_view<int> *>(pMatx->rowOffsets);
-    hc::array_view<int> *avMatx_colIndices = static_cast<hc::array_view<int> *>(pMatx->colIndices);
-    hc::array_view<T> *avMatx_values = static_cast<hc::array_view<T> *>(pMatx->values);
-    hc::array_view<T> *avX_values = static_cast<hc::array_view<T> *>(pX->values);
-    hc::array_view<T> *avBeta = static_cast<hc::array_view<T> *>(pBeta->value);
-    hc::array_view<T> *avY_values = static_cast<hc::array_view<T> *>(pY->values);
+    T *avAlpha = static_cast<T*>(pAlpha->value);
+    int *avMatx_rowOffsets = static_cast<int*>(pMatx->rowOffsets);
+    int *avMatx_colIndices = static_cast<int*>(pMatx->colIndices);
+    T *avMatx_values = static_cast<T*>(pMatx->values);
+    T *avX_values = static_cast<T*>(pX->values);
+    T *avBeta = static_cast<T*>(pBeta->value);
+    T *avY_values = static_cast<T*>(pY->values);
 
-    csrmv_vector_kernel<T> (pMatx->num_rows, *avAlpha, pAlpha->offset(),
-                            *avMatx_rowOffsets, *avMatx_colIndices, *avMatx_values,
-                            *avX_values, pX->offset(), *avBeta,
-                            pBeta->offset(), *avY_values, pY->offset(), global_work_size, control);
+    csrmv_vector_kernel<T> (pMatx->num_rows, avAlpha, pAlpha->offset(),
+                            avMatx_rowOffsets, avMatx_colIndices, avMatx_values,
+                            avX_values, pX->offset(), avBeta,
+                            pBeta->offset(), avY_values, pY->offset(), global_work_size, control);
 
     return hcsparseSuccess;
 }
 
 template <typename T>
 void
-csrmv_adaptive_kernel (const hc::array_view<T, 1> &vals,
-                       const hc::array_view<int, 1> &cols,
-                       const hc::array_view<int, 1> &rowPtrs,
-                       const hc::array_view<T, 1> &vec,
-                       hc::array_view<T, 1> &out,
-                       const hc::array_view<unsigned long, 1> &rowBlocks,
-                       const hc::array_view<T, 1> &pAlpha,
-                       const hc::array_view<T, 1> &pBeta,
+csrmv_adaptive_kernel (const T *vals,
+                       const int *cols,
+                       const int *rowPtrs,
+                       const T *vec,
+                       T *out,
+                       unsigned long *rowBlocks,
+                       const T *pAlpha,
+                       const T *pBeta,
                        const uint global_work_size,
-                       const hcsparseControl *control)
+                       hcsparseControl *control)
 {
     hc::extent<1> grdExt(global_work_size);
     hc::tiled_extent<1> t_ext = grdExt.tile(WG_SIZE);
-    hc::parallel_for_each(control->accl_view, t_ext, [=] (hc::tiled_index<1> &tidx) __attribute__((hc))
+    hc::parallel_for_each(control->accl_view, t_ext, [=] (hc::tiled_index<1> &tidx) __attribute__((hc, cpu))
     {
         tile_static T partialSums[WG_SIZE];
         const unsigned int gid = tidx.tile[0];
@@ -787,7 +787,7 @@ csrmv_adaptive( const hcsparseScalar* pAlpha,
                 const hcdenseVector* pX,
                 const hcsparseScalar* pBeta,
                 hcdenseVector* pY,
-                const hcsparseControl *control )
+                hcsparseControl *control )
 {
     // if NVIDIA is used it does not allow to run the group size
     // which is not a multiplication of WG_SIZE. Don't know if that
@@ -802,19 +802,19 @@ csrmv_adaptive( const hcsparseScalar* pAlpha,
         global_work_size = WG_SIZE;
     }
 
-    hc::array_view<T> *avCsrMatx_values = static_cast<hc::array_view<T> *>(pCsrMatx->values);
-    hc::array_view<int> *avColIndices = static_cast<hc::array_view<int> *>(pCsrMatx->colIndices);
-    hc::array_view<int> *avRowOffsets = static_cast<hc::array_view<int> *>(pCsrMatx->rowOffsets);
-    hc::array_view<T> *avX_values = static_cast<hc::array_view<T> *>(pX->values);
-    hc::array_view<T> *avY_values = static_cast<hc::array_view<T> *>(pY->values);
-    hc::array_view<unsigned long> *avRowBlocks = static_cast<hc::array_view<unsigned long> *>(pCsrMatx->rowBlocks);
-    hc::array_view<T> *avAlpha = static_cast<hc::array_view<T> *>(pAlpha->value);
-    hc::array_view<T> *avBeta = static_cast<hc::array_view<T> *>(pBeta->value);
+    T *avCsrMatx_values = static_cast<T*>(pCsrMatx->values);
+    int *avColIndices = static_cast<int*>(pCsrMatx->colIndices);
+    int *avRowOffsets = static_cast<int*>(pCsrMatx->rowOffsets);
+    T *avX_values = static_cast<T*>(pX->values);
+    T *avY_values = static_cast<T*>(pY->values);
+    unsigned long *avRowBlocks = static_cast<unsigned long*>(pCsrMatx->rowBlocks);
+    T *avAlpha = static_cast<T*>(pAlpha->value);
+    T *avBeta = static_cast<T*>(pBeta->value);
 
-    csrmv_adaptive_kernel<T> (*avCsrMatx_values, *avColIndices,
-                              *avRowOffsets, *avX_values,
-                              *avY_values, *avRowBlocks,
-                              *avAlpha ,*avBeta, global_work_size, control);
+    csrmv_adaptive_kernel<T> (avCsrMatx_values, avColIndices,
+                              avRowOffsets, avX_values,
+                              avY_values, avRowBlocks,
+                              avAlpha , avBeta, global_work_size, control);
 
     return hcsparseSuccess;
 }
@@ -826,7 +826,7 @@ csrmv (const hcsparseScalar *pAlpha,
        const hcdenseVector *pX,
        const hcsparseScalar *pBeta,
        hcdenseVector *pY,
-       const hcsparseControl *control)
+       hcsparseControl *control)
 {
     if( (pCsrMatx->rowBlocks == nullptr) && (pCsrMatx->rowBlockSize == 0) )
     {

@@ -13,7 +13,7 @@ TEST(cg_diagonal_float_test, func_check)
 
     hcsparseControl control(accl_view);
 
-    const char* filename = "../../../../test/gtest/src/input.mtx";
+    const char* filename = "./../../../../test/gtest/src/input.mtx";
 
     int num_nonzero, num_row, num_col;
 
@@ -35,16 +35,14 @@ TEST(cg_diagonal_float_test, func_check)
         host_B[i] = rand()%100;
     }
 
-    array_view<float> dev_X(num_col, host_X);
-    array_view<float> dev_B(num_row, host_B);
-
     hcsparseSetup();
     hcsparseInitCsrMatrix(&gA);
     hcsparseInitVector(&gX);
     hcsparseInitVector(&gB);
 
-    gX.values = &dev_X;
-    gB.values = &dev_B;
+
+    gX.values = am_alloc(sizeof(float)*num_col, acc[1], 0);
+    gB.values = am_alloc(sizeof(float)*num_row, acc[1], 0);
 
     gX.offValues = 0;
     gB.offValues = 0;
@@ -56,17 +54,16 @@ TEST(cg_diagonal_float_test, func_check)
     gA.offColInd = 0;
     gA.offRowOff = 0;
 
+    control.accl_view.copy(host_X, gX.values, sizeof(float) * num_col);
+    control.accl_view.copy(host_B, gB.values, sizeof(float) * num_row);
+
     float *values = (float*)calloc(num_nonzero, sizeof(float));
     int *rowIndices = (int*)calloc(num_row+1, sizeof(int));
     int *colIndices = (int*)calloc(num_nonzero, sizeof(int));
 
-    array_view<float> av_values(num_nonzero, values);
-    array_view<int> av_rowOff(num_row+1, rowIndices);
-    array_view<int> av_colIndices(num_nonzero, colIndices);
-
-    gA.values = &av_values;
-    gA.rowOffsets = &av_rowOff;
-    gA.colIndices = &av_colIndices;
+    gA.values = am_alloc(sizeof(float) * num_nonzero, acc[1], 0);
+    gA.rowOffsets = am_alloc(sizeof(float) * num_row+1, acc[1], 0);
+    gA.colIndices = am_alloc(sizeof(float) * num_nonzero, acc[1], 0);
 
     status = hcsparseSCsrMatrixfromFile(&gA, filename, &control, false);
    
@@ -77,20 +74,14 @@ TEST(cg_diagonal_float_test, func_check)
     }
 
     int maxIter = 1000;
-    double relTol = 0.0001;
-    double absTol = 0.0001;
+    float relTol = 0.0001;
+    float absTol = 0.0001;
 
     hcsparseSolverControl *solver_control;
 
     solver_control = hcsparseCreateSolverControl(DIAGONAL, maxIter, relTol, absTol); 
 
     hcsparseScsrcg(&gX, &gA, &gB, solver_control, &control); 
-
-    dev_X.synchronize();
-    dev_B.synchronize();
-    av_values.synchronize();
-    av_rowOff.synchronize();
-    av_colIndices.synchronize();
 
     hcsparseTeardown();
 
@@ -99,4 +90,9 @@ TEST(cg_diagonal_float_test, func_check)
     free(values);
     free(rowIndices);
     free(colIndices);
+    am_free(gX.values);
+    am_free(gB.values);
+    am_free(gA.values);
+    am_free(gA.rowOffsets);
+    am_free(gA.colIndices);
 }

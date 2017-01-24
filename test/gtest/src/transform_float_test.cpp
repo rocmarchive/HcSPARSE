@@ -1,5 +1,6 @@
 #include <hcsparse.h>
 #include <iostream>
+#include <hc_am.hpp>
 #include "gtest/gtest.h"
 
 TEST(transform_float_test, func_check)
@@ -27,18 +28,18 @@ TEST(transform_float_test, func_check)
         host_Y[i] = rand()%100;
     }
     
-    array_view<float> dev_R(num_elements, host_R);
-    array_view<float> dev_X(num_elements, host_X);
-    array_view<float> dev_Y(num_elements, host_Y);
-
     hcsparseSetup();
     hcsparseInitVector(&gR);
     hcsparseInitVector(&gX);
     hcsparseInitVector(&gY);
 
-    gR.values = &dev_R;
-    gX.values = &dev_X;
-    gY.values = &dev_Y;
+    gX.values = am_alloc(sizeof(float) * num_elements, acc[1], 0);
+    gY.values = am_alloc(sizeof(float) * num_elements, acc[1], 0);
+    gR.values = am_alloc(sizeof(float) * num_elements, acc[1], 0);
+
+    control.accl_view.copy(host_X, gX.values, sizeof(float) * num_elements);
+    control.accl_view.copy(host_Y, gY.values, sizeof(float) * num_elements);
+    control.accl_view.copy(host_R, gR.values, sizeof(float) * num_elements);
 
     gR.offValues = 0;
     gX.offValues = 0;
@@ -85,22 +86,18 @@ TEST(transform_float_test, func_check)
 
                 for (int i = 0; i < num_elements; i++)
                 {
-                    host_res[i] = host_Y[i] == 0 ? 0 : (host_X[i] / host_Y[i]);
+                    host_res[i] = (host_Y[i] == 0) ? 0 : (host_X[i] / host_Y[i]);
                 }
                 break;
         }
 
-        array_view<float> *av_res = static_cast<array_view<float> *>(gR.values);
+        control.accl_view.copy(gR.values, host_R, sizeof(float) * num_elements);
         for (int i = 0; i < num_elements; i++)
         {
-             float diff = std::abs(host_res[i] - (*av_res)[i]);
-             EXPECT_LT(diff, 0.01);
+            float diff = std::abs(host_res[i] - host_R[i]);
+            EXPECT_LT(diff, 0.01);
         }
     }
-
-    dev_R.synchronize();
-    dev_X.synchronize();
-    dev_Y.synchronize();
 
     hcsparseTeardown();
 
@@ -108,4 +105,7 @@ TEST(transform_float_test, func_check)
     free(host_res);
     free(host_X);
     free(host_Y);
+    am_free(gR.values);
+    am_free(gX.values);
+    am_free(gY.values);
 }

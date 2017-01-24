@@ -50,6 +50,7 @@ if(EXISTS ${HCC_HOME})
   set (HCC_LDFLAGS "${HCC_LDFLAGS}")
 # Package built from sources
 # Compiler and configure file are two key factors to advance
+
 elseif(EXISTS /opt/rocm/hcc/bin/clang++)
   find_path(HC++_BIN_DIR clang++
            HINTS /opt/rocm/hcc/bin)
@@ -84,5 +85,3 @@ elseif(EXISTS /opt/rocm/hcc/bin/clang++)
 
 
 endif()
-
-

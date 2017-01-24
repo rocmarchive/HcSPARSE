@@ -1,5 +1,6 @@
 #include <hcsparse.h>
 #include <iostream>
+#include <hc_am.hpp>
 #include "gtest/gtest.h"
 
 TEST(csrmm_float_test, func_check)
@@ -15,11 +16,17 @@ TEST(csrmm_float_test, func_check)
 
     hcsparseControl control(accl_view);
 
-    const char* filename = "../../../../test/gtest/src/input.mtx";
+    const char* filename = "./../../../../test/gtest/src/input.mtx";
 
     int num_nonzero, num_row_A, num_col_A;
 
     hcsparseStatus status;
+    hcsparseSetup();
+    hcsparseInitCsrMatrix(&gCsrMat);
+    hcsparseInitScalar(&gAlpha);
+    hcsparseInitScalar(&gBeta);
+    hcdenseInitMatrix(&gX);
+    hcdenseInitMatrix(&gY);
 
     status = hcsparseHeaderfromFile(&num_nonzero, &num_row_A, &num_col_A, filename);
 
@@ -56,22 +63,15 @@ TEST(csrmm_float_test, func_check)
     host_alpha[0] = rand()%100;
     host_beta[0] = rand()%100;
 
-    array_view<float> dev_X(num_col_X * num_row_X, host_X);
-    array_view<float> dev_Y(num_row_Y * num_col_Y, host_Y);
-    array_view<float> dev_alpha(1, host_alpha);
-    array_view<float> dev_beta(1, host_beta);
+    gX.values = am_alloc(sizeof(float) * num_col_X * num_row_X, acc[1], 0);
+    gY.values = am_alloc(sizeof(float) * num_row_Y * num_col_Y, acc[1], 0);
+    gAlpha.value = am_alloc(sizeof(float) * 1, acc[1], 0);
+    gBeta.value = am_alloc(sizeof(float) * 1, acc[1], 0);
 
-    hcsparseSetup();
-    hcsparseInitCsrMatrix(&gCsrMat);
-    hcsparseInitScalar(&gAlpha);
-    hcsparseInitScalar(&gBeta);
-    hcdenseInitMatrix(&gX);
-    hcdenseInitMatrix(&gY);
-
-    gAlpha.value = &dev_alpha;
-    gBeta.value = &dev_beta;
-    gX.values = &dev_X;
-    gY.values = &dev_Y;
+    control.accl_view.copy(host_X, gX.values, sizeof(float) * num_col_X * num_row_X);
+    control.accl_view.copy(host_Y, gY.values, sizeof(float) * num_row_Y * num_col_Y);
+    control.accl_view.copy(host_alpha, gAlpha.value, sizeof(float) * 1);
+    control.accl_view.copy(host_beta, gBeta.value, sizeof(float) * 1);
 
     gAlpha.offValue = 0;
     gBeta.offValue = 0;
@@ -96,13 +96,9 @@ TEST(csrmm_float_test, func_check)
     int *rowIndices = (int*)calloc(num_row_A+1, sizeof(int));
     int *colIndices = (int*)calloc(num_nonzero, sizeof(int));
 
-    array_view<float> av_values(num_nonzero, values);
-    array_view<int> av_rowOff(num_row_A+1, rowIndices);
-    array_view<int> av_colIndices(num_nonzero, colIndices);
-
-    gCsrMat.values = &av_values;
-    gCsrMat.rowOffsets = &av_rowOff;
-    gCsrMat.colIndices = &av_colIndices;
+    gCsrMat.values = am_alloc(sizeof(float) * num_nonzero, acc[1], 0);
+    gCsrMat.rowOffsets = am_alloc(sizeof(int) * (num_row_A+1), acc[1], 0);
+    gCsrMat.colIndices = am_alloc(sizeof(int) * num_nonzero, acc[1], 0);
 
     status = hcsparseSCsrMatrixfromFile(&gCsrMat, filename, &control, false);
    
@@ -112,11 +108,15 @@ TEST(csrmm_float_test, func_check)
         exit(1);
     }
  
+    control.accl_view.copy(gCsrMat.values, values, sizeof(float) * num_nonzero);
+    control.accl_view.copy(gCsrMat.rowOffsets, rowIndices, sizeof(int) * (num_row_A+1));
+    control.accl_view.copy(gCsrMat.colIndices, colIndices, sizeof(int) * num_nonzero);
+
     hcsparseScsrmm(&gAlpha, &gCsrMat, &gX, &gBeta, &gY, &control); 
 
-    array_view<float> *av_val = static_cast<array_view<float> *>(gCsrMat.values);
-    array_view<int> *av_row = static_cast<array_view<int> *>(gCsrMat.rowOffsets);
-    array_view<int> *av_col = static_cast<array_view<int> *>(gCsrMat.colIndices);
+    control.accl_view.copy(gCsrMat.values, values, sizeof(float) * num_nonzero);
+    control.accl_view.copy(gCsrMat.rowOffsets, rowIndices, sizeof(int) * (num_row_A+1));
+    control.accl_view.copy(gCsrMat.colIndices, colIndices, sizeof(int) * num_nonzero);
 
     for (int col = 0; col < num_col_X; col++)
     {
@@ -124,31 +124,23 @@ TEST(csrmm_float_test, func_check)
         for (int row = 0; row < num_row_A; row++)
         {
             float sum = 0.0; 
-            for (; indx < (*av_row)[row+1]; indx++)
+            for (; indx < rowIndices[row+1]; indx++)
             {
-                sum += host_alpha[0] * host_X[(*av_col)[indx] * num_col_X + col] * (*av_val)[indx];
+                sum += host_alpha[0] * host_X[colIndices[indx] * num_col_X + col] * values[indx];
             }
             host_res[row * num_col_Y + col] = sum + host_beta[0] * host_res[row * num_col_Y + col];
         }
     }
 
-    array_view<float> *av_res = static_cast<array_view<float> *>(gY.values);
+    control.accl_view.copy(gY.values, host_Y, sizeof(float) * num_row_Y * num_col_Y);
 
     bool isPassed = 1;  
 
     for (int i = 0; i < num_row_Y * num_col_Y; i++)
     {
-        float diff = std::abs(host_res[i] - (*av_res)[i]);
+        float diff = std::abs(host_res[i] - host_Y[i]);
         EXPECT_LT(diff, 0.01);
     }
-
-    dev_X.synchronize();
-    dev_Y.synchronize();
-    dev_alpha.synchronize();
-    dev_beta.synchronize();
-    av_values.synchronize();
-    av_rowOff.synchronize();
-    av_colIndices.synchronize();
 
     hcsparseTeardown();
 
@@ -160,4 +152,11 @@ TEST(csrmm_float_test, func_check)
     free(values);
     free(rowIndices);
     free(colIndices);
+    am_free(gX.values);
+    am_free(gY.values);
+    am_free(gAlpha.value);
+    am_free(gBeta.value);
+    am_free(gCsrMat.values);
+    am_free(gCsrMat.rowOffsets);
+    am_free(gCsrMat.colIndices);
 }

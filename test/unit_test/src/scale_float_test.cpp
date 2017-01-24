@@ -1,5 +1,6 @@
 #include <hcsparse.h>
 #include <iostream>
+#include "hc_am.hpp"
 int main()
 {
     hcsparseScalar gAlpha;
@@ -17,6 +18,15 @@ int main()
     float *host_Y = (float*) calloc(num_elements, sizeof(float));
     float *host_alpha = (float*) calloc(1, sizeof(float));
 
+    hcsparseSetup();
+    hcsparseInitScalar(&gAlpha);
+    hcsparseInitVector(&gX);
+    hcsparseInitVector(&gY);
+    
+    gX.values = am_alloc(sizeof(float) * num_elements, acc[1], 0);
+    gY.values = am_alloc(sizeof(float) * num_elements, acc[1], 0);
+    gAlpha.value = am_alloc(sizeof(float) * 1, acc[1], 0);
+
     srand (time(NULL));
     for (int i = 0; i < num_elements; i++)
     {
@@ -26,18 +36,9 @@ int main()
     
     host_alpha[0] = rand()%100;
 
-    array_view<float> dev_X(num_elements, host_X);
-    array_view<float> dev_Y(num_elements, host_Y);
-    array_view<float> dev_alpha(1, host_alpha);
-
-    hcsparseSetup();
-    hcsparseInitScalar(&gAlpha);
-    hcsparseInitVector(&gX);
-    hcsparseInitVector(&gY);
-
-    gAlpha.value = &dev_alpha;
-    gX.values = &dev_X;
-    gY.values = &dev_Y;
+    control.accl_view.copy(host_X, gX.values, sizeof(float) * num_elements);
+    control.accl_view.copy(host_Y, gY.values, sizeof(float) * num_elements);
+    control.accl_view.copy(host_alpha, gAlpha.value, sizeof(float) * 1);
 
     gAlpha.offValue = 0;
     gX.offValues = 0;
@@ -56,10 +57,12 @@ int main()
     }
 
     bool ispassed = 1;
-    array_view<float> *av_res = static_cast<array_view<float> *>(gX.values);
+
+    control.accl_view.copy(gX.values, host_X, sizeof(float) * num_elements);
+
     for (int i = 0; i < num_elements; i++)
     {
-        if (host_res[i] != (*av_res)[i])
+        if (host_res[i] != host_X[i])
         {
             ispassed = 0;
             break;
@@ -68,16 +71,15 @@ int main()
 
     std::cout << (ispassed?"TEST PASSED":"TEST FAILED") << std::endl;
 
-    dev_X.synchronize();
-    dev_Y.synchronize();
-    dev_alpha.synchronize();
-
     hcsparseTeardown();
 
     free(host_res);
     free(host_X);
     free(host_Y);
     free(host_alpha);
+    am_free(gX.values);
+    am_free(gY.values);
+    am_free(gAlpha.value);
 
     return 0; 
 }

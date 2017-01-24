@@ -6,10 +6,10 @@
 
 template <typename T, bool inverse>
 void extract_diagonal_kernel ( const long num_rows,
-                               hc::array_view<T> &diag,
-                               const hc::array_view<int> &csr_row_offsets,
-                               const hc::array_view<int> &csr_col_indices,
-                               const hc::array_view<T> &csr_values,
+                               T *diag,
+                               const int *csr_row_offsets,
+                               const int *csr_col_indices,
+                               const T *csr_values,
                                long subwave_size,
                                hcsparseControl *control)
 {
@@ -73,12 +73,12 @@ extract_diagonal (hcdenseVector* pDiag,
     if (nnz_per_row < 8)  {  subwave_size = 4;  }
     if (nnz_per_row < 4)  {  subwave_size = 2;  }
 
-    hc::array_view<T> *av_Diag = static_cast<hc::array_view<T> *>(pDiag->values);
-    hc::array_view<T> *av_Amat = static_cast<hc::array_view<T> *>(pA->values); 
-    hc::array_view<int> *av_ArowOff = static_cast<hc::array_view<int> *>(pA->rowOffsets); 
-    hc::array_view<int> *av_AcolInd = static_cast<hc::array_view<int> *>(pA->colIndices); 
+    T *av_Diag = static_cast<T*>(pDiag->values);
+    T *av_Amat = static_cast<T*>(pA->values); 
+    int *av_ArowOff = static_cast<int*>(pA->rowOffsets); 
+    int *av_AcolInd = static_cast<int*>(pA->colIndices); 
 
-    extract_diagonal_kernel<T, inverse> (size, *av_Diag, *av_ArowOff, *av_AcolInd, *av_Amat, subwave_size, control);
+    extract_diagonal_kernel<T, inverse> (size, av_Diag, av_ArowOff, av_AcolInd, av_Amat, subwave_size, control);
 
     return hcsparseSuccess;
 }

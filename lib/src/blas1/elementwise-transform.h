@@ -4,11 +4,11 @@
 
 template<typename T, ElementWiseOperator OP>
 void elementwise_transform_kernel (const long size,
-                                   hc::array_view<T> &pR,
+                                   T *pR,
                                    const long pROffset,
-                                   hc::array_view<T> &pX,
+                                   T *pX,
                                    const long pXOffset,
-                                   hc::array_view<T> &pY,
+                                   T *pY,
                                    const long pYOffset,
                                    const int globalSize,
                                    const hcsparseControl* control)
@@ -37,11 +37,11 @@ elementwise_transform(hcdenseVector* r,
     int blocksNum = (size + BLOCK_SIZE - 1) / BLOCK_SIZE;
     int globalSize = blocksNum * BLOCK_SIZE;
 
-    hc::array_view<T> *avR = static_cast<hc::array_view<T>*>(r->values);
-    hc::array_view<T> *avX = static_cast<hc::array_view<T>*>(x->values);
-    hc::array_view<T> *avY = static_cast<hc::array_view<T>*>(y->values);
+    T *avR = static_cast<T*>(r->values);
+    T *avX = static_cast<T*>(x->values);
+    T *avY = static_cast<T*>(y->values);
 
-    elementwise_transform_kernel<T, OP> (size, *avR, r->offValues, *avX, x->offValues, *avY, y->offValues, globalSize, control);
+    elementwise_transform_kernel<T, OP> (size, avR, r->offValues, avX, x->offValues, avY, y->offValues, globalSize, control);
 
     return hcsparseSuccess;
 }

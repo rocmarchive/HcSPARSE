@@ -1,5 +1,6 @@
 #include <hcsparse.h>
 #include <iostream>
+#include "hc_am.hpp"
 int main(int argc, char *argv[])
 {
     hcsparseCsrMatrix gMatA;
@@ -49,13 +50,9 @@ int main(int argc, char *argv[])
     float *dense_val_B = (float*) calloc(num_row*num_col, sizeof(float));
     float *dense_val_C = (float*) calloc(num_row*num_col, sizeof(float));
 
-    array_view<float> av_dense_val_A(num_row*num_col, dense_val_A);
-    array_view<float> av_dense_val_B(num_row*num_col, dense_val_B);
-    array_view<float> av_dense_val_C(num_row*num_col, dense_val_C);
-
-    gDenseMatA.values = &av_dense_val_A;
-    gDenseMatB.values = &av_dense_val_B;
-    gDenseMatC.values = &av_dense_val_C;
+    gDenseMatA.values = am_alloc(sizeof(float) * num_row * num_col, acc[1], 0);
+    gDenseMatB.values = am_alloc(sizeof(float) * num_row * num_col, acc[1], 0);
+    gDenseMatC.values = am_alloc(sizeof(float) * num_row * num_col, acc[1], 0);
 
     gDenseMatA.num_rows = num_row;
     gDenseMatA.num_cols = num_col;
@@ -84,13 +81,9 @@ int main(int argc, char *argv[])
     int *rowIndices_A = (int*)calloc(num_row+1, sizeof(int));
     int *colIndices_A = (int*)calloc(num_nonzero, sizeof(int));
 
-    array_view<float> av_values_A(num_nonzero, values_A);
-    array_view<int> av_rowOff_A(num_row+1, rowIndices_A);
-    array_view<int> av_colIndices_A(num_nonzero, colIndices_A);
-
-    gMatA.values = &av_values_A;
-    gMatA.rowOffsets = &av_rowOff_A;
-    gMatA.colIndices = &av_colIndices_A;
+    gMatA.values = am_alloc(sizeof(float) * num_nonzero, acc[1], 0);
+    gMatA.rowOffsets = am_alloc(sizeof(int) * (num_row+1), acc[1], 0);
+    gMatA.colIndices = am_alloc(sizeof(int) * num_nonzero, acc[1], 0);
 
     status = hcsparseSCsrMatrixfromFile(&gMatA, filename, &control, false);
    
@@ -104,13 +97,9 @@ int main(int argc, char *argv[])
     int *rowIndices_B = (int*)calloc(num_row+1, sizeof(int));
     int *colIndices_B = (int*)calloc(num_nonzero, sizeof(int));
 
-    array_view<float> av_values_B(num_nonzero, values_B);
-    array_view<int> av_rowOff_B(num_row+1, rowIndices_B);
-    array_view<int> av_colIndices_B(num_nonzero, colIndices_B);
-
-    gMatB.values = &av_values_B;
-    gMatB.rowOffsets = &av_rowOff_B;
-    gMatB.colIndices = &av_colIndices_B;
+    gMatB.values = am_alloc(sizeof(float) * num_nonzero, acc[1], 0);
+    gMatB.rowOffsets = am_alloc(sizeof(int) * (num_row+1), acc[1], 0);
+    gMatB.colIndices = am_alloc(sizeof(int) * num_nonzero, acc[1], 0);
 
     status = hcsparseSCsrMatrixfromFile(&gMatB, filename, &control, false);
    
@@ -124,13 +113,9 @@ int main(int argc, char *argv[])
     int *rowIndices_C = (int*)calloc(num_row+1, sizeof(int));
     int *colIndices_C = (int*)calloc(num_nonzero, sizeof(int));
 
-    array_view<float> av_values_C(num_nonzero, values_C);
-    array_view<int> av_rowOff_C(num_row+1, rowIndices_C);
-    array_view<int> av_colIndices_C(num_nonzero, colIndices_C);
-
-    gMatB.values = &av_values_C;
-    gMatB.rowOffsets = &av_rowOff_C;
-    gMatB.colIndices = &av_colIndices_C;
+    gMatC.values = am_alloc(sizeof(float) * num_nonzero, acc[1], 0);
+    gMatC.rowOffsets = am_alloc(sizeof(int) * (num_row+1), acc[1], 0);
+    gMatC.colIndices = am_alloc(sizeof(int) * num_nonzero, acc[1], 0);
 
     hcsparseScsrSpGemm(&gMatA, &gMatB, &gMatC, &control);
 
@@ -168,19 +153,6 @@ int main(int argc, char *argv[])
 */
     std::cout << "csrSpGemm Completed!" << std::endl;
 
-    av_dense_val_A.synchronize();
-    av_dense_val_B.synchronize();
-    av_dense_val_C.synchronize();
-    av_values_A.synchronize();
-    av_rowOff_A.synchronize();
-    av_colIndices_A.synchronize();
-    av_values_B.synchronize();
-    av_rowOff_B.synchronize();
-    av_colIndices_B.synchronize();
-    av_values_C.synchronize();
-    av_rowOff_C.synchronize();
-    av_colIndices_C.synchronize();
-
     hcsparseTeardown();
 
     free(dense_val_A);
@@ -195,6 +167,18 @@ int main(int argc, char *argv[])
     free(values_C);
     free(rowIndices_C);
     free(colIndices_C);
+    am_free(gDenseMatA.values);
+    am_free(gDenseMatB.values);
+    am_free(gDenseMatC.values);
+    am_free(gMatA.values);
+    am_free(gMatA.rowOffsets);
+    am_free(gMatA.colIndices);
+    am_free(gMatB.values);
+    am_free(gMatB.rowOffsets);
+    am_free(gMatB.colIndices);
+    am_free(gMatC.values);
+    am_free(gMatC.rowOffsets);
+    am_free(gMatC.colIndices);
 
     return 0; 
 }

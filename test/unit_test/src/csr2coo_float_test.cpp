@@ -1,5 +1,6 @@
 #include <hcsparse.h>
 #include <iostream>
+#include <hc_am.hpp>
 int main(int argc, char *argv[])
 {
     hcsparseCsrMatrix gCsrMat;
@@ -52,37 +53,25 @@ int main(int argc, char *argv[])
     int *csr_rowOff = (int*)calloc(num_row+1, sizeof(int));
     int *csr_colIndices = (int*)calloc(num_nonzero, sizeof(int));    
 
-    array_view<float> av_csr_values(num_nonzero, csr_values);
-    array_view<int> av_csr_rowOff(num_row+1, csr_rowOff);
-    array_view<int> av_csr_colIndices(num_nonzero, csr_colIndices);
-
-    gCsrMat.values = &av_csr_values;
-    gCsrMat.rowOffsets = &av_csr_rowOff;
-    gCsrMat.colIndices = &av_csr_colIndices;
+    gCsrMat.values = (float*) am_alloc(num_nonzero * sizeof(float), acc[1], 0);
+    gCsrMat.rowOffsets = (int*) am_alloc((num_row+1) * sizeof(int), acc[1], 0);
+    gCsrMat.colIndices = (int*) am_alloc(num_nonzero * sizeof(int), acc[1], 0);
 
     float *coo_ref_values = (float*)calloc(num_nonzero, sizeof(float));
     int *coo_ref_rowIndices = (int*)calloc(num_nonzero, sizeof(int));
     int *coo_ref_colIndices = (int*)calloc(num_nonzero, sizeof(int));
 
-    array_view<float> av_coo_ref_values(num_nonzero, coo_ref_values);
-    array_view<int> av_coo_ref_rowIndices(num_nonzero, coo_ref_rowIndices);
-    array_view<int> av_coo_ref_colIndices(num_nonzero, coo_ref_colIndices);
-
-    gCooMat_ref.values = &av_coo_ref_values;
-    gCooMat_ref.rowIndices = &av_coo_ref_rowIndices;
-    gCooMat_ref.colIndices = &av_coo_ref_colIndices;
+    gCooMat_ref.values = (float*) am_alloc(num_nonzero * sizeof(float), acc[1], 0);
+    gCooMat_ref.rowIndices = (int*) am_alloc(num_nonzero * sizeof(int), acc[1], 0);
+    gCooMat_ref.colIndices = (int*) am_alloc(num_nonzero * sizeof(int), acc[1], 0);
 
     float *coo_res_values = (float*)calloc(num_nonzero, sizeof(float));
     int *coo_res_rowIndices = (int*)calloc(num_nonzero, sizeof(int));
     int *coo_res_colIndices = (int*)calloc(num_nonzero, sizeof(int));
 
-    array_view<float> av_coo_res_values(num_nonzero, coo_res_values);
-    array_view<int> av_coo_res_rowIndices(num_nonzero, coo_res_rowIndices);
-    array_view<int> av_coo_res_colIndices(num_nonzero, coo_res_colIndices);
-
-    gCooMat_res.values = &av_coo_res_values;
-    gCooMat_res.rowIndices = &av_coo_res_rowIndices;
-    gCooMat_res.colIndices = &av_coo_res_colIndices;
+    gCooMat_res.values = (float*) am_alloc(num_nonzero * sizeof(float), acc[1], 0);
+    gCooMat_res.rowIndices = (int*) am_alloc(num_nonzero * sizeof(int), acc[1], 0);
+    gCooMat_res.colIndices = (int*) am_alloc(num_nonzero * sizeof(int), acc[1], 0);
 
     hcsparseSCooMatrixfromFile(&gCooMat_ref, filename, &control, false);
 
@@ -90,23 +79,23 @@ int main(int argc, char *argv[])
 
     hcsparseScsr2coo(&gCsrMat, &gCooMat_res, &control);
 
-    array_view<float> *av_ref_val = static_cast<array_view<float> *>(gCooMat_ref.values);
-    array_view<int> *av_ref_col = static_cast<array_view<int> *>(gCooMat_ref.colIndices);
-    array_view<int> *av_ref_row = static_cast<array_view<int> *>(gCooMat_ref.rowIndices);
+    control.accl_view.copy(gCooMat_ref.values, coo_ref_values, num_nonzero * sizeof(float));
+    control.accl_view.copy(gCooMat_ref.rowIndices, coo_ref_rowIndices, num_nonzero * sizeof(int));
+    control.accl_view.copy(gCooMat_ref.colIndices, coo_ref_colIndices, num_nonzero * sizeof(int));
 
-    array_view<float> *av_res_val = static_cast<array_view<float> *>(gCooMat_res.values);
-    array_view<int> *av_res_col = static_cast<array_view<int> *>(gCooMat_res.colIndices);
-    array_view<int> *av_res_row = static_cast<array_view<int> *>(gCooMat_res.rowIndices);
+    control.accl_view.copy(gCooMat_res.values, coo_res_values, num_nonzero * sizeof(float));
+    control.accl_view.copy(gCooMat_res.rowIndices, coo_res_rowIndices, num_nonzero * sizeof(int));
+    control.accl_view.copy(gCooMat_res.colIndices, coo_res_colIndices, num_nonzero * sizeof(int));
 
     bool ispassed = 1;
 
     for (int i = 0; i < gCooMat_res.num_nonzeros; i++)
     {
-        if ((*av_ref_val)[i] != (*av_res_val)[i])
+        if (coo_ref_values[i] != coo_res_values[i])
         {
-            std::cout<<i<< " "<<(*av_ref_val)[i] <<" "<< (*av_res_val)[i]<<std::endl;
-            std::cout<<i<< " "<<(*av_ref_val)[i+1] <<" "<< (*av_res_val)[i+1]<<std::endl;
-            std::cout<<i<< " "<<(*av_ref_val)[i+2] <<" "<< (*av_res_val)[i+2]<<std::endl;
+            std::cout<<i<< " "<<coo_ref_values[i] <<" "<< coo_res_values[i]<<std::endl;
+            std::cout<<i<< " "<<coo_ref_values[i+1] <<" "<< coo_res_values[i+1]<<std::endl;
+            std::cout<<i<< " "<<coo_ref_values[i+2] <<" "<< coo_res_values[i+2]<<std::endl;
             ispassed = 0;
             break;
         }
@@ -114,11 +103,11 @@ int main(int argc, char *argv[])
 
     for (int i = 0; i < gCooMat_res.num_nonzeros; i++)
     {
-        if ((*av_ref_col)[i] != (*av_res_col)[i])
+        if (coo_ref_colIndices[i] != coo_res_colIndices[i])
         {
-            std::cout<<i<<" "<<(*av_ref_col)[i] << " " << (*av_res_col)[i]<<std::endl;
-            std::cout<<i<<" "<<(*av_ref_col)[i+1] << " " << (*av_res_col)[i+1]<<std::endl;
-            std::cout<<i<<" "<<(*av_ref_col)[i+2] << " " << (*av_res_col)[i+2]<<std::endl;
+            std::cout<<i<<" "<<coo_ref_colIndices[i] << " " << coo_res_colIndices[i]<<std::endl;
+            std::cout<<i<<" "<<coo_ref_colIndices[i+1] << " " << coo_res_colIndices[i+1]<<std::endl;
+            std::cout<<i<<" "<<coo_ref_colIndices[i+2] << " " << coo_res_colIndices[i+2]<<std::endl;
             ispassed = 0;
             break;
         }
@@ -126,27 +115,17 @@ int main(int argc, char *argv[])
 
     for (int i = 0; i < gCooMat_res.num_nonzeros; i++)
     {
-        if ((*av_ref_row)[i] != (*av_res_row)[i])
+        if (coo_ref_rowIndices[i] != coo_res_rowIndices[i])
         {
-            std::cout<<i<<" "<<(*av_ref_row)[i] << " " << (*av_res_row)[i]<<std::endl;
-            std::cout<<i<<" "<<(*av_ref_row)[i+1] << " " << (*av_res_row)[i+1]<<std::endl;
-            std::cout<<i<<" "<<(*av_ref_row)[i+2] << " " << (*av_res_row)[i+2]<<std::endl;
+            std::cout<<i<<" "<<coo_ref_rowIndices[i] << " " << coo_res_rowIndices[i]<<std::endl;
+            std::cout<<i<<" "<<coo_ref_rowIndices[i+1] << " " << coo_res_rowIndices[i+1]<<std::endl;
+            std::cout<<i<<" "<<coo_ref_rowIndices[i+2] << " " << coo_res_rowIndices[i+2]<<std::endl;
             ispassed = 0;
             break;
         }
     }
 
     std::cout << (ispassed?"TEST PASSED":"TEST FAILED") << std::endl;
-
-    av_csr_values.synchronize();
-    av_csr_rowOff.synchronize();
-    av_csr_colIndices.synchronize();
-    av_coo_ref_values.synchronize();
-    av_coo_ref_rowIndices.synchronize();
-    av_coo_ref_colIndices.synchronize();
-    av_coo_res_values.synchronize();
-    av_coo_res_rowIndices.synchronize();
-    av_coo_res_colIndices.synchronize();
 
     hcsparseTeardown();
 
@@ -159,6 +138,15 @@ int main(int argc, char *argv[])
     free(coo_res_values);
     free(coo_res_rowIndices);
     free(coo_res_colIndices);
+    am_free(gCsrMat.values);
+    am_free(gCsrMat.rowOffsets);
+    am_free(gCsrMat.colIndices);
+    am_free(gCooMat_ref.values);
+    am_free(gCooMat_ref.rowIndices);
+    am_free(gCooMat_ref.colIndices);
+    am_free(gCooMat_res.values);
+    am_free(gCooMat_res.rowIndices);
+    am_free(gCooMat_res.colIndices);
 
     return 0; 
 }

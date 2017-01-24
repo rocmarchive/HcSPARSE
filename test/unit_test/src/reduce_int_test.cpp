@@ -1,5 +1,6 @@
 #include <hcsparse.h>
 #include <iostream>
+#include "hc_am.hpp"
 int main()
 {
     hcsparseScalar gR;
@@ -10,26 +11,26 @@ int main()
 
     hcsparseControl control(accl_view);
 
-    int num_elements = 100;
+    int num_elements = 10000;
     int *host_res = (int*) calloc(1, sizeof(int));
     int *host_X = (int*) calloc(num_elements, sizeof(int));
     int *host_R = (int*) calloc(1, sizeof(int));
-
-    srand (time(NULL));
-    for (int i = 0; i < num_elements; i++)
-    {
-        host_X[i] = rand()%100;
-    }
-    
-    array_view<int> dev_X(num_elements, host_X);
-    array_view<int> dev_R(1, host_R);
 
     hcsparseSetup();
     hcsparseInitScalar(&gR);
     hcsparseInitVector(&gX);
 
-    gR.value = &dev_R;
-    gX.values = &dev_X;
+    gR.value = am_alloc(sizeof(int) * 1, acc[1], 0);
+    gX.values = am_alloc(sizeof(int) * num_elements, acc[1], 0);
+
+    srand (time(NULL));
+    for (int i = 0; i < num_elements; i++)
+    {
+        host_X[i] = rand()%100;
+    }    
+
+    control.accl_view.copy(host_X, gX.values, sizeof(int) * num_elements);
+    control.accl_view.copy(host_R, gR.value, sizeof(int) * 1);
 
     gR.offValue = 0;
     gX.offValues = 0;
@@ -46,22 +47,23 @@ int main()
     }
 
     bool ispassed = 1;
-    array_view<int> *av_res = static_cast<array_view<int> *>(gR.value);
-    if (host_res[0] != (*av_res)[0])
+
+    control.accl_view.copy(gR.value, host_R, sizeof(int) * 1);
+
+    if (host_res[0] != host_R[0])
     {
         ispassed = 0;
     }
 
     std::cout << (ispassed?"TEST PASSED":"TEST FAILED") << std::endl;
 
-    dev_X.synchronize();
-    dev_R.synchronize();
-
     hcsparseTeardown();
 
     free(host_res);
     free(host_X);
     free(host_R);
+    am_free(gR.value);
+    am_free(gX.values);
 
     return 0; 
 }

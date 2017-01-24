@@ -1,5 +1,6 @@
 #include <hcsparse.h>
 #include <iostream>
+#include "hc_am.hpp"
 int main()
 {
     hcsparseScalar gAlpha;
@@ -21,6 +22,19 @@ int main()
     double *host_alpha = (double*) calloc(1, sizeof(double));
     double *host_beta = (double*) calloc(1, sizeof(double));
 
+    hcsparseSetup();
+    hcsparseInitScalar(&gAlpha);
+    hcsparseInitScalar(&gBeta);
+    hcsparseInitVector(&gR);
+    hcsparseInitVector(&gX);
+    hcsparseInitVector(&gY);
+
+    gR.values = am_alloc(sizeof(double) * num_elements, acc[1], 0);
+    gX.values = am_alloc(sizeof(double) * num_elements, acc[1], 0);
+    gY.values = am_alloc(sizeof(double) * num_elements, acc[1], 0);
+    gAlpha.value = am_alloc(sizeof(double) * 1, acc[1], 0);
+    gBeta.value = am_alloc(sizeof(double) * 1, acc[1], 0);
+
     srand (time(NULL));
     for (int i = 0; i < num_elements; i++)
     {
@@ -32,24 +46,11 @@ int main()
     host_alpha[0] = rand()%100;
     host_beta[0] = rand()%100;
 
-    array_view<double> dev_R(num_elements, host_R);
-    array_view<double> dev_X(num_elements, host_X);
-    array_view<double> dev_Y(num_elements, host_Y);
-    array_view<double> dev_alpha(1, host_alpha);
-    array_view<double> dev_beta(1, host_beta);
-
-    hcsparseSetup();
-    hcsparseInitScalar(&gAlpha);
-    hcsparseInitScalar(&gBeta);
-    hcsparseInitVector(&gR);
-    hcsparseInitVector(&gX);
-    hcsparseInitVector(&gY);
-
-    gAlpha.value = &dev_alpha;
-    gBeta.value = &dev_beta;
-    gR.values = &dev_R;
-    gX.values = &dev_X;
-    gY.values = &dev_Y;
+    control.accl_view.copy(host_R, gR.values, sizeof(double) * num_elements);
+    control.accl_view.copy(host_X, gX.values, sizeof(double) * num_elements);
+    control.accl_view.copy(host_Y, gY.values, sizeof(double) * num_elements);
+    control.accl_view.copy(host_alpha, gAlpha.value, sizeof(double) * 1);
+    control.accl_view.copy(host_beta, gBeta.value, sizeof(double) * 1);
 
     gAlpha.offValue = 0;
     gBeta.offValue = 0;
@@ -71,10 +72,12 @@ int main()
     }
 
     bool ispassed = 1;
-    array_view<double> *av_res = static_cast<array_view<double> *>(gR.values);
+
+    control.accl_view.copy(gR.values, host_R, sizeof(double) * num_elements);
+
     for (int i = 0; i < num_elements; i++)
     {
-        if (host_res[i] != (*av_res)[i])
+        if (host_res[i] != host_R[i])
         {
             ispassed = 0;
             break;
@@ -82,12 +85,6 @@ int main()
     }
 
     std::cout << (ispassed?"TEST PASSED":"TEST FAILED") << std::endl;
-
-    dev_R.synchronize();
-    dev_X.synchronize();
-    dev_Y.synchronize();
-    dev_alpha.synchronize();
-    dev_beta.synchronize();
 
     hcsparseTeardown();
 
@@ -97,6 +94,11 @@ int main()
     free(host_Y);
     free(host_alpha);
     free(host_beta);
+    am_free(gR.values);
+    am_free(gX.values);
+    am_free(gY.values);
+    am_free(gAlpha.value);
+    am_free(gBeta.value);
 
     return 0; 
 }

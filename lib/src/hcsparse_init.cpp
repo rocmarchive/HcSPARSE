@@ -1,4 +1,5 @@
 #include "hcsparse.h"
+#include "hc_am.hpp"
 #include "blas2/csrmv.h"
 #include "blas3/csrmm.h"
 #include "blas3/hcsparse-spm-spm.h"
@@ -28,6 +29,52 @@
 #include "transform/hcsparse-dense2csr.h"
 
 int hcsparseInitialized = 0;
+
+// hcsparse Helper functions 
+
+// 1. hcsparseCreate()
+
+// This function initializes the HCSPARSE library and creates a handle to an opaque structure
+// holding the HCSPARSE library context.
+
+// Return Values
+// --------------------------------------------------------------------
+// HCSPARSE_STATUS_SUCCESS            initialization succeeded
+// HCSPARSE_STATUS_ALLOC_FAILED       the resources could not be allocated  
+
+hcsparseStatus_t hcsparseCreate(hcsparseHandle_t *handle, hc::accelerator *acc) {
+  if (handle == NULL) {
+    handle = new hcsparseHandle_t();
+  }
+
+  hc::accelerator_view accl_view = acc->get_default_view();
+  *handle = new hcsparseControl_(accl_view);
+
+  if(*handle == NULL) {
+    return HCSPARSE_STATUS_ALLOC_FAILED;
+  }
+  return HCSPARSE_STATUS_SUCCESS;
+}
+
+// 2. hcsparseDestory()
+
+// This function releases hardware resources used by the HCSPARSE library.
+// This function is usually the last call with a particular handle to the HCSPARSE library.
+
+// Return Values
+// ---------------------------------------------------------------------
+// HCSPARSE_STATUS_SUCCESS            the shut down succeeded
+// HCSPARSE_STATUS_NOT_INITIALIZED    the library was not initialized
+
+hcsparseStatus_t hcsparseDestroy(hcsparseHandle_t *handle){
+  if(handle == nullptr || *handle == nullptr)
+    return HCSPARSE_STATUS_NOT_INITIALIZED;
+  delete *handle;
+  *handle = nullptr;
+  handle = nullptr;
+  return HCSPARSE_STATUS_SUCCESS;
+}
+
 
 hcsparseStatus
 hcsparseSetup(void)
@@ -100,7 +147,7 @@ hcsparseScsrmv (const hcsparseScalar* alpha,
                 const hcdenseVector* x,
                 const hcsparseScalar* beta,
                 hcdenseVector* y,
-                const hcsparseControl* control)
+                hcsparseControl* control)
 {
     if (!hcsparseInitialized)
     {
@@ -122,7 +169,7 @@ hcsparseDcsrmv (const hcsparseScalar* alpha,
                 const hcdenseVector* x,
                 const hcsparseScalar* beta,
                 hcdenseVector* y,
-                const hcsparseControl* control)
+                hcsparseControl* control)
 {
     if (!hcsparseInitialized)
     {
@@ -144,7 +191,7 @@ hcsparseScsrmm (const hcsparseScalar* alpha,
                 const hcdenseMatrix* denseB,
                 const hcsparseScalar* beta,
                 hcdenseMatrix* denseC,
-                const hcsparseControl *control)
+                hcsparseControl *control)
 {
     if( !hcsparseInitialized )
     {
@@ -165,7 +212,7 @@ hcsparseDcsrmm (const hcsparseScalar* alpha,
                 const hcdenseMatrix* denseB,
                 const hcsparseScalar* beta,
                 hcdenseMatrix* denseC,
-                const hcsparseControl *control)
+                hcsparseControl *control)
 {
     if( !hcsparseInitialized )
     {
@@ -184,7 +231,7 @@ hcsparseStatus
 hcdenseSscale (hcdenseVector* r,
                const hcsparseScalar* alpha,
                const hcdenseVector* y,
-               const hcsparseControl* control)
+               hcsparseControl* control)
 {
     if (!hcsparseInitialized)
     {
@@ -204,7 +251,7 @@ hcsparseStatus
 hcdenseDscale (hcdenseVector* r,
                const hcsparseScalar* alpha,
                const hcdenseVector* y,
-               const hcsparseControl* control)
+               hcsparseControl* control)
 {
     if (!hcsparseInitialized)
     {
@@ -224,7 +271,7 @@ hcdenseSaxpy (hcdenseVector* r,
               const hcsparseScalar* alpha,
               const hcdenseVector* x,
               const hcdenseVector* y,
-              const hcsparseControl* control)
+              hcsparseControl* control)
 {
     if (!hcsparseInitialized)
     {
@@ -244,7 +291,7 @@ hcdenseDaxpy (hcdenseVector* r,
               const hcsparseScalar* alpha,
               const hcdenseVector* x,
               const hcdenseVector* y,
-              const hcsparseControl* control)
+              hcsparseControl* control)
 {
     if (!hcsparseInitialized)
     {
@@ -265,7 +312,7 @@ hcdenseSaxpby (hcdenseVector* r,
                const hcdenseVector* x,
                const hcsparseScalar* beta,
                const hcdenseVector* y,
-               const hcsparseControl* control)
+               hcsparseControl* control)
 {
     if (!hcsparseInitialized)
     {
@@ -286,7 +333,7 @@ hcdenseDaxpby (hcdenseVector* r,
                const hcdenseVector* x,
                const hcsparseScalar* beta,
                const hcdenseVector* y,
-               const hcsparseControl* control)
+               hcsparseControl* control)
 {
     if (!hcsparseInitialized)
     {
@@ -304,7 +351,7 @@ hcdenseDaxpby (hcdenseVector* r,
 hcsparseStatus
 hcdenseIreduce (hcsparseScalar* s,
                 const hcdenseVector* x,
-                const hcsparseControl* control)
+                hcsparseControl* control)
 {
     if (!hcsparseInitialized)
     {
@@ -322,7 +369,7 @@ hcdenseIreduce (hcsparseScalar* s,
 hcsparseStatus
 hcdenseSreduce (hcsparseScalar* s,
                 const hcdenseVector* x,
-                const hcsparseControl* control)
+                hcsparseControl* control)
 {
     if (!hcsparseInitialized)
     {
@@ -340,7 +387,7 @@ hcdenseSreduce (hcsparseScalar* s,
 hcsparseStatus
 hcdenseDreduce (hcsparseScalar* s,
                 const hcdenseVector* x,
-                const hcsparseControl* control)
+                hcsparseControl* control)
 {
     if (!hcsparseInitialized)
     {
@@ -359,7 +406,7 @@ hcsparseStatus
 hcdenseSadd (hcdenseVector* r,
              const hcdenseVector* x,
              const hcdenseVector* y,
-             const hcsparseControl* control)
+             hcsparseControl* control)
 {
     if (!hcsparseInitialized)
     {
@@ -378,7 +425,7 @@ hcsparseStatus
 hcdenseDadd (hcdenseVector* r,
              const hcdenseVector* x,
              const hcdenseVector* y,
-             const hcsparseControl* control)
+             hcsparseControl* control)
 {
     if (!hcsparseInitialized)
     {
@@ -397,7 +444,7 @@ hcsparseStatus
 hcdenseSsub (hcdenseVector* r,
              const hcdenseVector* x,
              const hcdenseVector* y,
-             const hcsparseControl* control)
+             hcsparseControl* control)
 {
     if (!hcsparseInitialized)
     {
@@ -416,7 +463,7 @@ hcsparseStatus
 hcdenseDsub (hcdenseVector* r,
              const hcdenseVector* x,
              const hcdenseVector* y,
-             const hcsparseControl* control)
+             hcsparseControl* control)
 {
     if (!hcsparseInitialized)
     {
@@ -435,7 +482,7 @@ hcsparseStatus
 hcdenseSmul (hcdenseVector* r,
              const hcdenseVector* x,
              const hcdenseVector* y,
-             const hcsparseControl* control)
+             hcsparseControl* control)
 {
     if (!hcsparseInitialized)
     {
@@ -454,7 +501,7 @@ hcsparseStatus
 hcdenseDmul (hcdenseVector* r,
              const hcdenseVector* x,
              const hcdenseVector* y,
-             const hcsparseControl* control)
+             hcsparseControl* control)
 {
     if (!hcsparseInitialized)
     {
@@ -473,7 +520,7 @@ hcsparseStatus
 hcdenseSdiv (hcdenseVector* r,
              const hcdenseVector* x,
              const hcdenseVector* y,
-             const hcsparseControl* control)
+             hcsparseControl* control)
 {
     if (!hcsparseInitialized)
     {
@@ -492,7 +539,7 @@ hcsparseStatus
 hcdenseDdiv (hcdenseVector* r,
              const hcdenseVector* x,
              const hcdenseVector* y,
-             const hcsparseControl* control)
+             hcsparseControl* control)
 {
     if (!hcsparseInitialized)
     {
@@ -510,7 +557,7 @@ hcdenseDdiv (hcdenseVector* r,
 hcsparseStatus
 hcdenseSnrm1 (hcsparseScalar* s,
               const hcdenseVector* x,
-              const hcsparseControl* control)
+              hcsparseControl* control)
 {
     if (!hcsparseInitialized)
     {
@@ -528,7 +575,7 @@ hcdenseSnrm1 (hcsparseScalar* s,
 hcsparseStatus
 hcdenseDnrm1 (hcsparseScalar* s,
               const hcdenseVector* x,
-              const hcsparseControl* control)
+              hcsparseControl* control)
 {
     if (!hcsparseInitialized)
     {
@@ -546,7 +593,7 @@ hcdenseDnrm1 (hcsparseScalar* s,
 hcsparseStatus
 hcdenseSnrm2 (hcsparseScalar* s,
               const hcdenseVector* x,
-              const hcsparseControl* control)
+              hcsparseControl* control)
 {
     if (!hcsparseInitialized)
     {
@@ -564,7 +611,7 @@ hcdenseSnrm2 (hcsparseScalar* s,
 hcsparseStatus
 hcdenseDnrm2 (hcsparseScalar* s,
               const hcdenseVector* x,
-              const hcsparseControl* control)
+              hcsparseControl* control)
 {
     if (!hcsparseInitialized)
     {
@@ -583,7 +630,7 @@ hcsparseStatus
 hcdenseSdot (hcsparseScalar* r,
              const hcdenseVector* x,
              const hcdenseVector* y,
-             const hcsparseControl* control)
+             hcsparseControl* control)
 {
     if (!hcsparseInitialized)
     {
@@ -603,7 +650,7 @@ hcsparseStatus
 hcdenseDdot (hcsparseScalar* r,
              const hcdenseVector* x,
              const hcdenseVector* y,
-             const hcsparseControl* control)
+             hcsparseControl* control)
 {
     if (!hcsparseInitialized)
     {
@@ -692,16 +739,24 @@ hcsparseSCooMatrixfromFile (hcsparseCooMatrix* cooMatx, const char* filePath, hc
 
     std::sort( coords, coords + cooMatx->num_nonzeros, CoordinateCompare< float > );
 
-    hc::array_view<float> *values = static_cast<hc::array_view<float> *>(cooMatx->values);
-    hc::array_view<int> *rowIndices = static_cast<hc::array_view<int> *>(cooMatx->rowIndices);
-    hc::array_view<int> *colIndices = static_cast<hc::array_view<int> *>(cooMatx->colIndices);
+    float *values = (float*) calloc(cooMatx->num_nonzeros, sizeof(float));
+    int *rowIndices = (int*) calloc(cooMatx->num_nonzeros, sizeof(int));
+    int *colIndices = (int*) calloc(cooMatx->num_nonzeros, sizeof(int));
 
     for( int c = 0; c < cooMatx->num_nonzeros; ++c )
     {
-        (*(rowIndices))[ c ] = coords[c].x;
-        (*(colIndices))[ c ] = coords[c].y;
-        (*(values))[ c ] = coords[c].val;
+        rowIndices[ c ] = coords[c].x;
+        colIndices[ c ] = coords[c].y;
+        values[ c ] = coords[c].val;
     }
+
+    control->accl_view.copy(values, cooMatx->values, cooMatx->num_nonzeros * sizeof(float));
+    control->accl_view.copy(rowIndices, cooMatx->rowIndices, cooMatx->num_nonzeros * sizeof(int));
+    control->accl_view.copy(colIndices, cooMatx->colIndices, cooMatx->num_nonzeros * sizeof(int));
+
+    free(values);
+    free(rowIndices);
+    free(colIndices);
 
     return hcsparseSuccess;
 }
@@ -733,16 +788,24 @@ hcsparseDCooMatrixfromFile (hcsparseCooMatrix* cooMatx, const char* filePath, hc
 
     std::sort( coords, coords + cooMatx->num_nonzeros, CoordinateCompare<double> );
 
-    hc::array_view<double> *values = static_cast<hc::array_view<double> *>(cooMatx->values);
-    hc::array_view<int> *rowIndices = static_cast<hc::array_view<int> *>(cooMatx->rowIndices);
-    hc::array_view<int> *colIndices = static_cast<hc::array_view<int> *>(cooMatx->colIndices);
+    double *values = (double*) calloc(cooMatx->num_nonzeros, sizeof(double));
+    int *rowIndices = (int*) calloc(cooMatx->num_nonzeros, sizeof(int));
+    int *colIndices = (int*) calloc(cooMatx->num_nonzeros, sizeof(int));
 
     for( int c = 0; c < cooMatx->num_nonzeros; ++c )
     {
-        (*(rowIndices))[ c ] = coords[c].x;
-        (*(colIndices))[ c ] = coords[c].y;
-        (*(values))[ c ] = coords[c].val;
+        rowIndices[ c ] = coords[c].x;
+        colIndices[ c ] = coords[c].y;
+        values[ c ] = coords[c].val;
     }
+
+    control->accl_view.copy(values, cooMatx->values, cooMatx->num_nonzeros * sizeof(double));
+    control->accl_view.copy(rowIndices, cooMatx->rowIndices, cooMatx->num_nonzeros * sizeof(int));
+    control->accl_view.copy(colIndices, cooMatx->colIndices, cooMatx->num_nonzeros * sizeof(int));
+
+    free(values);
+    free(rowIndices);
+    free(colIndices);
 
     return hcsparseSuccess;
 }
@@ -763,7 +826,6 @@ hcsparseSCsrMatrixfromFile (hcsparseCsrMatrix* csrMatx, const char* filePath, hc
     }
     else
         return hcsparseInvalid;
-
     // Read data from a file on disk into CPU buffers
     // Data is read natively as COO format with the reader
     MatrixMarketReader< float > mm_reader;
@@ -782,23 +844,31 @@ hcsparseSCsrMatrixfromFile (hcsparseCsrMatrix* csrMatx, const char* filePath, hc
 
     std::sort( coords, coords + csrMatx->num_nonzeros, CoordinateCompare< float > );
 
-    hc::array_view<float> *values = static_cast<hc::array_view<float> *>(csrMatx->values);
-    hc::array_view<int> *rowOffsets = static_cast<hc::array_view<int> *>(csrMatx->rowOffsets);
-    hc::array_view<int> *colIndices = static_cast<hc::array_view<int> *>(csrMatx->colIndices);
+    float *values = (float*)calloc(csrMatx->num_nonzeros, sizeof(float));
+    int *rowOffsets = (int*)calloc((csrMatx->num_rows)+1, sizeof(int));
+    int *colIndices = (int*)calloc(csrMatx->num_nonzeros, sizeof(int));
 
     int current_row = 0;
-    (*(rowOffsets))[ 0 ] = 0;
+    rowOffsets[ 0 ] = 0;
     for( int i = 0; i < csrMatx->num_nonzeros; i++ )
     {
-        (*(colIndices))[ i ] = coords[i].y;
-        (*(values))[ i ] = coords[i].val;
+        colIndices[ i ] = coords[i].y;
+        values[ i ] = coords[i].val;
 
         while( coords[i].x >= current_row )
-            (*(rowOffsets))[ current_row++ ] = i;
+            rowOffsets[ current_row++ ] = i;
     }
-    (*(rowOffsets))[ current_row ] = csrMatx->num_nonzeros;
+    rowOffsets[ current_row ] = csrMatx->num_nonzeros;
     while( current_row <= csrMatx->num_rows )
-        (*(rowOffsets))[ current_row++ ] = csrMatx->num_nonzeros;
+        rowOffsets[ current_row++ ] = csrMatx->num_nonzeros;
+
+    control->accl_view.copy(values, csrMatx->values, sizeof(float) * csrMatx->num_nonzeros);
+    control->accl_view.copy(rowOffsets, csrMatx->rowOffsets, sizeof(int) * (csrMatx->num_rows+1));
+    control->accl_view.copy(colIndices, csrMatx->colIndices, sizeof(int) * csrMatx->num_nonzeros);
+
+    free(values);
+    free(rowOffsets);
+    free(colIndices);
 
     return hcsparseSuccess;
 }
@@ -833,23 +903,31 @@ hcsparseDCsrMatrixfromFile (hcsparseCsrMatrix* csrMatx, const char* filePath, hc
 
     std::sort( coords, coords + csrMatx->num_nonzeros, CoordinateCompare<double> );
 
-    hc::array_view<double> *values = static_cast<hc::array_view<double> *>(csrMatx->values);
-    hc::array_view<int> *rowOffsets = static_cast<hc::array_view<int> *>(csrMatx->rowOffsets);
-    hc::array_view<int> *colIndices = static_cast<hc::array_view<int> *>(csrMatx->colIndices);
+    double *values = (double*)calloc(csrMatx->num_nonzeros, sizeof(double));
+    int *rowOffsets = (int*)calloc(csrMatx->num_rows+1, sizeof(int));
+    int *colIndices = (int*)calloc(csrMatx->num_nonzeros, sizeof(int));
 
-    int current_row = 1;
-    (*(rowOffsets))[ 0 ] = 0;
+    int current_row = 0;
+    rowOffsets[ 0 ] = 0;
     for( int i = 0; i < csrMatx->num_nonzeros; i++ )
     {
-        (*(colIndices))[ i ] = coords[i].y;
-        (*(values))[ i ] = coords[i].val;
+        colIndices[ i ] = coords[i].y;
+        values[ i ] = coords[i].val;
 
         while( coords[i].x >= current_row )
-            (*(rowOffsets))[ current_row++ ] = i;
+            rowOffsets[ current_row++ ] = i;
     }
-    (*(rowOffsets))[ current_row ] = csrMatx->num_nonzeros;
+    rowOffsets[ current_row ] = csrMatx->num_nonzeros;
     while( current_row <= csrMatx->num_rows )
-        (*(rowOffsets))[ current_row++ ] = csrMatx->num_nonzeros;
+        rowOffsets[ current_row++ ] = csrMatx->num_nonzeros;
+
+    control->accl_view.copy(values, csrMatx->values, sizeof(double) * csrMatx->num_nonzeros);
+    control->accl_view.copy(rowOffsets, csrMatx->rowOffsets, sizeof(int) * (csrMatx->num_rows+1));
+    control->accl_view.copy(colIndices, csrMatx->colIndices, sizeof(int) * csrMatx->num_nonzeros);
+
+    free(values);
+    free(rowOffsets);
+    free(colIndices);
 
     return hcsparseSuccess;
 }
@@ -857,10 +935,14 @@ hcsparseDCsrMatrixfromFile (hcsparseCsrMatrix* csrMatx, const char* filePath, hc
 hcsparseStatus
 hcsparseCsrMetaSize (hcsparseCsrMatrix* csrMatx, hcsparseControl *control)
 {
-    hc::array_view<int> *rCsrRowOffsets = static_cast<hc::array_view<int> *>(csrMatx->rowOffsets);
-    int * dataRO = rCsrRowOffsets->data();
+    int *rCsrRowOffsets = (int*)calloc(csrMatx->num_rows+1, sizeof(int));
+    control->accl_view.copy(csrMatx->rowOffsets, rCsrRowOffsets, sizeof(int) * (csrMatx->num_rows+1));
 
-    csrMatx->rowBlockSize = ComputeRowBlocksSize( dataRO, csrMatx->num_rows, BLOCKSIZE, BLOCK_MULTIPLIER, ROWS_FOR_VECTOR );
+    csrMatx->rowBlockSize = ComputeRowBlocksSize( rCsrRowOffsets, csrMatx->num_rows, BLOCKSIZE, BLOCK_MULTIPLIER, ROWS_FOR_VECTOR );
+
+    control->accl_view.copy(rCsrRowOffsets, csrMatx->rowOffsets, sizeof(int) * (csrMatx->num_rows+1));
+
+    free(rCsrRowOffsets);
 
     return hcsparseSuccess;
 }
@@ -875,12 +957,19 @@ hcsparseCsrMetaCompute (hcsparseCsrMatrix* csrMatx, hcsparseControl *control)
         return hcsparseInvalid;
     }
 
-    hc::array_view<int> *rCsrRowOffsets = static_cast<hc::array_view<int> *>(csrMatx->rowOffsets);
-    int *dataRO = rCsrRowOffsets->data();
-    hc::array_view<ulong> *rRowBlocks = static_cast<hc::array_view<ulong> *>(csrMatx->rowBlocks);
-    ulong *dataRB = rRowBlocks->data();
+    int *rCsrRowOffsets = (int*)calloc(csrMatx->num_rows+1, sizeof(int));
+    ulong *rRowBlocks = (ulong*)calloc(csrMatx->num_nonzeros, sizeof(ulong));
 
-    ComputeRowBlocks(dataRB, csrMatx->rowBlockSize, dataRO, csrMatx->num_rows, BLOCKSIZE, BLOCK_MULTIPLIER, ROWS_FOR_VECTOR, true );
+    control->accl_view.copy(csrMatx->rowOffsets, rCsrRowOffsets, sizeof(int) * (csrMatx->num_rows+1));
+    control->accl_view.copy(csrMatx->rowBlocks, rRowBlocks, sizeof(ulong) * csrMatx->num_nonzeros);
+
+    ComputeRowBlocks(rRowBlocks, csrMatx->rowBlockSize, rCsrRowOffsets, csrMatx->num_rows, BLOCKSIZE, BLOCK_MULTIPLIER, ROWS_FOR_VECTOR, true );
+
+    control->accl_view.copy(rCsrRowOffsets, csrMatx->rowOffsets, sizeof(int) * (csrMatx->num_rows+1));
+    control->accl_view.copy(rRowBlocks, csrMatx->rowBlocks, sizeof(ulong) * csrMatx->num_nonzeros);
+
+    free(rCsrRowOffsets);
+    free(rRowBlocks);
 
     return hcsparseSuccess;
 }
@@ -1062,7 +1151,7 @@ hcsparseDcsrcg (hcdenseVector *x,
 hcsparseStatus
 hcsparseScoo2csr (const hcsparseCooMatrix* coo,
                   hcsparseCsrMatrix* csr,
-                  const hcsparseControl* control)
+                  hcsparseControl* control)
 {
     if (!hcsparseInitialized)
     {
@@ -1080,7 +1169,7 @@ hcsparseScoo2csr (const hcsparseCooMatrix* coo,
 hcsparseStatus
 hcsparseDcoo2csr (const hcsparseCooMatrix* coo,
                   hcsparseCsrMatrix* csr,
-                  const hcsparseControl* control)
+                  hcsparseControl* control)
 {
     if (!hcsparseInitialized)
     {
@@ -1098,7 +1187,7 @@ hcsparseDcoo2csr (const hcsparseCooMatrix* coo,
 hcsparseStatus
 hcsparseScsr2coo (const hcsparseCsrMatrix* csr,
                   hcsparseCooMatrix* coo,
-                  const hcsparseControl* control)
+                  hcsparseControl* control)
 {
     if (!hcsparseInitialized)
     {
@@ -1116,7 +1205,7 @@ hcsparseScsr2coo (const hcsparseCsrMatrix* csr,
 hcsparseStatus
 hcsparseDcsr2coo (const hcsparseCsrMatrix* csr,
                   hcsparseCooMatrix* coo,
-                  const hcsparseControl* control)
+                  hcsparseControl* control)
 {
     if (!hcsparseInitialized)
     {
@@ -1134,7 +1223,7 @@ hcsparseDcsr2coo (const hcsparseCsrMatrix* csr,
 hcsparseStatus
 hcsparseScsr2dense (const hcsparseCsrMatrix* csr,
                     hcdenseMatrix* A,
-                    const hcsparseControl* control)
+                    hcsparseControl* control)
 {
     if (!hcsparseInitialized)
     {
@@ -1152,7 +1241,7 @@ hcsparseScsr2dense (const hcsparseCsrMatrix* csr,
 hcsparseStatus
 hcsparseDcsr2dense (const hcsparseCsrMatrix* csr,
                     hcdenseMatrix* A,
-                    const hcsparseControl* control)
+                    hcsparseControl* control)
 {
     if (!hcsparseInitialized)
     {
@@ -1170,7 +1259,7 @@ hcsparseDcsr2dense (const hcsparseCsrMatrix* csr,
 hcsparseStatus
 hcsparseSdense2csr (const hcdenseMatrix* A,
                     hcsparseCsrMatrix* csr,
-                    const hcsparseControl* control)
+                    hcsparseControl* control)
 {
     if (!hcsparseInitialized)
     {
@@ -1188,7 +1277,7 @@ hcsparseSdense2csr (const hcdenseMatrix* A,
 hcsparseStatus
 hcsparseDdense2csr (const hcdenseMatrix* A,
                     hcsparseCsrMatrix* csr,
-                    const hcsparseControl* control)
+                    hcsparseControl* control)
 {
     if (!hcsparseInitialized)
     {
@@ -1207,7 +1296,7 @@ hcsparseStatus
 hcsparseScsrSpGemm (const hcsparseCsrMatrix* sparseMatA,
                     const hcsparseCsrMatrix* sparseMatB,
                     hcsparseCsrMatrix* sparseMatC,
-                    const hcsparseControl* control)
+                    hcsparseControl* control)
 {
     if (!hcsparseInitialized)
     {

@@ -1,5 +1,6 @@
 #include <hcsparse.h>
 #include <iostream>
+#include <hc_am.hpp>
 #include "gtest/gtest.h"
 
 TEST(scale_double_test, func_check)
@@ -28,18 +29,18 @@ TEST(scale_double_test, func_check)
     
     host_alpha[0] = rand()%100;
 
-    array_view<double> dev_X(num_elements, host_X);
-    array_view<double> dev_Y(num_elements, host_Y);
-    array_view<double> dev_alpha(1, host_alpha);
-
     hcsparseSetup();
     hcsparseInitScalar(&gAlpha);
     hcsparseInitVector(&gX);
     hcsparseInitVector(&gY);
 
-    gAlpha.value = &dev_alpha;
-    gX.values = &dev_X;
-    gY.values = &dev_Y;
+    gX.values = am_alloc(sizeof(double) * num_elements, acc[1], 0);
+    gY.values = am_alloc(sizeof(double) * num_elements, acc[1], 0);
+    gAlpha.value = am_alloc(sizeof(double) * 1, acc[1], 0);
+
+    control.accl_view.copy(host_X, gX.values, sizeof(double) * num_elements);
+    control.accl_view.copy(host_Y, gY.values, sizeof(double) * num_elements);
+    control.accl_view.copy(host_alpha, gAlpha.value, sizeof(double) * 1);
 
     gAlpha.offValue = 0;
     gX.offValues = 0;
@@ -57,16 +58,11 @@ TEST(scale_double_test, func_check)
         host_res[i] = host_alpha[0] * host_Y[i];
     }
 
-    array_view<double> *av_res = static_cast<array_view<double> *>(gX.values);
+    control.accl_view.copy(gX.values, host_X, sizeof(double) * num_elements);
     for (int i = 0; i < num_elements; i++)
     {
-        double diff = std::abs(host_res[i] - (*av_res)[i]);
-        EXPECT_LT(diff, 0.01);
+        EXPECT_EQ(host_res[i], host_X[i]);
     }
-
-    dev_X.synchronize();
-    dev_Y.synchronize();
-    dev_alpha.synchronize();
 
     hcsparseTeardown();
 
@@ -74,4 +70,7 @@ TEST(scale_double_test, func_check)
     free(host_X);
     free(host_Y);
     free(host_alpha);
+    am_free(gX.values);
+    am_free(gY.values);
+    am_free(gAlpha.value);
 }

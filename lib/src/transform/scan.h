@@ -5,11 +5,13 @@
 template <typename T, ElementWiseOperator OP>
 hcsparseStatus
 scan (int size,
-      hc::array_view<T> &output,
-      const hc::array_view<T> &input,
-      const hcsparseControl* control,
+      T *output,
+      const T *input,
+      hcsparseControl* control,
       int exclusive)
 {
+    hc::accelerator acc = (control->accl_view).get_accelerator();
+
     int numElementsRUP = size;
     int modWgSize = (numElementsRUP & ((BLOCK_SIZE*2)-1));
 
@@ -31,13 +33,9 @@ scan (int size,
         sizeScanBuff += (BLOCK_SIZE*2);
     }
 
-    T* preSumArray_buff = (T*) calloc (sizeScanBuff, sizeof(T));
-    T* preSumArray1_buff = (T*) calloc (sizeScanBuff, sizeof(T));
-    T* postSumArray_buff = (T*) calloc (sizeScanBuff, sizeof(T));
-
-    hc::array_view<T> preSumArray(sizeScanBuff, preSumArray_buff);
-    hc::array_view<T> preSumArray1(sizeScanBuff, preSumArray1_buff);
-    hc::array_view<T> postSumArray(sizeScanBuff, postSumArray_buff);
+    T *preSumArray = (T*) am_alloc(sizeScanBuff * sizeof(T), acc, 0);
+    T *preSumArray1 = (T*) am_alloc(sizeScanBuff * sizeof(T), acc, 0);
+    T *postSumArray = (T*) am_alloc(sizeScanBuff * sizeof(T), acc, 0);
 
     T identity = 0;
 
@@ -89,7 +87,7 @@ scan (int size,
             preSumArray[ groId ] = lds[wgSize -1];
             preSumArray1[ groId ] = lds[wgSize/2 -1];
         }
-    });
+    }).wait();
 
     T workPerThread = sizeScanBuff / BLOCK_SIZE;
 
@@ -170,7 +168,7 @@ scan (int size,
                 workSum = postSumArray[ mapId + offset ];
             }
         } // for
-    });
+    }).wait();
 
     hc::extent<1> grdExt(numElementsRUP);
     hc::tiled_extent<1> t_ext = grdExt.tile(BLOCK_SIZE);
@@ -250,7 +248,11 @@ scan (int size,
         //  Abort threads that are passed the end of the input vector
         if (gloId >= size) return;
         output[ gloId ] = sum;
-    });
+    }).wait();
+
+    am_free(preSumArray);
+    am_free(preSumArray1);
+    am_free(postSumArray);
 
     return hcsparseSuccess;
 }
@@ -258,9 +260,9 @@ scan (int size,
 template <typename T, ElementWiseOperator OP>
 hcsparseStatus
 exclusive_scan (int size,
-                hc::array_view<T> &output,
-                const hc::array_view<T> &input,
-                const hcsparseControl* control)
+                T *output,
+                const T *input,
+                hcsparseControl* control)
 {
    return scan<T, OP>(size, output, input, control, (int)true);
 }
@@ -268,9 +270,9 @@ exclusive_scan (int size,
 template <typename T, ElementWiseOperator OP>
 hcsparseStatus
 inclusive_scan (int size,
-                hc::array_view<T> &output,
-                const hc::array_view<T> &input,
-                const hcsparseControl* control)
+                T *output,
+                const T *input,
+                hcsparseControl* control)
 {
   return scan<T, OP>(size, output, input, control, (int)false);
 }

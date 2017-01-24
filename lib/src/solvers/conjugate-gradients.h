@@ -25,23 +25,24 @@ cg (hcdenseVector *pX,
         return hcsparseInvalid;
     }
 
-    hc::array_view<T> *x = static_cast<hc::array_view<T> *>(pX->values);
-    hc::array_view<T> *b = static_cast<hc::array_view<T> *>(pB->values);
+    hc::accelerator acc = (control->accl_view).get_accelerator();
+
+    T *x = static_cast<T*>(pX->values);
+    T *b = static_cast<T*>(pB->values);
 
     int status;
 
     T *norm_b_Buff = (T*) calloc(1, sizeof(T));
-    hc::array_view<T> av_norm_b(1, norm_b_Buff);
-
     hcsparseScalar norm_b;
-    norm_b.value = &av_norm_b;
+    norm_b.value = am_alloc(sizeof(T)*1, acc, 0);
     norm_b.offValue = 0;
 
     //norm of rhs of equation
     status = Norm1<T>(&norm_b, pB, control);
+    control->accl_view.copy(norm_b.value, norm_b_Buff, sizeof(T)*1);
 
     //norm_b is calculated once
-    T h_norm_b = av_norm_b[0];
+    T h_norm_b = norm_b_Buff[0];
 
 #ifndef NDEBUG
     std::cout << "norm_b " << h_norm_b << std::endl;
@@ -54,7 +55,7 @@ cg (hcdenseVector *pX,
         solverControl->relativeTolerance = 0.0;
         //we can either fill the x with zeros or cpy b to x;
         for (int i = 0; i < pX->num_values; i++)
-            (*x)[i] = (*b)[i];
+            x[i] = b[i];
 
         return hcsparseSuccess;
     }
@@ -69,20 +70,15 @@ cg (hcdenseVector *pX,
     T *r_Buff = (T*) calloc(N, sizeof(T));
     T *p_Buff = (T*) calloc(N, sizeof(T));
 
-    hc::array_view<T> av_y(N, y_Buff);
-    hc::array_view<T> av_z(N, z_Buff);
-    hc::array_view<T> av_r(N, r_Buff);
-    hc::array_view<T> av_p(N, p_Buff);
-
     hcdenseVector y;
     hcdenseVector z;
     hcdenseVector r;
     hcdenseVector p;
 
-    y.values = &av_y;
-    z.values = &av_z;
-    r.values = &av_r;
-    p.values = &av_p;
+    y.values = am_alloc(sizeof(T)*N, acc, 0);
+    z.values = am_alloc(sizeof(T)*N, acc, 0);
+    r.values = am_alloc(sizeof(T)*N, acc, 0);
+    p.values = am_alloc(sizeof(T)*N, acc, 0);
  
     y.num_values = N;
     z.num_values = N;
@@ -94,20 +90,17 @@ cg (hcdenseVector *pX,
     r.offValues = 0;
     p.offValues = 0;
 
-    T *one_Buff = (T*) calloc(1, sizeof(T));
-    T *zero_Buff = (T*) calloc(1, sizeof(T));
+    T *one_buff = (T*) calloc(1, sizeof(T));
 
-    one_Buff[0] = 1;
- 
-    hc::array_view<T> av_one(1, one_Buff);
-    hc::array_view<T> av_zero(1, zero_Buff);
+    one_buff[0] = 1;
 
     hcsparseScalar one;
     hcsparseScalar zero;
 
-    one.value = &av_one;
-    zero.value = &av_zero;
-  
+    one.value = am_alloc(sizeof(T)*1, acc, 0);
+    zero.value = am_alloc(sizeof(T)*1, acc, 0);
+    control->accl_view.copy(one_buff, one.value, sizeof(T)*1);
+
     one.offValue = 0;
     zero.offValue = 0;
 
@@ -117,26 +110,21 @@ cg (hcdenseVector *pX,
     status = elementwise_transform<T, EW_MINUS>(&r, pB, &y, control);
 
     T *norm_r_Buff = (T*) calloc(1, sizeof(T));
-    hc::array_view<T> av_norm_r(1, norm_r_Buff);
 
     hcsparseScalar norm_r;
-    norm_r.value = &av_norm_r;
+    norm_r.value = am_alloc(sizeof(T)*1, acc, 0);
     norm_r.offValue = 0;
 
     status = Norm1<T>(&norm_r, &r, control);
+    control->accl_view.copy(norm_r.value, norm_r_Buff, sizeof(T)*1);
 
     //T residuum = 0;
     T *residuum_Buff = (T*) calloc(1, sizeof(T));
-    hc::array_view<T> av_residuum(1, residuum_Buff);
-
-    hcsparseScalar residuum;
-    residuum.value = &av_residuum;
-    residuum.offValue = 0;
 
     //residuum = norm_r[0] / h_norm_b;
-    av_residuum[0] = div<T>(av_norm_r[0], av_norm_b[0]);
+    residuum_Buff[0] = div<T>(norm_r_Buff[0], norm_b_Buff[0]);
 
-    solverControl->initialResidual = av_residuum[0];
+    solverControl->initialResidual = residuum_Buff[0];
 #ifndef NDEBUG
         std::cout << "initial residuum = "
                   << solverControl->initialResidual << std::endl;
@@ -150,18 +138,17 @@ cg (hcdenseVector *pX,
     M(&r, &z, control);
 
     //copy inital z to p
-    for (int i = 0; i < N; i++)
-        av_p[i] = av_z[i];
+    control->accl_view.copy(z.values, p.values, sizeof(T)*N);
 
     //rz = <r, z>, here actually should be conjugate(r)) but we do not support complex type.
     T *rz_Buff = (T*) calloc(1, sizeof(T));
-    hc::array_view<T> av_rz(1, rz_Buff);
 
     hcsparseScalar rz;
-    rz.value = &av_rz;
+    rz.value = am_alloc(sizeof(T)*1, acc, 0);
     rz.offValue = 0;
 
     status = dot<T>(&rz, &r, &z, control);
+    control->accl_view.copy(rz.value, rz_Buff, sizeof(T)*1);
 
     int iteration = 0;
 
@@ -172,20 +159,15 @@ cg (hcdenseVector *pX,
     T *yp_Buff = (T*) calloc(1, sizeof(T));
     T *rz_old_Buff = (T*) calloc(1, sizeof(T));
 
-    hc::array_view<T> av_alpha(1, alpha_Buff);
-    hc::array_view<T> av_beta(1, beta_Buff);
-    hc::array_view<T> av_yp(1, yp_Buff);
-    hc::array_view<T> av_rz_old(1, rz_old_Buff);
-
     hcsparseScalar alpha;
     hcsparseScalar beta;
     hcsparseScalar yp;
     hcsparseScalar rz_old;
 
-    alpha.value = &av_alpha;
-    beta.value = &av_beta;
-    yp.value = &av_yp;
-    rz_old.value = &av_rz_old;
+    alpha.value = am_alloc(sizeof(T)*1, acc, 0);
+    beta.value = am_alloc(sizeof(T)*1, acc, 0);
+    yp.value = am_alloc(sizeof(T)*1, acc, 0);
+    rz_old.value = am_alloc(sizeof(T)*1, acc, 0);
 
     alpha.offValue = 0;
     beta.offValue = 0;
@@ -200,13 +182,15 @@ cg (hcdenseVector *pX,
         status = csrmv<T>(&one, pA, &p, &zero, &y, control);
 
         status = dot<T>(&yp, &y, &p, control);
+        control->accl_view.copy(yp.value, yp_Buff, sizeof(T)*1);
 
         // alpha = <r,z> / <y,p>
         //alpha[0] = rz[0] / yp[0];
-        av_alpha[0] = div<T>(av_rz[0], av_yp[0]);
+        alpha_Buff[0] = div<T>(rz_Buff[0], yp_Buff[0]);
+        control->accl_view.copy(alpha_Buff, alpha.value, sizeof(T)*1);
 
 #ifndef NDEBUG
-            std::cout << "alpha = " << av_alpha[0] << std::endl;
+            std::cout << "alpha = " << alpha_Buff[0] << std::endl;
 #endif
 
         //x = x + alpha*p
@@ -220,30 +204,34 @@ cg (hcdenseVector *pX,
 
         //store old value of rz
         //improve that by move or swap
-        av_rz_old[0] = av_rz[0];
+        rz_old_Buff[0] = rz_Buff[0];
+        control->accl_view.copy(rz.value, rz_old.value, sizeof(T)*1);
 
         //rz = <r,z>
         status = dot<T>(&rz, &r, &z, control);
+        control->accl_view.copy(rz.value, rz_Buff, sizeof(T)*1);
 
         // beta = <r^(i), r^(i)>/<r^(i-1),r^(i-1)> // i: iteration index;
         // beta is ratio of dot product in current iteration compared
         //beta[0] = rz[0] / rz_old[0];
-        av_beta[0] = div<T>(av_rz[0], av_rz_old[0]);
+        beta_Buff[0] = div<T>(rz_Buff[0], rz_old_Buff[0]);
 #ifndef NDEBUG
-            std::cout << "beta = " << av_beta[0] << std::endl;
+            std::cout << "beta = " << beta_Buff[0] << std::endl;
 #endif
 
         //p = z + beta*p;
+        control->accl_view.copy(beta_Buff, beta.value, sizeof(T)*1);
         status = axpby<T>(&p, &one, &z, &beta, &p, control );
 
         //calculate norm of r
         status = Norm1<T>(&norm_r, &r, control);
+        control->accl_view.copy(norm_r.value, norm_r_Buff, sizeof(T)*1);
 
         //residuum = norm_r[0] / h_norm_b;
-        av_residuum[0] = div<T>(av_norm_r[0], av_norm_b[0]);
+        residuum_Buff[0] = div<T>(norm_r_Buff[0], norm_b_Buff[0]);
 
         iteration++;
-        converged = solverControl->finished(av_residuum[0]);
+        converged = solverControl->finished(residuum_Buff[0]);
 
         solverControl->print();
     }
