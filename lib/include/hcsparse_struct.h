@@ -4,7 +4,7 @@
 #include <iostream>
 #include <hc.hpp>
 #include <hc_math.hpp>
-
+#include <hc_am.hpp>
 using namespace hc;
 using namespace hc::precise_math;
 
@@ -38,18 +38,20 @@ public:
     uint max_compute_units = 0;
 
     // Constructor to initialize the library with the given accelerator
-    hcsparseLibrary(hc::accelerator *acc)
-        : currentAcclView(acc->get_default_view())
+    hcsparseLibrary(hc::accelerator_view *av)
+        : currentAcclView(*av), currentAccl(av->get_accelerator()),
+        wavefront_size(0), max_wg_size(0), extended_precision(false),
+        dpfp_support(false), max_compute_units(0)
+
     {
       std::vector<accelerator> accs = accelerator::get_all();
       for (int i=0;i<accs.size();i++) {
-        if (accs[i] == *acc) {
+        if (accs[i] == this->currentAccl) {
           this-> initialized = true;
           break;
         }
       }
       assert(this->initialized);
-      this->currentAccl = *acc;
     }
 
     ~hcsparseLibrary()

@@ -99,7 +99,7 @@ typedef struct {
 // HCSPARSE_STATUS_SUCCESS            initialization succeeded
 // HCSPARSE_STATUS_ALLOC_FAILED       the resources could not be allocated  
 
-hcsparseStatus_t hcsparseCreate(hcsparseHandle_t* handle, hc::accelerator *acc);
+hcsparseStatus_t hcsparseCreate(hcsparseHandle_t* handle, hc::accelerator_view *accl_view);
 
 // 2. hcsparseDestory()
 
@@ -158,8 +158,17 @@ hcsparseCreateMatDescr(hcsparseMatDescr_t *descrA);
 // HCSPARSE_STATUS_SUCCESS            initialization succeeded
 
 hcsparseStatus_t
-hcsparseDestroyMatDescr(hcsparseMatDescr_t *descrA);
+hcsparseDestroyMatDescr(hcsparseMatDescr_t* descrA);
 
+hcsparseStatus_t hcsparseScsr2dense(hcsparseHandle_t handle,
+                                    int m,
+                                    int n,
+                                    const hcsparseMatDescr_t descrA,
+                                    const float *csrValA,
+                                    const int *csrRowPtrA,
+                                    const int *csrColIndA,
+                                    float *A,
+                                    int lda, int nnz);
     /*!
     * \brief Initialize the hcsparse library
     * \note Must be called before any other hcsparse API function is invoked.
