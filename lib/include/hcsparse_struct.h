@@ -37,7 +37,7 @@ public:
     // current device max compute units;
     uint max_compute_units = 0;
 
-    // Constructor to initialize the library with the given accelerator
+    // Constructor to initialize the library with the given accelerator view
     hcsparseLibrary(hc::accelerator_view *av)
         : currentAcclView(*av), currentAccl(av->get_accelerator()),
         wavefront_size(0), max_wg_size(0), extended_precision(false),
@@ -54,6 +54,7 @@ public:
       assert(this->initialized);
     }
 
+    // Destructor
     ~hcsparseLibrary()
     {
        // Deinitialize the library

@@ -1301,7 +1301,7 @@ hcsparseStatus_t hcsparseScsr2dense(hcsparseHandle_t handle,
                                     const int *csrRowPtrA, 
                                     const int *csrColIndA,
                                     float *A, 
-                                    int lda, int nnz)
+                                    int lda)
 {
   if (handle == nullptr) 
     return HCSPARSE_STATUS_NOT_INITIALIZED;
@@ -1312,46 +1312,27 @@ hcsparseStatus_t hcsparseScsr2dense(hcsparseHandle_t handle,
   if (descrA.MatrixType != HCSPARSE_MATRIX_TYPE_GENERAL)
     return HCSPARSE_STATUS_INVALID_VALUE;
 
-  hcsparseCsrMatrix *csr;
-  hcsparseInitCsrMatrix(csr);
+  ulong dense_size = m * n;
 
-  std::cout << "check 1" <<std::endl;
-  csr->offValues = 0;
-  csr->offColInd = 0;
-  csr->offRowOff = 0;
+  const int *offsets = static_cast<const int*>(csrRowPtrA);
+  const int *indices = static_cast<const int*>(csrColIndA);
+  const float *values = static_cast<const float*>(csrValA);
 
-  // Implement calc num_nonzero function and remove the code in future
-  int num_nonzero = nnz;
-  int num_row = m;
-  int num_col = n;
+  float *Avalues = static_cast<float*>(A);
 
-  std::cout << "check 1" <<std::endl;
-  csr->values = (float*) am_alloc(num_nonzero * sizeof(float), handle->currentAccl, 0);
-  csr->rowOffsets = (int*) am_alloc((num_row+1) * sizeof(int), handle->currentAccl, 0);
-  csr->colIndices = (int*) am_alloc(num_nonzero * sizeof(int), handle->currentAccl, 0);
-
-  std::cout << "check 2" <<std::endl;
-  // Temp code: used for functionality check
+  // temp code 
+  // TODO : Remove this in the future
   hcsparseControl control(handle->currentAcclView);
+  hcsparseStatus stat = hcsparseSuccess;
 
-  std::cout << "check 3" <<std::endl;
-  control.accl_view.copy(csrValA, csr->values, num_nonzero * sizeof(double));
-  control.accl_view.copy(csrRowPtrA, csr->rowOffsets, (num_row+1) * sizeof(int));
-  control.accl_view.copy(csrColIndA, csr->colIndices, num_nonzero * sizeof(int));
+  fill_zero<float>(dense_size, Avalues, &control);
 
-  std::cout << "check 4" <<std::endl;
-  hcdenseMatrix *denA;
-  denA->offValues = 0;
-  denA->values = (float*) am_alloc(num_row*num_col*sizeof(float), handle->currentAccl, 0);
+  stat = transform_csr_2_dense<float> (dense_size, offsets, indices, values,
+                                   m, n, Avalues, &control);
+  if (stat != hcsparseSuccess)
+    return HCSPARSE_STATUS_EXECUTION_FAILED;
 
-  std::cout << "check 5" <<std::endl;
-  hcsparseStatus status = csr2dense<float>(csr, denA, &control);
-
-  std::cout << "check 6" <<std::endl;
-  if (status == hcsparseSuccess)
-   return HCSPARSE_STATUS_SUCCESS;
-
-  return HCSPARSE_STATUS_INVALID_VALUE;
+  return HCSPARSE_STATUS_SUCCESS;
 }
 hcsparseStatus
 hcsparseScsr2dense (const hcsparseCsrMatrix* csr,

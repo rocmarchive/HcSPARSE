@@ -165,7 +165,7 @@ int main(int argc, char *argv[])
 
     std::cout << "hcsparse conv call" << std::endl;
     status1 = hcsparseScsr2dense(handle, num_row, num_col,
-                                 descrA, csrValA, csrRowPtrA, csrColIndA, A, num_row ,num_nonzero);
+                                 descrA, csrValA, csrRowPtrA, csrColIndA, A, num_row);
     if (status1 != HCSPARSE_STATUS_SUCCESS) {
       std::cout << "Error csr2dense conversion "<<std::endl;
       return -1;
