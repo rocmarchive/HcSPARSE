@@ -169,6 +169,15 @@ hcsparseStatus_t hcsparseScsr2dense(hcsparseHandle_t handle,
                                     const int *csrColIndA,
                                     float *A,
                                     int lda);
+
+hcsparseStatus_t 
+hcsparseSdense2csr(hcsparseHandle_t handle, int m, int n, 
+                const hcsparseMatDescr_t descrA, 
+                const float           *A, 
+                int lda, const int *nnzPerRow, 
+                float           *csrValA, 
+                int *csrRowPtrA, int *csrColIndA);
+
     /*!
     * \brief Initialize the hcsparse library
     * \note Must be called before any other hcsparse API function is invoked.

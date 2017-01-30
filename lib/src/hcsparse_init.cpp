@@ -1327,13 +1327,16 @@ hcsparseStatus_t hcsparseScsr2dense(hcsparseHandle_t handle,
 
   fill_zero<float>(dense_size, Avalues, &control);
 
-  stat = transform_csr_2_dense<float> (dense_size, offsets, indices, values,
-                                   m, n, Avalues, &control);
+//  stat = transform_csr_2_dense<float> (dense_size, offsets, indices, values,
+//                                   m, n, Avalues, &control);
+  stat = transform_csr_2_dense<float> ((ulong)m*n, csrRowPtrA, csrColIndA, csrValA,\
+                                       m, n, A, &control);
   if (stat != hcsparseSuccess)
     return HCSPARSE_STATUS_EXECUTION_FAILED;
 
   return HCSPARSE_STATUS_SUCCESS;
 }
+
 hcsparseStatus
 hcsparseScsr2dense (const hcsparseCsrMatrix* csr,
                     hcdenseMatrix* A,
@@ -1370,6 +1373,39 @@ hcsparseDcsr2dense (const hcsparseCsrMatrix* csr,
     return csr2dense<double> (csr, A, control);
 }
 
+// dense2csr Overloaded function
+// nnzperRow is not used, as the existing calculate it
+hcsparseStatus_t 
+hcsparseSdense2csr(hcsparseHandle_t handle, int m, int n, 
+                const hcsparseMatDescr_t descrA, 
+                const float           *A, 
+                int lda, const int *nnzPerRow, 
+                float           *csrValA, 
+                int *csrRowPtrA, int *csrColIndA)
+
+{
+  if (handle == nullptr) 
+    return HCSPARSE_STATUS_NOT_INITIALIZED;
+
+  if (!A)
+    return HCSPARSE_STATUS_ALLOC_FAILED;
+
+  if (descrA.MatrixType != HCSPARSE_MATRIX_TYPE_GENERAL)
+    return HCSPARSE_STATUS_INVALID_VALUE;
+
+  // temp code 
+  // TODO : Remove this in the future
+  hcsparseControl control(handle->currentAcclView);
+  hcsparseStatus stat = hcsparseSuccess;
+
+  stat = dense2csr<float> (&control, m, n, A, csrValA, csrRowPtrA, csrColIndA); 
+
+  if (stat != hcsparseSuccess)
+    return HCSPARSE_STATUS_EXECUTION_FAILED;
+
+  return HCSPARSE_STATUS_SUCCESS;
+
+}
 hcsparseStatus
 hcsparseSdense2csr (const hcdenseMatrix* A,
                     hcsparseCsrMatrix* csr,
