@@ -1,6 +1,11 @@
 #include <hcsparse.h>
-#include <iostream>
+
 #include "hc_am.hpp"
+
+#include <cmath>
+#include <cstdlib>
+#include <iostream>
+
 int main()
 {
     hcsparseScalar gR;
@@ -43,7 +48,7 @@ int main()
 
     for (int i = 0; i < num_elements; i++)
     {
-        host_res[0] += fabs(host_X[i]);
+        host_res[0] += std::fabs(host_X[i]);
     }
 
     bool ispassed = 1;

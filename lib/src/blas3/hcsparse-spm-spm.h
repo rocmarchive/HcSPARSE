@@ -1509,7 +1509,7 @@ hcsparseStatus copy_Ct_to_C_Loop (int num_blocks, int position,
 
     hc::extent<1> grdExt(szGlobalWorkSize);
     hc::tiled_extent<1> t_ext = grdExt.tile(GROUPSIZE_256);
-    hc::parallel_for_each(control->accl_view, t_ext, [=] (hc::tiled_index<1> &tidx) __attribute__((hc, cpu))
+    hc::parallel_for_each(control->accl_view, t_ext, [=] (hc::tiled_index<1> &tidx) [[hc]]
     {
         int local_id = tidx.local[0];
         int group_id = tidx.tile[0];

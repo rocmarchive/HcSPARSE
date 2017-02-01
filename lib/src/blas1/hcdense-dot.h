@@ -16,21 +16,21 @@ void inner_product (const long size,
 {
     hc::extent<1> grdExt(REDUCE_BLOCKS_NUMBER * BLOCK_SIZE);
     hc::tiled_extent<1> t_ext = grdExt.tile(BLOCK_SIZE);
-    hc::parallel_for_each(control->accl_view, t_ext, [=] (hc::tiled_index<1>& tidx) __attribute__((hc, cpu))
+    hc::parallel_for_each(control->accl_view,
+                          t_ext,
+                          [=](hc::tiled_index<1> tidx) [[hc]]
     {
         tile_static T buf_tmp[BLOCK_SIZE];
-        int idx = tidx.global[0];
-        int block_idx = idx / BLOCK_SIZE;
-        int thread_in_block_idx = idx % BLOCK_SIZE;
-        int eidx = idx;
+
         T sum = 0;
 
+	    int eidx = tidx.global[0];
         while(eidx < size)
         {
-            sum = pX[pXOffset + eidx] * pY[pYOffset + eidx];
+            sum += pX[pXOffset + eidx] * pY[pYOffset + eidx];
             eidx += REDUCE_BLOCKS_NUMBER * BLOCK_SIZE;
         }
-        buf_tmp[thread_in_block_idx] = sum;
+        buf_tmp[tidx.local[0]] = sum;
         tidx.barrier.wait();
 
         // Seqential part
@@ -41,13 +41,15 @@ void inner_product (const long size,
             {
                 sum += buf_tmp[i];
             }
-            partial[block_idx] = sum;
+            partial[tidx.tile[0]] = sum;
         }
     });
 
     hc::extent<1> grdExt1(1);
     hc::tiled_extent<1> t_ext1 = grdExt1.tile(1);
-    hc::parallel_for_each(control->accl_view, t_ext1, [=] (hc::tiled_index<1>& tidx) __attribute__((hc, cpu))
+    hc::parallel_for_each(control->accl_view,
+                          t_ext1,
+                          [=](hc::tiled_index<1> tidx) [[hc]]
     {
         T sum = 0;
         for (uint i = 0; i < REDUCE_BLOCKS_NUMBER; i++)
@@ -59,11 +61,11 @@ void inner_product (const long size,
 }
 
 template <typename T>
-hcsparseStatus
-dot (hcsparseScalar* pR,
-     const hcdenseVector* pX,
-     const hcdenseVector* pY,
-     hcsparseControl* control)
+inline
+hcsparseStatus dot(hcsparseScalar* pR,
+                   const hcdenseVector* pX,
+                   const hcdenseVector* pY,
+                   hcsparseControl* control)
 {
     int size = pX->num_values;
     int REDUCE_BLOCKS_NUMBER = size/BLOCK_SIZE + 1;
@@ -76,7 +78,14 @@ dot (hcsparseScalar* pR,
     T *avX = static_cast<T*>(pX->values);
     T *avY = static_cast<T*>(pY->values);
 
-    inner_product<T> (size, avR, pR->offValue, avX, pX->offValues, avY, pY->offValues, partial, REDUCE_BLOCKS_NUMBER, control);
+    inner_product<T>(size,
+                     avR,
+                     pR->offValue,
+                     avX,
+                     pX->offValues,
+                     avY,
+                     pY->offValues,
+                     partial, REDUCE_BLOCKS_NUMBER, control);
 
     return hcsparseSuccess;
 }
