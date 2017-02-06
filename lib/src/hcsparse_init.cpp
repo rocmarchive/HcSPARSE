@@ -258,6 +258,46 @@ hcsparseDcsrmv (const hcsparseScalar* alpha,
     return csrmv<double>(alpha, matx, x, beta, y, control);
 }
 
+hcsparseStatus_t 
+hcsparseScsrmm(hcsparseHandle_t handle, 
+               hcsparseOperation_t transA,
+               int m, int n, int k, int nnz, 
+               const float *alpha, 
+               const hcsparseMatDescr_t descrA, 
+               const float *csrValA, const int *csrRowPtrA, 
+               const int *csrColIndA, const float *B, 
+               int ldb, const float *beta, float *C, int ldc)
+{
+    if (handle == nullptr)
+    return HCSPARSE_STATUS_NOT_INITIALIZED;
+
+  if (!csrValA || !csrRowPtrA || !csrColIndA || !B || !C ||
+      !alpha || !beta)
+    return HCSPARSE_STATUS_ALLOC_FAILED;
+
+  if (descrA.MatrixType != HCSPARSE_MATRIX_TYPE_GENERAL)
+    return HCSPARSE_STATUS_INVALID_VALUE;
+
+  // temp code 
+  // TODO : Remove this in the future
+  hcsparseControl control(handle->currentAcclView);
+  hcsparseStatus stat = hcsparseSuccess;
+
+  int nnz1;
+  int *nnz_locations = am_alloc(sizeof(int)*m*k, handle->currentAccl, 0);
+
+  calculate_num_nonzeros<float>((ulong)m*k, csrValA, nnz_locations, nnz1, &control);
+
+  int nnzPerRow = nnz1/m;
+  stat = csrmm<float>(&control, nnzPerRow, m, n, k, alpha, csrValA, csrRowPtrA,
+                      csrColIndA, B, ldb, beta, C, ldc);
+
+  if (stat != hcsparseSuccess)
+    return HCSPARSE_STATUS_EXECUTION_FAILED;
+
+  return HCSPARSE_STATUS_SUCCESS;
+}
+
 hcsparseStatus
 hcsparseScsrmm (const hcsparseScalar* alpha,
                 const hcsparseCsrMatrix* sparseCsrA,

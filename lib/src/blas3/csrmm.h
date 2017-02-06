@@ -126,6 +126,29 @@ void csrmv_batched( const int num_rows,
 }
 
 template<typename T>
+hcsparseStatus 
+csrmm (hcsparseControl *control, const int nnzPerRow,
+       const int m, const int n, const int k, 
+       const T *alpha, const T *csrValA, 
+       const int *csrRowPtrA, const int *csrColIndA, 
+       const T *B, const int ldb, 
+       const T *beta, T *C, const int ldc)
+{
+  int ARows = m;
+  int CRows = ldc;
+  int CCols = n;
+  int BOffValue = 0;
+  int COffValue = 0;
+  int alphaOffValue = 0;
+  int betaOffValue = 0;
+
+  csrmv_batched<T>(ARows, nnzPerRow, alpha, alphaOffValue, 
+                   csrRowPtrA, csrColIndA, csrValA, B, 
+                   ldb, BOffValue, beta, betaOffValue, 
+                   C, CRows, CCols, ldc, COffValue, control);
+
+}
+template<typename T>
 hcsparseStatus
 csrmm( const hcsparseScalar *pAlpha,
        const hcsparseCsrMatrix *pSparseCsrA,
