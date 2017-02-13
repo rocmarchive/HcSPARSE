@@ -278,6 +278,21 @@ hcsparseDdense2csr(hcsparseHandle_t handle,
                    int *csrRowPtrA,
                    int *csrColIndA);
 
+// 10. hcsparseXcsrgemm()
+
+// This function performs following matrix-matrix operation:
+// C = op ( A ) ∗ op ( B )
+// where A, B and C are m×k, k×n, and m×n sparse matrices 
+
+// Return Values
+// ----------------------------------------------------------------------
+// HCSPARSE_STATUS_SUCCESS              the operation completed successfully.
+// HCSPARSE_STATUS_NOT_INITIALIZED      the library was not initialized.
+// HCSPARSE_STATUS_ALLOC_FAILED         the resources could not be allocated.
+// HCSPARSE_STATUS_INVALID_VALUE        invalid parameters were passed (m, n, k, nnz<0 or ldb and ldc are incorrect).
+// HCSPARSE_STATUS_EXECUTION_FAILED     the function failed to launch on the GPU.
+
+// TODO: nnz is unused, as it is calculated in the existing API
 hcsparseStatus_t
 hcsparseScsrgemm(hcsparseHandle_t handle,
                  hcsparseOperation_t transA,

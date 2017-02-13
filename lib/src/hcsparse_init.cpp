@@ -412,6 +412,78 @@ hcsparseDdense2csr(hcsparseHandle_t handle,
   return HCSPARSE_STATUS_SUCCESS;
 }
 
+// 10. hcsparseXcsrgemm()
+
+// This function performs following matrix-matrix operation:
+// C = op ( A ) ∗ op ( B )
+// where A, B and C are m×k, k×n, and m×n sparse matrices 
+
+// Return Values
+// ----------------------------------------------------------------------
+// HCSPARSE_STATUS_SUCCESS              the operation completed successfully.
+// HCSPARSE_STATUS_NOT_INITIALIZED      the library was not initialized.
+// HCSPARSE_STATUS_ALLOC_FAILED         the resources could not be allocated.
+// HCSPARSE_STATUS_INVALID_VALUE        invalid parameters were passed (m, n, k, nnz<0 or ldb and ldc are incorrect).
+// HCSPARSE_STATUS_EXECUTION_FAILED     the function failed to launch on the GPU.
+
+// TODO: nnz is unused, as it is calculated in the existing API
+hcsparseStatus_t
+hcsparseScsrgemm(hcsparseHandle_t handle,
+                 hcsparseOperation_t transA,
+                 hcsparseOperation_t transB,
+                 int m,
+                 int n,
+                 int k,
+                 const hcsparseMatDescr_t descrA,
+                 const int nnzA,
+                 const float *csrValA,
+                 const int *csrRowPtrA,
+                 const int *csrColIndA,
+                 const hcsparseMatDescr_t descrB,
+                 const int nnzB,
+                 const float *csrValB,
+                 const int *csrRowPtrB, 
+                 const int *csrColIndB,
+                 const hcsparseMatDescr_t descrC,
+                 float *csrValC,
+                 const int *csrRowPtrC,
+                 int *csrColIndC )
+{
+  if (handle == nullptr)
+    return HCSPARSE_STATUS_NOT_INITIALIZED;
+
+  if (!csrValA || !csrRowPtrA || !csrColIndA || 
+      !csrValB || !csrRowPtrB || !csrColIndB ||
+      !csrValC || !csrRowPtrC || !csrColIndC )
+    return HCSPARSE_STATUS_ALLOC_FAILED;
+
+  if (descrA.MatrixType != HCSPARSE_MATRIX_TYPE_GENERAL || 
+      descrB.MatrixType != HCSPARSE_MATRIX_TYPE_GENERAL ||
+      descrC.MatrixType != HCSPARSE_MATRIX_TYPE_GENERAL )
+    return HCSPARSE_STATUS_INVALID_VALUE;
+
+  // Currently supports only NN version
+  // TODO : Extend for other version (NT, TN, TT)
+  if (transA != HCSPARSE_OPERATION_NON_TRANSPOSE ||
+      transB != HCSPARSE_OPERATION_NON_TRANSPOSE )
+     return HCSPARSE_STATUS_INVALID_VALUE;
+
+  // temp code 
+  // TODO : Remove this in the future
+  hcsparseControl control(handle->currentAcclView);
+  hcsparseStatus stat = hcsparseSuccess;
+
+  stat = csrSpGemm<float>(&control, m, n, k, csrValA, csrRowPtrA, csrColIndA,
+                          csrValB, csrRowPtrB, csrColIndB,
+                          csrValC, csrRowPtrC, csrColIndC);
+
+  if (stat != hcsparseSuccess)
+   return HCSPARSE_STATUS_EXECUTION_FAILED;
+
+  return HCSPARSE_STATUS_SUCCESS;
+}
+
+
 hcsparseStatus
 hcsparseSetup(void)
 {
@@ -1627,61 +1699,6 @@ hcsparseDdense2csr (const hcdenseMatrix* A,
     }
 
     return dense2csr<double> (A, csr, control);
-}
-hcsparseStatus_t
-hcsparseScsrgemm(hcsparseHandle_t handle,
-                 hcsparseOperation_t transA,
-                 hcsparseOperation_t transB,
-                 int m,
-                 int n,
-                 int k,
-                 const hcsparseMatDescr_t descrA,
-                 const int nnzA,
-                 const float *csrValA,
-                 const int *csrRowPtrA,
-                 const int *csrColIndA,
-                 const hcsparseMatDescr_t descrB,
-                 const int nnzB,
-                 const float *csrValB,
-                 const int *csrRowPtrB, 
-                 const int *csrColIndB,
-                 const hcsparseMatDescr_t descrC,
-                 float *csrValC,
-                 const int *csrRowPtrC,
-                 int *csrColIndC )
-{
-  if (handle == nullptr)
-    return HCSPARSE_STATUS_NOT_INITIALIZED;
-
-  if (!csrValA || !csrRowPtrA || !csrColIndA || 
-      !csrValB || !csrRowPtrB || !csrColIndB ||
-      !csrValC || !csrRowPtrC || !csrColIndC )
-    return HCSPARSE_STATUS_ALLOC_FAILED;
-
-  if (descrA.MatrixType != HCSPARSE_MATRIX_TYPE_GENERAL || 
-      descrB.MatrixType != HCSPARSE_MATRIX_TYPE_GENERAL ||
-      descrC.MatrixType != HCSPARSE_MATRIX_TYPE_GENERAL )
-    return HCSPARSE_STATUS_INVALID_VALUE;
-
-  // Currently supports only NN version
-  // TODO : Extend for other version (NT, TN, TT)
-  if (transA != HCSPARSE_OPERATION_NON_TRANSPOSE ||
-      transB != HCSPARSE_OPERATION_NON_TRANSPOSE )
-     return HCSPARSE_STATUS_INVALID_VALUE;
-
-  // temp code 
-  // TODO : Remove this in the future
-  hcsparseControl control(handle->currentAcclView);
-  hcsparseStatus stat = hcsparseSuccess;
-
-  stat = csrSpGemm<float>(&control, m, n, k, csrValA, csrRowPtrA, csrColIndA,
-                          csrValB, csrRowPtrB, csrColIndB,
-                          csrValC, csrRowPtrC, csrColIndC);
-
-  if (stat != hcsparseSuccess)
-   return HCSPARSE_STATUS_EXECUTION_FAILED;
-
-  return HCSPARSE_STATUS_SUCCESS;
 }
 
 hcsparseStatus
