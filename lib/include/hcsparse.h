@@ -86,7 +86,7 @@ typedef struct {
     hcsparseIndexBase_t IndexBase;
 } hcsparseMatDescr_t;
 
-// 2.2.8. cusparseOperation_t
+// 2.2.8. hcsparseOperation_t
 
 // This type indicates which operations need to be performed with the sparse matrix.
 
@@ -196,6 +196,28 @@ hcsparseScsrmm(hcsparseHandle_t handle,
                const float *csrValA, const int *csrRowPtrA, 
                const int *csrColIndA, const float *B, 
                int ldb, const float *beta, float *C, int ldc);
+
+hcsparseStatus_t
+hcsparseScsrgemm(hcsparseHandle_t handle,
+                 hcsparseOperation_t transA,
+                 hcsparseOperation_t transB,
+                 int m,
+                 int n,
+                 int k,
+                 const hcsparseMatDescr_t descrA,
+                 const int nnzA,
+                 const float *csrValA,
+                 const int *csrRowPtrA,
+                 const int *csrColIndA,
+                 const hcsparseMatDescr_t descrB,
+                 const int nnzB,
+                 const float *csrValB,
+                 const int *csrRowPtrB,
+                 const int *csrColIndB,
+                 const hcsparseMatDescr_t descrC,
+                 float *csrValC,
+                 const int *csrRowPtrC,
+                 int *csrColIndC);
 
     /*!
     * \brief Initialize the hcsparse library

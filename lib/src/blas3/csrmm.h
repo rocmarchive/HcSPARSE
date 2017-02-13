@@ -147,6 +147,8 @@ csrmm (hcsparseControl *control, const int nnzPerRow,
                    ldb, BOffValue, beta, betaOffValue, 
                    C, CRows, CCols, ldc, COffValue, control);
 
+  return hcsparseSuccess;
+
 }
 template<typename T>
 hcsparseStatus

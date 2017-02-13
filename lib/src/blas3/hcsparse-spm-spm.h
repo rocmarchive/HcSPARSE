@@ -1576,7 +1576,81 @@ hcsparseStatus copy_Ct_to_C_general (int *counter_one,
     
     return hcsparseSuccess;
 }
+template <typename T>
+hcsparseStatus
+csrSpGemm(hcsparseControl* control,          
+          int m,
+          int n,
+          int k,
+          const float *csrValA,
+          const int *csrRowPtrA,
+          const int *csrColIndA,
+          const float *csrValB,
+          const int *csrRowPtrB,
+          const int *csrColIndB,
+          float *csrValC,
+          const int *csrRowPtrC,
+          int *csrColIndC)
+{
+    hcsparseStatus status1, status2;
+    hc::accelerator acc = (control->accl_view).get_accelerator();
+
+    int* csrRowPtrCt_h = (int*) calloc (m + 1, sizeof(int));
+    int* csrRowPtrCt_d = (int*) am_alloc((m + 1) * sizeof(int), acc, 0);
  
+    // STAGE 1
+    compute_nnzCt<T> (m, (int *)csrRowPtrA, (int *)csrColIndA, (int *)csrRowPtrB, (int *)csrColIndB, csrRowPtrCt_d, control);
+
+    control->accl_view.copy(csrRowPtrCt_d, csrRowPtrCt_h, (m + 1) * sizeof(int));   
+ 
+    // statistics
+    int* counter = (int*) calloc (NUM_SEGMENTS, sizeof(int));
+    int* counter_one = (int*) calloc (NUM_SEGMENTS + 1, sizeof(int));
+    int* counter_sum = (int*) calloc (NUM_SEGMENTS + 1, sizeof(int));
+    int* queue_one = (int*) calloc (m * TUPLE_QUEUE, sizeof(int));
+    
+    // STAGE 2 - STEP 1 : statistics
+    int nnzCt = statistics(csrRowPtrCt_h, counter, counter_one, counter_sum, queue_one, m);
+    // STAGE 2 - STEP 2 : create Ct
+
+    int *queue_one_d = (int*) am_alloc(m * TUPLE_QUEUE * sizeof(int), acc, 0);
+    control->accl_view.copy(queue_one, queue_one_d, m * TUPLE_QUEUE * sizeof(int));
+
+    int *csrColIndCt = (int*) am_alloc(nnzCt * sizeof(int), acc, 0);
+    T *csrValCt = (T*) am_alloc(nnzCt * sizeof(T), acc, 0);
+ 
+    // STAGE 3 - STEP 1 : compute nnzC and Ct
+    status1 = compute_nnzC_Ct_general<T>
+                   (counter_one, queue_one_d, (int *)csrRowPtrA, (int *)csrColIndA, 
+                    (float *)csrValA, (int *)csrRowPtrB, (int *)csrColIndB, (float *)csrValB,
+                    (int *)csrRowPtrC, csrRowPtrCt_d, csrColIndCt,
+                    csrValCt, n, nnzCt, m, queue_one, control);
+
+    int *csrRowPtrC_h = (int*) calloc(m + 1, sizeof(int));
+    control->accl_view.copy(csrRowPtrC, csrRowPtrC_h, (m + 1) * sizeof(int));
+
+    int old_val, new_val;
+    old_val = csrRowPtrC_h[0];
+    csrRowPtrC_h[0] = 0;
+    for (int i = 1; i <= m; i++)
+    {
+        new_val = csrRowPtrC_h[i];
+        csrRowPtrC_h[i] = old_val + csrRowPtrC_h[i-1];
+        old_val = new_val;
+    }
+
+    int nnzC = csrRowPtrC_h[m];
+
+    control->accl_view.copy(csrRowPtrC_h, (void *)csrRowPtrC, (m + 1) * sizeof(int));
+    
+    status2 = copy_Ct_to_C_general<T> (counter_one, csrValC, (int*)csrRowPtrC, csrColIndC, csrValCt, csrRowPtrCt_d, csrColIndCt, queue_one_d, control);
+    
+    if (status1 == hcsparseSuccess && status2 == hcsparseSuccess)
+        return hcsparseSuccess;
+    else
+        return hcsparseInvalid;
+} 
+
 template <typename T>
 hcsparseStatus
 csrSpGemm (const hcsparseCsrMatrix* matA,
