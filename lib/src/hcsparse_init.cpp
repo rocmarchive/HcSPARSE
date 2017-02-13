@@ -148,6 +148,187 @@ hcsparseDestroyMatDescr(hcsparseMatDescr_t *descrA) {
   return HCSPARSE_STATUS_SUCCESS;
 }
 
+// 7. hcsparseXcsrmm()
+
+// This function performs one of the following matrix-matrix operations:
+// C = α ∗ op ( A ) ∗ B + β ∗ C
+    
+// A is an m×k sparse matrix that is defined in CSR storage format 
+// by the three arrays csrValA, csrRowPtrA, and csrColIndA); 
+// B and C are dense matrices; α  and  β are scalars; and
+
+// Return Values
+// ----------------------------------------------------------------------
+// HCSPARSE_STATUS_SUCCESS              the operation completed successfully.
+// HCSPARSE_STATUS_NOT_INITIALIZED      the library was not initialized.
+// HCSPARSE_STATUS_ALLOC_FAILED         the resources could not be allocated.
+// HCSPARSE_STATUS_INVALID_VALUE        invalid parameters were passed (m, n, k, nnz<0 or ldb and ldc are incorrect).
+// HCSPARSE_STATUS_EXECUTION_FAILED     the function failed to launch on the GPU.
+
+hcsparseStatus_t
+hcsparseScsrmm(hcsparseHandle_t handle,
+               hcsparseOperation_t transA,
+               int m, int n, int k, int nnz,
+               const float *alpha,
+               const hcsparseMatDescr_t descrA,
+               const float *csrValA, const int *csrRowPtrA,
+               const int *csrColIndA, const float *B,
+               int ldb, const float *beta, float *C, int ldc)
+{
+    if (handle == nullptr)
+    return HCSPARSE_STATUS_NOT_INITIALIZED;
+
+  if (!csrValA || !csrRowPtrA || !csrColIndA || !B || !C ||
+      !alpha || !beta)
+    return HCSPARSE_STATUS_ALLOC_FAILED;
+
+  if (descrA.MatrixType != HCSPARSE_MATRIX_TYPE_GENERAL)
+    return HCSPARSE_STATUS_INVALID_VALUE;
+
+  // temp code 
+  // TODO : Remove this in the future
+  hcsparseControl control(handle->currentAcclView);
+  hcsparseStatus stat = hcsparseSuccess;
+
+  int nnz1;
+  int *nnz_locations = am_alloc(sizeof(int)*m*k, handle->currentAccl, 0);
+
+  calculate_num_nonzeros<float>((ulong)m*k, csrValA, nnz_locations, nnz1, &control);
+
+  int nnzPerRow = nnz1/m;
+  stat = csrmm<float>(&control, nnzPerRow, m, n, k, alpha, csrValA, csrRowPtrA,
+                      csrColIndA, B, ldb, beta, C, ldc);
+
+  if (stat != hcsparseSuccess)
+    return HCSPARSE_STATUS_EXECUTION_FAILED;
+
+  return HCSPARSE_STATUS_SUCCESS;
+}
+
+hcsparseStatus_t
+hcsparseDcsrmm(hcsparseHandle_t handle,
+               hcsparseOperation_t transA,
+               int m, int n, int k, int nnz,
+               const double *alpha,
+               const hcsparseMatDescr_t descrA,
+               const double *csrValA, const int *csrRowPtrA,
+               const int *csrColIndA, const double *B,
+               int ldb, const double *beta, double *C, int ldc)
+{
+    if (handle == nullptr)
+    return HCSPARSE_STATUS_NOT_INITIALIZED;
+
+  if (!csrValA || !csrRowPtrA || !csrColIndA || !B || !C ||
+      !alpha || !beta)
+    return HCSPARSE_STATUS_ALLOC_FAILED;
+
+  if (descrA.MatrixType != HCSPARSE_MATRIX_TYPE_GENERAL)
+    return HCSPARSE_STATUS_INVALID_VALUE;
+
+  // temp code 
+  // TODO : Remove this in the future
+  hcsparseControl control(handle->currentAcclView);
+  hcsparseStatus stat = hcsparseSuccess;
+
+  int nnz1;
+  int *nnz_locations = am_alloc(sizeof(int)*m*k, handle->currentAccl, 0);
+
+  calculate_num_nonzeros<double>((ulong)m*k, csrValA, nnz_locations, nnz1, &control);
+
+  int nnzPerRow = nnz1/m;
+  stat = csrmm<double>(&control, nnzPerRow, m, n, k, alpha, csrValA, csrRowPtrA,
+                      csrColIndA, B, ldb, beta, C, ldc);
+
+  if (stat != hcsparseSuccess)
+    return HCSPARSE_STATUS_EXECUTION_FAILED;
+
+  return HCSPARSE_STATUS_SUCCESS;
+}
+
+// 8. hcsparseXcsr2dense()
+
+// This function converts the sparse matrix in CSR format 
+// (that is defined by the 3 arrays csrValA, csrRowPtrA, and csrColIndA)
+// into the matrix A in dense format. The dense matrix A is filled
+// in with the values of the sparse matrix and with zeros elsewhere.
+
+// Return Values
+// ----------------------------------------------------------------------
+// HCSPARSE_STATUS_SUCCESS              the operation completed successfully.
+// HCSPARSE_STATUS_NOT_INITIALIZED      the library was not initialized.
+// HCSPARSE_STATUS_ALLOC_FAILED         the resources could not be allocated.
+// HCSPARSE_STATUS_INVALID_VALUE        invalid parameters were passed (m, n, k, nnz<0 or ldb and ldc are incorrect).
+// HCSPARSE_STATUS_EXECUTION_FAILED     the function failed to launch on the GPU.
+
+hcsparseStatus_t
+hcsparseScsr2dense(hcsparseHandle_t handle,
+                   int m, 
+                   int n, 
+                   const hcsparseMatDescr_t descrA,  
+                   const float *csrValA, 
+                   const int *csrRowPtrA, 
+                   const int *csrColIndA,
+                   float *A, 
+                   int lda)
+{
+  if (handle == nullptr) 
+    return HCSPARSE_STATUS_NOT_INITIALIZED;
+
+  if (!csrValA || !csrRowPtrA || !csrColIndA || !A)
+    return HCSPARSE_STATUS_ALLOC_FAILED;
+
+  if (descrA.MatrixType != HCSPARSE_MATRIX_TYPE_GENERAL)
+    return HCSPARSE_STATUS_INVALID_VALUE;
+
+  // temp code 
+  // TODO : Remove this in the future
+  hcsparseControl control(handle->currentAcclView);
+  hcsparseStatus stat = hcsparseSuccess;
+
+  fill_zero<float>((ulong)m*n, A, &control);
+
+  stat = transform_csr_2_dense<float> ((ulong)m*n, csrRowPtrA, csrColIndA, csrValA,\
+                                       m, n, A, &control);
+  if (stat != hcsparseSuccess)
+    return HCSPARSE_STATUS_EXECUTION_FAILED;
+
+  return HCSPARSE_STATUS_SUCCESS;
+}
+
+hcsparseStatus_t
+hcsparseDcsr2dense(hcsparseHandle_t handle,
+                   int m, 
+                   int n, 
+                   const hcsparseMatDescr_t descrA,  
+                   const double *csrValA, 
+                   const int *csrRowPtrA, 
+                   const int *csrColIndA,
+                   double *A, 
+                   int lda)
+{
+  if (handle == nullptr) 
+    return HCSPARSE_STATUS_NOT_INITIALIZED;
+
+  if (!csrValA || !csrRowPtrA || !csrColIndA || !A)
+    return HCSPARSE_STATUS_ALLOC_FAILED;
+
+  if (descrA.MatrixType != HCSPARSE_MATRIX_TYPE_GENERAL)
+    return HCSPARSE_STATUS_INVALID_VALUE;
+
+  // temp code 
+  // TODO : Remove this in the future
+  hcsparseControl control(handle->currentAcclView);
+  hcsparseStatus stat = hcsparseSuccess;
+
+  fill_zero<double>((ulong)m*n, A, &control);
+
+  stat = transform_csr_2_dense<double> ((ulong)m*n, csrRowPtrA, csrColIndA, csrValA,\
+                                       m, n, A, &control);
+  if (stat != hcsparseSuccess)
+    return HCSPARSE_STATUS_EXECUTION_FAILED;
+
+  return HCSPARSE_STATUS_SUCCESS;
+}
 
 hcsparseStatus
 hcsparseSetup(void)
@@ -256,46 +437,6 @@ hcsparseDcsrmv (const hcsparseScalar* alpha,
     }
 
     return csrmv<double>(alpha, matx, x, beta, y, control);
-}
-
-hcsparseStatus_t 
-hcsparseScsrmm(hcsparseHandle_t handle, 
-               hcsparseOperation_t transA,
-               int m, int n, int k, int nnz, 
-               const float *alpha, 
-               const hcsparseMatDescr_t descrA, 
-               const float *csrValA, const int *csrRowPtrA, 
-               const int *csrColIndA, const float *B, 
-               int ldb, const float *beta, float *C, int ldc)
-{
-    if (handle == nullptr)
-    return HCSPARSE_STATUS_NOT_INITIALIZED;
-
-  if (!csrValA || !csrRowPtrA || !csrColIndA || !B || !C ||
-      !alpha || !beta)
-    return HCSPARSE_STATUS_ALLOC_FAILED;
-
-  if (descrA.MatrixType != HCSPARSE_MATRIX_TYPE_GENERAL)
-    return HCSPARSE_STATUS_INVALID_VALUE;
-
-  // temp code 
-  // TODO : Remove this in the future
-  hcsparseControl control(handle->currentAcclView);
-  hcsparseStatus stat = hcsparseSuccess;
-
-  int nnz1;
-  int *nnz_locations = am_alloc(sizeof(int)*m*k, handle->currentAccl, 0);
-
-  calculate_num_nonzeros<float>((ulong)m*k, csrValA, nnz_locations, nnz1, &control);
-
-  int nnzPerRow = nnz1/m;
-  stat = csrmm<float>(&control, nnzPerRow, m, n, k, alpha, csrValA, csrRowPtrA,
-                      csrColIndA, B, ldb, beta, C, ldc);
-
-  if (stat != hcsparseSuccess)
-    return HCSPARSE_STATUS_EXECUTION_FAILED;
-
-  return HCSPARSE_STATUS_SUCCESS;
 }
 
 hcsparseStatus
@@ -1331,50 +1472,6 @@ hcsparseDcsr2coo (const hcsparseCsrMatrix* csr,
     }
 
     return csr2coo<double> (csr, coo, control);
-}
-
-hcsparseStatus_t hcsparseScsr2dense(hcsparseHandle_t handle,
-                                    int m, 
-                                    int n, 
-                                    const hcsparseMatDescr_t descrA,  
-                                    const float *csrValA, 
-                                    const int *csrRowPtrA, 
-                                    const int *csrColIndA,
-                                    float *A, 
-                                    int lda)
-{
-  if (handle == nullptr) 
-    return HCSPARSE_STATUS_NOT_INITIALIZED;
-
-  if (!csrValA || !csrRowPtrA || !csrColIndA || !A)
-    return HCSPARSE_STATUS_ALLOC_FAILED;
-
-  if (descrA.MatrixType != HCSPARSE_MATRIX_TYPE_GENERAL)
-    return HCSPARSE_STATUS_INVALID_VALUE;
-
-  ulong dense_size = m * n;
-
-  const int *offsets = static_cast<const int*>(csrRowPtrA);
-  const int *indices = static_cast<const int*>(csrColIndA);
-  const float *values = static_cast<const float*>(csrValA);
-
-  float *Avalues = static_cast<float*>(A);
-
-  // temp code 
-  // TODO : Remove this in the future
-  hcsparseControl control(handle->currentAcclView);
-  hcsparseStatus stat = hcsparseSuccess;
-
-  fill_zero<float>(dense_size, Avalues, &control);
-
-//  stat = transform_csr_2_dense<float> (dense_size, offsets, indices, values,
-//                                   m, n, Avalues, &control);
-  stat = transform_csr_2_dense<float> ((ulong)m*n, csrRowPtrA, csrColIndA, csrValA,\
-                                       m, n, A, &control);
-  if (stat != hcsparseSuccess)
-    return HCSPARSE_STATUS_EXECUTION_FAILED;
-
-  return HCSPARSE_STATUS_SUCCESS;
 }
 
 hcsparseStatus
