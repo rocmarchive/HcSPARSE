@@ -330,6 +330,88 @@ hcsparseDcsr2dense(hcsparseHandle_t handle,
   return HCSPARSE_STATUS_SUCCESS;
 }
 
+// 9. hcsparseXdense2csr()
+
+// This function converts the matrix A in dense format into a sparse matrix in CSR format.
+
+// Return Values
+// ----------------------------------------------------------------------
+// HCSPARSE_STATUS_SUCCESS              the operation completed successfully.
+// HCSPARSE_STATUS_NOT_INITIALIZED      the library was not initialized.
+// HCSPARSE_STATUS_ALLOC_FAILED         the resources could not be allocated.
+// HCSPARSE_STATUS_INVALID_VALUE        invalid parameters were passed (m, n, k, nnz<0 or ldb and ldc are incorrect).
+// HCSPARSE_STATUS_EXECUTION_FAILED     the function failed to launch on the GPU.
+
+// Note: nnzperRow is not used, as the existing calculate it
+// TODO: Change the implementation in the future.
+hcsparseStatus_t 
+hcsparseSdense2csr(hcsparseHandle_t handle,
+                   int m,
+                   int n, 
+                   const hcsparseMatDescr_t descrA, 
+                   const float *A, 
+                   int lda,
+                   const int *nnzPerRow, 
+                   float *csrValA, 
+                   int *csrRowPtrA,
+                   int *csrColIndA)
+{
+  if (handle == nullptr) 
+    return HCSPARSE_STATUS_NOT_INITIALIZED;
+
+  if (!A)
+    return HCSPARSE_STATUS_ALLOC_FAILED;
+
+  if (descrA.MatrixType != HCSPARSE_MATRIX_TYPE_GENERAL)
+    return HCSPARSE_STATUS_INVALID_VALUE;
+
+  // temp code 
+  // TODO : Remove this in the future
+  hcsparseControl control(handle->currentAcclView);
+  hcsparseStatus stat = hcsparseSuccess;
+
+  stat = dense2csr<float> (&control, m, n, A, csrValA, csrRowPtrA, csrColIndA); 
+
+  if (stat != hcsparseSuccess)
+    return HCSPARSE_STATUS_EXECUTION_FAILED;
+
+  return HCSPARSE_STATUS_SUCCESS;
+}
+
+hcsparseStatus_t 
+hcsparseDdense2csr(hcsparseHandle_t handle,
+                   int m,
+                   int n, 
+                   const hcsparseMatDescr_t descrA, 
+                   const double *A, 
+                   int lda,
+                   const int *nnzPerRow, 
+                   double *csrValA, 
+                   int *csrRowPtrA,
+                   int *csrColIndA)
+{
+  if (handle == nullptr) 
+    return HCSPARSE_STATUS_NOT_INITIALIZED;
+
+  if (!A)
+    return HCSPARSE_STATUS_ALLOC_FAILED;
+
+  if (descrA.MatrixType != HCSPARSE_MATRIX_TYPE_GENERAL)
+    return HCSPARSE_STATUS_INVALID_VALUE;
+
+  // temp code 
+  // TODO : Remove this in the future
+  hcsparseControl control(handle->currentAcclView);
+  hcsparseStatus stat = hcsparseSuccess;
+
+  stat = dense2csr<double> (&control, m, n, A, csrValA, csrRowPtrA, csrColIndA); 
+
+  if (stat != hcsparseSuccess)
+    return HCSPARSE_STATUS_EXECUTION_FAILED;
+
+  return HCSPARSE_STATUS_SUCCESS;
+}
+
 hcsparseStatus
 hcsparseSetup(void)
 {
@@ -1510,39 +1592,7 @@ hcsparseDcsr2dense (const hcsparseCsrMatrix* csr,
     return csr2dense<double> (csr, A, control);
 }
 
-// dense2csr Overloaded function
-// nnzperRow is not used, as the existing calculate it
-hcsparseStatus_t 
-hcsparseSdense2csr(hcsparseHandle_t handle, int m, int n, 
-                const hcsparseMatDescr_t descrA, 
-                const float           *A, 
-                int lda, const int *nnzPerRow, 
-                float           *csrValA, 
-                int *csrRowPtrA, int *csrColIndA)
 
-{
-  if (handle == nullptr) 
-    return HCSPARSE_STATUS_NOT_INITIALIZED;
-
-  if (!A)
-    return HCSPARSE_STATUS_ALLOC_FAILED;
-
-  if (descrA.MatrixType != HCSPARSE_MATRIX_TYPE_GENERAL)
-    return HCSPARSE_STATUS_INVALID_VALUE;
-
-  // temp code 
-  // TODO : Remove this in the future
-  hcsparseControl control(handle->currentAcclView);
-  hcsparseStatus stat = hcsparseSuccess;
-
-  stat = dense2csr<float> (&control, m, n, A, csrValA, csrRowPtrA, csrColIndA); 
-
-  if (stat != hcsparseSuccess)
-    return HCSPARSE_STATUS_EXECUTION_FAILED;
-
-  return HCSPARSE_STATUS_SUCCESS;
-
-}
 hcsparseStatus
 hcsparseSdense2csr (const hcdenseMatrix* A,
                     hcsparseCsrMatrix* csr,

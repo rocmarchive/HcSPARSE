@@ -243,13 +243,40 @@ hcsparseDcsr2dense(hcsparseHandle_t handle,
                    double *A, 
                    int lda);
 
+// 9. hcsparseXdense2csr()
+
+// This function converts the matrix A in dense format into a sparse matrix in CSR format.
+
+// Return Values
+// ----------------------------------------------------------------------
+// HCSPARSE_STATUS_SUCCESS              the operation completed successfully.
+// HCSPARSE_STATUS_NOT_INITIALIZED      the library was not initialized.
+// HCSPARSE_STATUS_ALLOC_FAILED         the resources could not be allocated.
+// HCSPARSE_STATUS_INVALID_VALUE        invalid parameters were passed (m, n, k, nnz<0 or ldb and ldc are incorrect).
+// HCSPARSE_STATUS_EXECUTION_FAILED     the function failed to launch on the GPU.
 hcsparseStatus_t 
-hcsparseSdense2csr(hcsparseHandle_t handle, int m, int n, 
-                const hcsparseMatDescr_t descrA, 
-                const float           *A, 
-                int lda, const int *nnzPerRow, 
-                float           *csrValA, 
-                int *csrRowPtrA, int *csrColIndA);
+hcsparseSdense2csr(hcsparseHandle_t handle,
+                   int m,
+                   int n, 
+                   const hcsparseMatDescr_t descrA, 
+                   const float *A, 
+                   int lda,
+                   const int *nnzPerRow, 
+                   float *csrValA, 
+                   int *csrRowPtrA,
+                   int *csrColIndA);
+
+hcsparseStatus_t 
+hcsparseDdense2csr(hcsparseHandle_t handle,
+                   int m,
+                   int n, 
+                   const hcsparseMatDescr_t descrA, 
+                   const double *A, 
+                   int lda,
+                   const int *nnzPerRow, 
+                   double *csrValA, 
+                   int *csrRowPtrA,
+                   int *csrColIndA);
 
 hcsparseStatus_t
 hcsparseScsrgemm(hcsparseHandle_t handle,
