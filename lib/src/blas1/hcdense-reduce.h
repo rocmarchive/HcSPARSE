@@ -2,6 +2,41 @@
 #include "reduce-operators.h"
 #define BLOCK_SIZE 256
 
+template <typename T, ReduceOperator G_OP, ReduceOperator F_OP = RO_DUMMY>
+void reduce_row_column (T *pX,
+                        T *partial,
+                        const int m,
+                        const int n,
+                        hcsparseControl* control)
+{
+
+    hc::extent<1> grdExt( m * BLOCK_SIZE);
+    hc::tiled_extent<1> t_ext = grdExt.tile(BLOCK_SIZE);
+    hc::parallel_for_each(control->accl_view, t_ext, [=] (hc::tiled_index<1>& tidx) __attribute__((hc, cpu))
+    {
+        tile_static T buf_tmp[BLOCK_SIZE];
+        uint idx = tidx.global[0];
+        uint lidx = tidx.local[0];
+        uint eidx = lidx;
+        T sum = 0;
+
+        while (eidx < n) {
+          sum += pX[tidx.tile[0] * n + eidx];
+          eidx += BLOCK_SIZE;
+        }
+        buf_tmp[lidx] = sum;
+        tidx.barrier.wait();
+
+        if (lidx == 0) {
+          sum = 0;
+          for (uint i = 0; i < n; i++) { 
+            sum += buf_tmp[i]; 
+          }
+          partial[tidx.tile[0]] = sum;
+        }
+    });
+}
+
 template <typename T, ReduceOperator G_OP, ReduceOperator F_OP>
 void global_reduce (const long size,
                     T *pR,

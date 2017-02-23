@@ -95,6 +95,17 @@ enum hcsparseOperation_t {
   HCSPARSE_OPERATION_TRANSPOSE,
   HCSPARSE_OPERATION_CONJUGATE_TRANSPOSE
 };
+
+// 2.2.9 hcsparseDirection_t
+
+// This type indicates whether the elements of a dense matrix
+// should be parsed by rows or by columns in function cusparse[S|D|C|Z]nnz.
+
+enum hcsparseDirection_t {
+  HCSPARSE_DIRECTION_ROW,
+  HCSPARSE_DIRECTION_COLUMN
+};
+
 // hcsparse Helper functions 
 
 // 1. hcsparseCreate()
@@ -185,6 +196,7 @@ hcsparseDestroyMatDescr(hcsparseMatDescr_t* descrA);
 // HCSPARSE_STATUS_ALLOC_FAILED         the resources could not be allocated.
 // HCSPARSE_STATUS_INVALID_VALUE        invalid parameters were passed (m, n, k, nnz<0 or ldb and ldc are incorrect).
 // HCSPARSE_STATUS_EXECUTION_FAILED     the function failed to launch on the GPU.
+
 hcsparseStatus_t 
 hcsparseScsrmm(hcsparseHandle_t handle, 
                hcsparseOperation_t transA,
@@ -254,6 +266,7 @@ hcsparseDcsr2dense(hcsparseHandle_t handle,
 // HCSPARSE_STATUS_ALLOC_FAILED         the resources could not be allocated.
 // HCSPARSE_STATUS_INVALID_VALUE        invalid parameters were passed (m, n, k, nnz<0 or ldb and ldc are incorrect).
 // HCSPARSE_STATUS_EXECUTION_FAILED     the function failed to launch on the GPU.
+
 hcsparseStatus_t 
 hcsparseSdense2csr(hcsparseHandle_t handle,
                    int m,
@@ -293,6 +306,7 @@ hcsparseDdense2csr(hcsparseHandle_t handle,
 // HCSPARSE_STATUS_EXECUTION_FAILED     the function failed to launch on the GPU.
 
 // TODO: nnz is unused, as it is calculated in the existing API
+
 hcsparseStatus_t
 hcsparseScsrgemm(hcsparseHandle_t handle,
                  hcsparseOperation_t transA,
@@ -314,6 +328,30 @@ hcsparseScsrgemm(hcsparseHandle_t handle,
                  float *csrValC,
                  const int *csrRowPtrC,
                  int *csrColIndC);
+
+// 11. hcsparseXnnz()
+
+// This function computes the number of nonzero elements per
+// row or column and the total number of nonzero elements in a dense matrix.
+
+// Return Values
+// ----------------------------------------------------------------------
+// HCSPARSE_STATUS_SUCCESS              the operation completed successfully.
+// HCSPARSE_STATUS_NOT_INITIALIZED      the library was not initialized.
+// HCSPARSE_STATUS_ALLOC_FAILED         the resources could not be allocated.
+// HCSPARSE_STATUS_INVALID_VALUE        invalid parameters were passed (m, n, k, nnz<0 or ldb and ldc are incorrect).
+// HCSPARSE_STATUS_EXECUTION_FAILED     the function failed to launch on the GPU.
+
+hcsparseStatus_t 
+hcsparseSnnz(hcsparseHandle_t handle,
+             hcsparseDirection_t dirA,
+             int m, 
+             int n,
+             const hcsparseMatDescr_t descrA, 
+             const float *A, 
+             int lda,
+             int *nnzPerRowColumn,
+             int *nnzTotalDevHostPtr);
 
     /*!
     * \brief Initialize the hcsparse library
