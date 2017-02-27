@@ -99,7 +99,7 @@ enum hcsparseOperation_t {
 // 2.2.9 hcsparseDirection_t
 
 // This type indicates whether the elements of a dense matrix
-// should be parsed by rows or by columns in function cusparse[S|D|C|Z]nnz.
+// should be parsed by rows or by columns in function hcsparse[S|D|C|Z]nnz.
 
 enum hcsparseDirection_t {
   HCSPARSE_DIRECTION_ROW,
@@ -352,6 +352,27 @@ hcsparseSnnz(hcsparseHandle_t handle,
              int lda,
              int *nnzPerRowColumn,
              int *nnzTotalDevHostPtr);
+
+// 12. hcsparseSdot()
+
+// This function returns the dot product of a vector x in sparse format
+// and vector y in dense format. This operation can be written as
+//           result = y T x
+
+// Return Values
+// ----------------------------------------------------------------------
+// HCSPARSE_STATUS_SUCCESS              the operation completed successfully.
+// HCSPARSE_STATUS_NOT_INITIALIZED      the library was not initialized.
+// HCSPARSE_STATUS_ALLOC_FAILED         the resources could not be allocated.
+// HCSPARSE_STATUS_INVALID_VALUE        invalid parameters were passed (m, n, k, nnz<0 or ldb and ldc are incorrect).
+// HCSPARSE_STATUS_EXECUTION_FAILED     the function failed to launch on the GPU.
+
+hcsparseStatus_t 
+hcsparseSdoti(hcsparseHandle_t handle, int nnz, 
+              const float *xVal, 
+              const int *xInd, const float *y, 
+              float *resultDevHostPtr, 
+              hcsparseIndexBase_t idxBase);
 
     /*!
     * \brief Initialize the hcsparse library
