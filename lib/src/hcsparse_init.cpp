@@ -545,7 +545,7 @@ hcsparseSnnz(hcsparseHandle_t handle,
   int *partial = (int*) am_alloc(sizeof(int) * m,
                                   handle->currentAccl, 0);
   
-  reduce_column<int, RO_PLUS>(nnz_locations1, partial, m, n, &control);
+  reduce_row_column<int, RO_PLUS>(nnz_locations1, partial, m, n, &control);
 
 #ifdef DEBUG
   int *partial_h = (int*)calloc(m,sizeof(int));
@@ -562,6 +562,54 @@ hcsparseSnnz(hcsparseHandle_t handle,
    return HCSPARSE_STATUS_EXECUTION_FAILED;
 
   return HCSPARSE_STATUS_SUCCESS;  
+}
+
+// 12. hcsparseSdot()
+
+// This function returns the dot product of a vector x in sparse format
+// and vector y in dense format. This operation can be written as
+//           result = y T x
+
+// Return Values
+// ----------------------------------------------------------------------
+// HCSPARSE_STATUS_SUCCESS              the operation completed successfully.
+// HCSPARSE_STATUS_NOT_INITIALIZED      the library was not initialized.
+// HCSPARSE_STATUS_ALLOC_FAILED         the resources could not be allocated.
+// HCSPARSE_STATUS_INVALID_VALUE        invalid parameters were passed (m, n, k, nnz<0 or ldb and ldc are incorrect).
+// HCSPARSE_STATUS_EXECUTION_FAILED     the function failed to launch on the GPU.
+
+hcsparseStatus_t 
+hcsparseSdoti(hcsparseHandle_t handle, int nnz, 
+              const float *xVal, 
+              const int *xInd, const float *y, 
+              float *resultDevHostPtr, 
+              hcsparseIndexBase_t idxBase)
+{
+  if (handle == nullptr)
+    return HCSPARSE_STATUS_NOT_INITIALIZED;
+
+  if (!xVal || !xInd || !y || !resultDevHostPtr)
+    return HCSPARSE_STATUS_ALLOC_FAILED;
+
+  if (idxBase != HCSPARSE_INDEX_BASE_ZERO)
+    return HCSPARSE_STATUS_INVALID_VALUE;
+
+  // temp code 
+  // TODO : Remove this in the future
+  hcsparseControl control(handle->currentAcclView);
+  hcsparseStatus stat = hcsparseSuccess;
+
+  int REDUCE_BLOCKS_NUMBER = nnz/BLOCK_SIZE + 1; 
+  float* partial = am_alloc(sizeof(float) * REDUCE_BLOCKS_NUMBER, 
+                            handle->currentAccl, 0);
+  float* result = am_alloc(sizeof(float) * 1, handle->currentAccl, 0);
+  
+  inner_product<float> (nnz, result, 0, (float *)xVal, 0, 
+                        (float *)y, 0, partial, REDUCE_BLOCKS_NUMBER, &control);
+
+  handle->currentAcclView.copy(result, resultDevHostPtr, sizeof(float)*1);
+
+  return HCSPARSE_STATUS_SUCCESS;
 }
 
 hcsparseStatus
