@@ -374,6 +374,29 @@ hcsparseSdoti(hcsparseHandle_t handle, int nnz,
               float *resultDevHostPtr, 
               hcsparseIndexBase_t idxBase);
 
+
+// 13. hcsparsecsc2dense()
+
+// This function converts the sparse matrix in CSC format that is defined
+// by the three arrays cscValA, cscColPtrA, and cscRowIndA into the matrix
+// A in dense format. The dense matrix A is filled in with the values
+// of the sparse matrix and with zeros elsewhere.
+
+// Return Values
+// ----------------------------------------------------------------------
+// HCSPARSE_STATUS_SUCCESS              the operation completed successfully.
+// HCSPARSE_STATUS_NOT_INITIALIZED      the library was not initialized.
+// HCSPARSE_STATUS_ALLOC_FAILED         the resources could not be allocated.
+// HCSPARSE_STATUS_INVALID_VALUE        invalid parameters were passed (m, n, k, nnz<0 or ldb and ldc are incorrect).
+// HCSPARSE_STATUS_EXECUTION_FAILED     the function failed to launch on the GPU.
+
+hcsparseStatus_t 
+hcsparseScsc2dense(hcsparseHandle_t handle, int m, int n, 
+                   const hcsparseMatDescr_t descrA, 
+                   const float *cscValA, 
+                   const int *cscRowIndA, const int *cscColPtrA,
+                   float *A, int lda);
+
     /*!
     * \brief Initialize the hcsparse library
     * \note Must be called before any other hcsparse API function is invoked.

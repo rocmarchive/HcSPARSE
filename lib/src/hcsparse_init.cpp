@@ -612,6 +612,54 @@ hcsparseSdoti(hcsparseHandle_t handle, int nnz,
   return HCSPARSE_STATUS_SUCCESS;
 }
 
+// 13. hcsparsecsc2dense()
+
+// This function converts the sparse matrix in CSC format that is defined
+// by the three arrays cscValA, cscColPtrA, and cscRowIndA into the matrix
+// A in dense format. The dense matrix A is filled in with the values
+// of the sparse matrix and with zeros elsewhere.
+
+// Return Values
+// ----------------------------------------------------------------------
+// HCSPARSE_STATUS_SUCCESS              the operation completed successfully.
+// HCSPARSE_STATUS_NOT_INITIALIZED      the library was not initialized.
+// HCSPARSE_STATUS_ALLOC_FAILED         the resources could not be allocated.
+// HCSPARSE_STATUS_INVALID_VALUE        invalid parameters were passed (m, n, k, nnz<0 or ldb and ldc are incorrect).
+// HCSPARSE_STATUS_EXECUTION_FAILED     the function failed to launch on the GPU.
+
+hcsparseStatus_t 
+hcsparseScsc2dense(hcsparseHandle_t handle, int m, int n, 
+                   const hcsparseMatDescr_t descrA, 
+                   const float *cscValA, 
+                   const int *cscRowIndA, const int *cscColPtrA,
+                   float *A, int lda)
+{
+  if (handle == nullptr) 
+    return HCSPARSE_STATUS_NOT_INITIALIZED;
+
+  if (!cscValA || !cscRowIndA || !cscColPtrA || !A)
+    return HCSPARSE_STATUS_ALLOC_FAILED;
+
+  if (descrA.MatrixType != HCSPARSE_MATRIX_TYPE_GENERAL)
+    return HCSPARSE_STATUS_INVALID_VALUE;
+
+  // temp code 
+  // TODO : Remove this in the future
+  hcsparseControl control(handle->currentAcclView);
+  hcsparseStatus stat = hcsparseSuccess;
+
+  fill_zero<float>((ulong)m*n, A, &control);
+
+  stat = transform_csc_2_dense<float> ((ulong)m*n, cscRowIndA, cscColPtrA, cscValA,\
+                                       m, n, A, &control);
+  if (stat != hcsparseSuccess)
+    return HCSPARSE_STATUS_EXECUTION_FAILED;
+
+  return HCSPARSE_STATUS_SUCCESS;
+
+}
+
+
 hcsparseStatus
 hcsparseSetup(void)
 {
@@ -665,6 +713,14 @@ hcsparseStatus
 hcsparseInitCsrMatrix (hcsparseCsrMatrix* csrMatx)
 {
     csrMatx->clear( );
+
+    return hcsparseSuccess;
+};
+
+hcsparseStatus
+hcsparseInitCscMatrix (hcsparseCscMatrix* cscMatx)
+{
+    cscMatx->clear( );
 
     return hcsparseSuccess;
 };
