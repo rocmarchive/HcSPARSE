@@ -242,3 +242,58 @@ dense_to_coo (ulong dense_size,
     return hcsparseSuccess;
 }
 
+template<typename T>
+hcsparseStatus
+transform_csc_2_dense (ulong size,
+                       const int *row_offsets,
+                       const int *col_indices,
+                       const T *values,
+                       const int num_rows,
+                       const int num_cols,
+                       T *A,
+                       hcsparseControl* control)
+{
+    int subwave_size = WAVE_SIZE;
+
+    ulong elements_per_col = size / num_cols; // assumed number elements per row;
+
+    // adjust subwave_size according to elements_per_row;
+    // each wavefront will be assigned to process to the row of the csr matrix
+    if(WAVE_SIZE > 32)
+    {
+        //this apply only for devices with wavefront > 32 like AMD(64)
+        if (elements_per_col < 64) {  subwave_size = 32;  }
+    }
+    if (elements_per_col < 32) {  subwave_size = 16;  }
+    if (elements_per_col < 16) {  subwave_size = 8;  }
+    if (elements_per_col < 8)  {  subwave_size = 4;  }
+    if (elements_per_col < 4)  {  subwave_size = 2;  }
+
+    // subwave takes care of each row in matrix;
+    // predicted number of subwaves to be executed;
+    int predicted = subwave_size * num_cols;
+
+    int global_work_size = GROUP_SIZE * ((predicted + GROUP_SIZE - 1 ) / GROUP_SIZE);
+
+    hc::extent<1> grdExt(global_work_size);
+    hc::tiled_extent<1> t_ext = grdExt.tile(GROUP_SIZE);
+
+    hc::parallel_for_each(control->accl_view, t_ext, [=] (hc::tiled_index<1> &tidx) __attribute__((hc, cpu))
+    {
+        const int global_id   = tidx.global[0];
+        const int local_id    = tidx.local[0];
+        const int thread_lane = local_id & (subwave_size - 1);
+        const int vector_id   = global_id / subwave_size;
+        const int num_vectors = grdExt[0] / subwave_size;
+        for(int col = vector_id; col < num_cols; col += num_vectors)
+        {
+            const int col_start = col_indices[col];
+            const int col_end   = col_indices[col+1];
+            for(int j = col_start + thread_lane; j < col_end; j += subwave_size)
+                A[row_offsets[j] * num_rows + col] = values[j];
+        }
+    }).wait();
+
+    return hcsparseSuccess;
+}
+
