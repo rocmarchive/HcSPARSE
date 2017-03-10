@@ -466,6 +466,18 @@ hcsparseScsc2dense(hcsparseHandle_t handle, int m, int n,
     hcsparseStatus hcsparseInitCsrMatrix( hcsparseCsrMatrix* csrMatx );
 
     /*!
+    * \brief Initialize a sparse matrix CSC structure to be used in the hcsparse library
+    * \note It is users responsibility to allocate OpenCL device memory
+    *
+    * \param[out] cscMatx  Sparse CSC matrix structure to be initialized
+    *
+    * \returns \b hcsparseSuccess
+    *
+    * \ingroup INIT
+    */
+    hcsparseStatus hcsparseInitCscMatrix( hcsparseCscMatrix* cscMatx );
+
+    /*!
     * \brief Initialize a dense matrix structure to be used in the hcsparse library
     * \note It is users responsibility to allocate OpenCL device memory
     *

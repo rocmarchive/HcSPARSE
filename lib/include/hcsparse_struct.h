@@ -236,6 +236,71 @@ typedef struct hcsparseCsrMatrix_
     }
 } hcsparseCsrMatrix;
 
+/*! \brief Structure to encapsulate sparse matrix data encoded in CSC
+ * form to hcsparse API
+ * \note The indices stored are 0-based
+ */
+typedef struct hcsparseCscMatrix_
+{
+    /** @name CSC matrix data */
+    /**@{*/
+    int num_rows;  /*!< Number of rows this matrix has if viewed as dense */
+    int num_cols;  /*!< Number of columns this matrix has if viewed as dense */
+    int num_nonzeros;  /*!< Number of values in matrix that are non-zero */
+    /**@}*/
+
+    /** @name OpenCL state */
+    /**@{*/
+    void *values;  /*!< non-zero values in sparse matrix of size num_nonzeros */
+    void *rowIndices;  /*!< column index for corresponding value of size num_nonzeros */
+    void *colOffsets;  /*!< Invariant: rowOffsets[i+1]-rowOffsets[i] = number of values in row i */
+    void *colBlocks;  /*!< Meta-data used for csc-adaptive algorithm; can be NULL */
+    /**@}*/
+
+    /** @name Buffer offsets */
+
+    long offValues;
+    long offRowInd;
+    long offColOff;
+    long offColBlocks;
+    /**@}*/
+
+    size_t ColBlockSize;  /*!< Size of array used by the colBlocks handle */
+    void clear( )
+    {
+        num_rows = num_cols = num_nonzeros = 0;
+        values = nullptr;
+        rowIndices = colOffsets = colBlocks = nullptr;
+        ColBlockSize = 0;
+    }
+
+    uint nnz_per_col() const
+    {
+        return num_nonzeros / num_cols;
+    }
+
+    long valOffset () const
+    {
+        return 0;
+    }
+
+    long rowIndOffset () const
+    {
+        return 0;
+    }
+
+    long colOffOffset () const
+    {
+        return 0;
+    }
+
+    long colBlocksOffset( ) const
+    {
+        return 0;
+    }
+} hcsparseCscMatrix;
+
+
 /*! \brief Structure to encapsulate sparse matrix data encoded in COO
  * form to hcsparse API
  * \note The indices stored are 0-based
