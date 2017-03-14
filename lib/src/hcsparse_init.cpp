@@ -27,6 +27,7 @@
 #include "transform/hcsparse-csr2coo.h"
 #include "transform/hcsparse-csr2dense.h"
 #include "transform/hcsparse-dense2csr.h"
+#include "transform/hcsparse-dense2csc.h"
 
 int hcsparseInitialized = 0;
 
@@ -659,6 +660,52 @@ hcsparseScsc2dense(hcsparseHandle_t handle, int m, int n,
 
 }
 
+// 14. hcsparseXdense2csc
+
+// This function converts the sparse matrix in CSC format 
+// that is defined by the three arrays cscValA, cscColPtrA, and cscRowIndA 
+// into the matrix A in dense format. The dense matrix A is filled
+// in with the values of the sparse matrix and with zeros elsewhere.
+
+// Return Values
+// ----------------------------------------------------------------------
+// HCSPARSE_STATUS_SUCCESS              the operation completed successfully.
+// HCSPARSE_STATUS_NOT_INITIALIZED      the library was not initialized.
+// HCSPARSE_STATUS_ALLOC_FAILED         the resources could not be allocated.
+// HCSPARSE_STATUS_INVALID_VALUE        invalid parameters were passed (m, n, k, nnz<0 or ldb and ldc are incorrect).
+// HCSPARSE_STATUS_EXECUTION_FAILED     the function failed to launch on the GPU.
+
+hcsparseStatus_t 
+hcsparseSdense2csc(hcsparseHandle_t handle, int m, int n, 
+                const hcsparseMatDescr_t descrA, 
+                const float           *A, 
+                int lda, const int *nnzPerCol, 
+                float           *cscValA, 
+                int *cscRowIndA, int *cscColPtrA)
+{
+  // TODO: nnzPerCol is unused. Make use of it in future
+  if (handle == nullptr) 
+    return HCSPARSE_STATUS_NOT_INITIALIZED;
+
+  if (!A || !cscValA || !cscRowIndA || !cscColPtrA)
+    return HCSPARSE_STATUS_ALLOC_FAILED;
+
+  if (descrA.MatrixType != HCSPARSE_MATRIX_TYPE_GENERAL)
+    return HCSPARSE_STATUS_INVALID_VALUE;
+
+  // temp code 
+  // TODO : Remove this in the future
+  hcsparseControl control(handle->currentAcclView);
+  hcsparseStatus stat = hcsparseSuccess;
+
+  stat = dense2csc<float> (&control, m, n, A, cscValA, cscColPtrA, cscRowIndA); 
+
+  if (stat != hcsparseSuccess)
+    return HCSPARSE_STATUS_EXECUTION_FAILED;
+
+  return HCSPARSE_STATUS_SUCCESS;
+
+}
 
 hcsparseStatus
 hcsparseSetup(void)
