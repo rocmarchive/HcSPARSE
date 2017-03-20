@@ -37,6 +37,14 @@ typedef cusparseOperation_t hipsparseOperation_t;
 
 hipsparseStatus_t hipCUSPARSEStatusToHIPStatus(cusparseStatus_t cuStatus); 
 
+hipsparseStatus_t hipsparseCreate(hipsparseHandle_t* handle);
+
+hipsparseStatus_t hipsparseDestroy(hipsparseHandle_t handle);
+
+hipsparseStatus_t hipsparseCreateMatDescr(hipsparseMatDescr_t *descrA);
+
+hipsparseStatus_t hipsparseDestroyMatDescr(hipsparseMatDescr_t descrA);
+
 //Sparse L2 BLAS operations
 
 hipsparseStatus_t hipsparseScsrmv(hipsparseHandle_t handle, hipsparseOperation_t transA, 
@@ -130,6 +138,56 @@ hipsparseStatus_t hipsparseXcoo2csr(hipsparseHandle_t handle, const int *cooRowI
 hipsparseStatus_t hipsparseXcsr2coo(hipsparseHandle_t handle, const int *csrRowPtrA,
                                                   int nnz, int m, int *cooRowIndA, 
                                                   hipsparseIndexBase_t idxBase);
+
+hipsparseStatus_t hipsparseScsrgemm(hipsparseHandle_t handle, hipsparseOperation_t transA,
+                              hipsparseOperation_t transB, int m, int n, int k,
+                              const hipsparseMatDescr_t descrA, const int nnzA,
+                              const float *csrValA, const int *csrRowPtrA,
+                              const int *csrColIndA, const hipsparseMatDescr_t descrB,
+                              const int nnzB, const float *csrValB, const int *csrRowPtrB,
+                              const int *csrColIndB,
+                              const hipsparseMatDescr_t descrC, float *csrValC,
+                              const int *csrRowPtrC, int *csrColIndC );
+
+hipsparseStatus_t hipsparseSnnz(hipsparseHandle_t handle, hipsparseDirection_t dirA, int m,
+                              int n, const hipsparseMatDescr_t descrA,
+                              const float           *A, int lda,
+                              int *nnzPerRowColumn, int *nnzTotalDevHostPtr);
+
+hipsparseStatus_t hipsparseSdoti(hipsparseHandle_t handle, int nnz,
+                              const float           *xVal,
+                              const int *xInd, const float           *y,
+                              float           *resultDevHostPtr,
+                              hipsparseIndexBase_t idxBase);
+
+hipsparseStatus_t hipsparseScsc2dense(hipsparseHandle_t handle, int m, int n,
+                              const hipsparseMatDescr_t descrA,
+                              const float           *cscValA,
+                              const int *cscRowIndA, const int *cscColPtrA,
+                              float           *A, int lda);
+
+hipsparseStatus_t hipsparseSdense2csc(hipsparseHandle_t handle, int m, int n,
+                              const hipsparseMatDescr_t descrA,
+                              const float           *A,
+                              int lda, const int *nnzPerCol,
+                              float           *cscValA,
+                              int *cscRowIndA, int *cscColPtrA);
+
+hipsparseStatus_t hipsparseScsrmv(hipsparseHandle_t handle, hipsparseOperation_t transA,
+                              int m, int n, int nnz, const float           *alpha,
+                              const hipsparseMatDescr_t descrA,
+                              const float           *csrValA,
+                              const int *csrRowPtrA, const int *csrColIndA,
+                              const float           *x, const float           *beta,
+                              float           *y);
+
+hipsparseStatus_t hipsparseDcsrmv(hipsparseHandle_t handle, hipsparseOperation_t transA,
+                              int m, int n, int nnz, const double          *alpha,
+                              const hipsparseMatDescr_t descrA,
+                              const double          *csrValA,
+                              const int *csrRowPtrA, const int *csrColIndA,
+                              const double          *x, const double          *beta,
+                              double          *y);
 
 #ifdef __cplusplus
 }
