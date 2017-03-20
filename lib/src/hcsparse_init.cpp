@@ -707,6 +707,7 @@ hcsparseSdense2csc(hcsparseHandle_t handle, int m, int n,
 
 }
 
+
 hcsparseStatus
 hcsparseSetup(void)
 {
