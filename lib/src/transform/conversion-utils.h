@@ -245,8 +245,8 @@ dense_to_coo (ulong dense_size,
 template<typename T>
 hcsparseStatus
 transform_csc_2_dense (ulong size,
-                       const int *row_offsets,
-                       const int *col_indices,
+                       const int *col_offsets,
+                       const int *row_indices,
                        const T *values,
                        const int num_rows,
                        const int num_cols,
@@ -255,10 +255,10 @@ transform_csc_2_dense (ulong size,
 {
     int subwave_size = WAVE_SIZE;
 
-    ulong elements_per_col = size / num_cols; // assumed number elements per row;
+    ulong elements_per_col = size / num_cols; // assumed number elements per col;
 
-    // adjust subwave_size according to elements_per_row;
-    // each wavefront will be assigned to process to the row of the csr matrix
+    // adjust subwave_size according to elements_per_col;
+    // each wavefront will be assigned to process to the col of the csr matrix
     if(WAVE_SIZE > 32)
     {
         //this apply only for devices with wavefront > 32 like AMD(64)
@@ -269,7 +269,7 @@ transform_csc_2_dense (ulong size,
     if (elements_per_col < 8)  {  subwave_size = 4;  }
     if (elements_per_col < 4)  {  subwave_size = 2;  }
 
-    // subwave takes care of each row in matrix;
+    // subwave takes care of each col in matrix;
     // predicted number of subwaves to be executed;
     int predicted = subwave_size * num_cols;
 
@@ -287,10 +287,10 @@ transform_csc_2_dense (ulong size,
         const int num_vectors = grdExt[0] / subwave_size;
         for(int col = vector_id; col < num_cols; col += num_vectors)
         {
-            const int col_start = col_indices[col];
-            const int col_end   = col_indices[col+1];
+            const int col_start = col_offsets[col];
+            const int col_end   = col_offsets[col+1];
             for(int j = col_start + thread_lane; j < col_end; j += subwave_size)
-                A[row_offsets[j] * num_rows + col] = values[j];
+                A[row_indices[j] * num_cols + col] = values[j];
         }
     }).wait();
 
