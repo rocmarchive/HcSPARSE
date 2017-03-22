@@ -29,6 +29,26 @@ hipsparseStatus_t hipCUSPARSEStatusToHIPStatus(cusparseStatus_t cuStatus)
    }
 }
 
+hipsparseStatus_t hipsparseCreate(hipsparseHandle_t *handle)
+{
+   return hipCUSPARSEStatusToHIPStatus(cusparseCreate(handle));
+}
+
+hipsparseStatus_t hipsparseDestroy(hipsparseHandle_t handle)
+{
+   return hipCUSPARSEStatusToHIPStatus(cusparseDestroy(handle));
+}
+
+hipsparseStatus_t hipsparseCreateMatDescr(hipsparseMatDescr_t *descrA)
+{
+   return hipCUSPARSEStatusToHIPStatus(cusparseCreateMatDescr(descrA));
+}
+
+hipsparseStatus_t hipsparseDestroyMatDescr(hipsparseMatDescr_t descrA)
+{
+   return hipCUSPARSEStatusToHIPStatus(cusparseDestroyMatDescr(descrA));
+}
+
 //Sparse L2 BLAS operations
 
 hipsparseStatus_t hipsparseScsrmv(hipsparseHandle_t handle, hipsparseOperation_t transA, 
@@ -180,6 +200,48 @@ hipsparseStatus_t hipsparseXcsr2coo(hipsparseHandle_t handle, const int *csrRowP
                                                   hipsparseIndexBase_t idxBase){
 
   return hipCUSPARSEStatusToHIPStatus(cusparseXcsr2coo(handle, csrRowPtrA, nnz, m, cooRowIndA, idxBase) );
+}
+
+hipsparseStatus_t hipsparseSnnz(hipsparseHandle_t handle, hipsparseDirection_t dirA, int m,
+                              int n, const hipsparseMatDescr_t descrA,
+                              const float           *A, int lda,
+                              int *nnzPerRowColumn, int *nnzTotalDevHostPtr){
+
+  return hipCUSPARSEStatusToHIPStatus(cusparseSnnz(handle, dirA, m, n, descrA, A, lda,
+                                                   nnzPerRowColumn, nnzTotalDevHostPtr));
+}
+
+hipsparseStatus_t hipsparseSdoti(hipsparseHandle_t handle, int nnz,
+                              const float           *xVal,
+                              const int *xInd, const float           *y,
+                              float           *resultDevHostPtr,
+                              hipsparseIndexBase_t idxBase){
+
+  return hipCUSPARSEStatusToHIPStatus(cusparseSdoti(handle, nnz, xVal, xInd, y,
+                                                    resultDevHostPtr, idxBase));
+}
+
+hipsparseStatus_t hipsparseScsc2dense(hipsparseHandle_t handle, int m, int n,
+                              const hipsparseMatDescr_t descrA,
+                              const float           *cscValA,
+                              const int *cscRowIndA, const int *cscColPtrA,
+                              float           *A, int lda){
+
+  return hipCUSPARSEStatusToHIPStatus(cusparseScsc2dense(handle, m, n, descrA,
+                                                         cscValA, cscRowIndA, 
+                                                         cscColPtrA, A, lda));
+}
+
+hipsparseStatus_t hipsparseSdense2csc(hipsparseHandle_t handle, int m, int n,
+                              const hipsparseMatDescr_t descrA,
+                              const float           *A,
+                              int lda, const int *nnzPerCol,
+                              float           *cscValA,
+                              int *cscRowIndA, int *cscColPtrA){
+
+  return hipCUSPARSEStatusToHIPStatus(cusparseSdense2csc(handle, m, n, descrA,
+                                                         A, lda, nnzPerCol, cscValA,
+                                                         cscRowIndA, cscColPtrA));
 }
 
 #ifdef __cplusplus
