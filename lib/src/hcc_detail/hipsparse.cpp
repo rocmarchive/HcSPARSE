@@ -1,4 +1,5 @@
 #include "hipsparse.h"
+#include <hip/hcc_detail/hcc_acc.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -19,7 +20,21 @@ hipsparseStatus_t hipHCSPARSEStatusToHIPStatus(hcsparseStatus_t hcStatus)
 
 hipsparseStatus_t hipsparseCreate(hipsparseHandle_t *handle)
 {
-   return hipHCSPARSEStatusToHIPStatus(hcsparseCreate(handle, hc::accelerator *acc));
+   int deviceId;
+   hipError_t err;
+   hipsparseStatus_t retval = HIPSPARSE_STATUS_SUCCESS;
+
+   err = hipGetDevice(&deviceId);
+   if (err == hipSuccess) {
+     hc::accelerator_view *av;
+     err = hipHccGetAcceleratorView(hipStreamDefault, &av);
+     if (err == hipSuccess) {
+       retval = hipHCSPARSEStatusToHIPStatus(hcsparseCreate(&*handle, av));
+     } else {
+       retval = HIPSPARSE_STATUS_EXECUTION_FAILED;
+     }
+   }
+  return retval;
 }
 
 hipsparseStatus_t hipsparseDestroy(hipsparseHandle_t handle)
@@ -34,7 +49,7 @@ hipsparseStatus_t hipsparseCreateMatDescr(hipsparseMatDescr_t *descrA)
 
 hipsparseStatus_t hipsparseDestroyMatDescr(hipsparseMatDescr_t descrA)
 {
-   return hipHCSPARSEStatusToHIPStatus(hcsparseDestroyMatDescr(&descrA);
+   return hipHCSPARSEStatusToHIPStatus(hcsparseDestroyMatDescr(&descrA));
 }
 
 //Sparse L2 BLAS operations
@@ -53,10 +68,21 @@ hipsparseStatus_t hipsparseScsrmv(hipsparseHandle_t handle, hipsparseOperation_t
    hcsparseScalar gAlpha;
    hcsparseScalar gBeta;
 
-   accelerator acc = accelerator(accelerator::default_accelerator);
-   accelerator_view accl_view = acc.default_view;
-   hcsparseControl control(accl_view);
+   int deviceId;
+   hipError_t err;
+   hipsparseStatus_t retval = HIPSPARSE_STATUS_SUCCESS;
 
+   err = hipGetDevice(&deviceId);
+   hc::accelerator_view *av;
+
+   err = hipHccGetAcceleratorView(hipStreamDefault, &av);
+   if (err == hipSuccess) {
+     hcsparseControl control(*av);
+   }
+   else{
+     return HIPSPARSE_STATUS_EXECUTION_FAILED;
+   }
+   
    array_view<float> dev_X(n, x);
    array_view<float> dev_Y(m, y);
    array_view<float> dev_alpha(1, alpha);
@@ -98,6 +124,7 @@ hipsparseStatus_t hipsparseScsrmv(hipsparseHandle_t handle, hipsparseOperation_t
                                                         &gy, &control));
 }
 
+/*
 hipsparseStatus_t hipsparseDcsrmv(hipsparseHandle_t handle, hipsparseOperation_t transA, 
                                   int m, int n, int nnz, const double           *alpha, 
                                   const hipsparseMatDescr_t descrA, 
@@ -516,6 +543,7 @@ hipsparseStatus_t hipsparseScsr2dense(hipsparseHandle_t handle, int m, int n,
                                                             &control ));
 }
 
+
 hipsparseStatus_t hipsparseDcsr2dense(hipsparseHandle_t handle, int m, int n, 
                                                     const hipsparseMatDescr_t descrA, 
                                                     const double             *csrValA, 
@@ -557,19 +585,20 @@ hipsparseStatus_t hipsparseDcsr2dense(hipsparseHandle_t handle, int m, int n,
                                                             &gMat, 
                                                             &control ));
 }
+*/
 
 hipsparseStatus_t hipsparseXcoo2csr(hipsparseHandle_t handle, const int *cooRowIndA, 
                                                   int nnz, int m, int *csrRowPtrA, 
                                                   hipsparseIndexBase_t idxBase){
 
-   return HIPBLAS_STATUS_NOT_SUPPORTED;
+   return HIPSPARSE_STATUS_NOT_SUPPORTED;
 }
 
 hipsparseStatus_t hipsparseXcsr2coo(hipsparseHandle_t handle, const int *csrRowPtrA,
                                                   int nnz, int m, int *cooRowIndA, 
                                                   hipsparseIndexBase_t idxBase){
 
-  return HIPBLAS_STATUS_NOT_SUPPORTED;
+  return HIPSPARSE_STATUS_NOT_SUPPORTED;
 }
 
 
