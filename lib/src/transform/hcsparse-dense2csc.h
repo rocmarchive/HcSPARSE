@@ -7,7 +7,7 @@ void transpose_kernel (hcsparseControl* control,
                        const T* A,
                        T* transA)
 {
-   hc::extent<2> grdExt((cols + 15) & ~15, (rows + 15) & ~15);
+   hc::extent<2> grdExt((rows + 15) & ~15, (cols + 15) & ~15);
    hc::tiled_extent<2> t_ext = grdExt.tile(16, 16);
    hc::parallel_for_each(control->accl_view, t_ext, [ = ] (hc::tiled_index<2>& tidx) __attribute__((hc, cpu)) {
      int gidx = tidx.global[1];
