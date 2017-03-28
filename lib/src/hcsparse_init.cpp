@@ -565,6 +565,73 @@ hcsparseSnnz(hcsparseHandle_t handle,
   return HCSPARSE_STATUS_SUCCESS;  
 }
 
+hcsparseStatus_t 
+hcsparseDnnz(hcsparseHandle_t handle,
+             hcsparseDirection_t dirA,
+             int m, 
+             int n,
+             const hcsparseMatDescr_t descrA, 
+             const double *A, 
+             int lda,
+             int *nnzPerRowColumn,
+             int *nnzTotalDevHostPtr)
+{
+  if (handle == nullptr)
+    return HCSPARSE_STATUS_NOT_INITIALIZED;
+
+  if (!A || !nnzPerRowColumn)
+    return HCSPARSE_STATUS_ALLOC_FAILED;
+
+  if (descrA.MatrixType != HCSPARSE_MATRIX_TYPE_GENERAL)
+    return HCSPARSE_STATUS_INVALID_VALUE;
+
+  // temp code 
+  // TODO : Remove this in the future
+  hcsparseControl control(handle->currentAcclView);
+  hcsparseStatus stat = hcsparseSuccess;
+
+  int *nnz_locations1 = am_alloc(sizeof(int)* m * n, handle->currentAccl, 0);
+
+  // TODO: Remove this in future and use direct function argument
+  int nnz;
+
+  // Stage 1:  nnz_locations is filled with 1/0 based on nonzero values
+  stat = calculate_num_nonzeros<double>((ulong)m*n, A, nnz_locations1, nnz, &control); 
+  control.accl_view.copy(&nnz, nnzTotalDevHostPtr, sizeof(int)*1);
+
+//#define DEBUG
+#ifdef DEBUG
+  int *nnz_loc_h = (int *)calloc(m*n, sizeof(int));
+  control.accl_view.copy(nnz_locations1, nnz_loc_h, sizeof(int)*m*n);
+
+  for (int i =0 ;i < m*n; i++) {
+    std::cout << "nnz[" << i << "] = " << nnz_loc_h[i]<< std::endl; 
+  }
+#endif
+
+  // stage 2: reduce to column/Row level to identify nnzPerRowColumn
+  int *partial = (int*) am_alloc(sizeof(int) * m,
+                                  handle->currentAccl, 0);
+  
+  reduce_row_column<int, RO_PLUS>(nnz_locations1, partial, m, n, &control);
+
+#ifdef DEBUG
+  int *partial_h = (int*)calloc(m,sizeof(int));
+  control.accl_view.copy(partial, partial_h, sizeof(int)*m);
+
+  for (int i =0 ;i < m; i++) {
+    std::cout << "nnzPerRow[" << i << "] = " << partial_h[i]<< std::endl; 
+  }
+#endif
+
+  control.accl_view.copy(partial, nnzPerRowColumn, sizeof(int)*m);
+
+  if (stat != hcsparseSuccess)
+   return HCSPARSE_STATUS_EXECUTION_FAILED;
+
+  return HCSPARSE_STATUS_SUCCESS;  
+}
+
 // 12. hcsparseSdot()
 
 // This function returns the dot product of a vector x in sparse format
