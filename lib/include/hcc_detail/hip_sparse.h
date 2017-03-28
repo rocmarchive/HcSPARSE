@@ -167,11 +167,24 @@ hipsparseStatus_t hipsparseScsc2dense(hipsparseHandle_t handle, int m, int n,
                               const int *cscRowIndA, const int *cscColPtrA,
                               float           *A, int lda);
 
+hipsparseStatus_t hipsparseDcsc2dense(hipsparseHandle_t handle, int m, int n, 
+                              const hipsparseMatDescr_t descrA, 
+                              const double *cscValA, 
+                              const int *cscRowIndA, const int *cscColPtrA,
+                              double *A, int lda);
+
 hipsparseStatus_t hipsparseSdense2csc(hipsparseHandle_t handle, int m, int n, 
                               const hipsparseMatDescr_t descrA, 
                               const float           *A, 
                               int lda, const int *nnzPerCol, 
                               float           *cscValA, 
+                              int *cscRowIndA, int *cscColPtrA);
+
+hipsparseStatus_t hipsparseDdense2csc(hipsparseHandle_t handle, int m, int n, 
+                              const hipsparseMatDescr_t descrA, 
+                              const double           *A, 
+                              int lda, const int *nnzPerCol, 
+                              double           *cscValA, 
                               int *cscRowIndA, int *cscColPtrA);
 
 hipsparseStatus_t hipsparseScsrmv(hipsparseHandle_t handle, hipsparseOperation_t transA, 

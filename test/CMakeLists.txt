@@ -15,7 +15,7 @@ EXECUTE_PROCESS(COMMAND ${HIP_PATH}/bin/hipconfig -P OUTPUT_VARIABLE PLATFORM)
 SET(BENCH_MARK $ENV{BENCH_MARK})
 
 IF(${HIP_SUPPORT} MATCHES "on")
-  add_subdirectory(unit-hip)
+  add_subdirectory(unit-hip/src)
 ENDIF()
 
 IF(${PLATFORM} MATCHES "hcc")
