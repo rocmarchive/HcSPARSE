@@ -326,6 +326,15 @@ hipsparseStatus_t hipsparseSnnz(hipsparseHandle_t handle, hipsparseDirection_t d
                                       nnzPerRowColumn, nnzTotalDevHostPtr));
 }
 
+hipsparseStatus_t hipsparseDnnz(hipsparseHandle_t handle, hipsparseDirection_t dirA, int m, 
+                              int n, const hipsparseMatDescr_t descrA, 
+                              const double *A, int lda, 
+                              int *nnzPerRowColumn, int *nnzTotalDevHostPtr){
+
+  return hipHCSPARSEStatusToHIPStatus(hcsparseDnnz(handle, dirA, m, n, descrA, A, lda,
+                                      nnzPerRowColumn, nnzTotalDevHostPtr));
+}
+
 hipsparseStatus_t hipsparseSdoti(hipsparseHandle_t handle, int nnz, 
                               const float           *xVal, 
                               const int *xInd, const float           *y, 
@@ -347,6 +356,17 @@ hipsparseStatus_t hipsparseScsc2dense(hipsparseHandle_t handle, int m, int n,
                                                          cscColPtrA, A, lda));
 }
 
+hipsparseStatus_t hipsparseDcsc2dense(hipsparseHandle_t handle, int m, int n, 
+                              const hipsparseMatDescr_t descrA, 
+                              const double *cscValA, 
+                              const int *cscRowIndA, const int *cscColPtrA,
+                              double    *A, int lda){
+
+  return hipHCSPARSEStatusToHIPStatus(hcsparseDcsc2dense(handle, m, n, descrA, 
+                                                         cscValA, cscRowIndA, 
+                                                         cscColPtrA, A, lda));
+}
+
 
 hipsparseStatus_t hipsparseSdense2csc(hipsparseHandle_t handle, int m, int n, 
                               const hipsparseMatDescr_t descrA, 
@@ -356,6 +376,18 @@ hipsparseStatus_t hipsparseSdense2csc(hipsparseHandle_t handle, int m, int n,
                               int *cscRowIndA, int *cscColPtrA){
 
   return hipHCSPARSEStatusToHIPStatus(hcsparseSdense2csc(handle, m, n, descrA, A, 
+                                                         lda, nnzPerCol, cscValA, 
+                                                         cscRowIndA, cscColPtrA));
+}
+
+hipsparseStatus_t hipsparseDdense2csc(hipsparseHandle_t handle, int m, int n, 
+                              const hipsparseMatDescr_t descrA, 
+                              const double *A, 
+                              int lda, const int *nnzPerCol, 
+                              double *cscValA, 
+                              int *cscRowIndA, int *cscColPtrA){
+
+  return hipHCSPARSEStatusToHIPStatus(hcsparseDdense2csc(handle, m, n, descrA, A, 
                                                          lda, nnzPerCol, cscValA, 
                                                          cscRowIndA, cscColPtrA));
 }
