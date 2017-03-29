@@ -155,6 +155,11 @@ hipsparseStatus_t hipsparseSnnz(hipsparseHandle_t handle, hipsparseDirection_t d
                               const float           *A, int lda, 
                               int *nnzPerRowColumn, int *nnzTotalDevHostPtr);
 
+hipsparseStatus_t hipsparseDnnz(hipsparseHandle_t handle, hipsparseDirection_t dirA, int m, 
+                              int n, const hipsparseMatDescr_t descrA, 
+                              const double           *A, int lda, 
+                              int *nnzPerRowColumn, int *nnzTotalDevHostPtr);
+
 hipsparseStatus_t hipsparseSdoti(hipsparseHandle_t handle, int nnz, 
                               const float           *xVal, 
                               const int *xInd, const float           *y, 
