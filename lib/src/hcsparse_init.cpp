@@ -680,6 +680,40 @@ hcsparseSdoti(hcsparseHandle_t handle, int nnz,
   return HCSPARSE_STATUS_SUCCESS;
 }
 
+hcsparseStatus_t 
+hcsparseDdoti(hcsparseHandle_t handle, int nnz, 
+              const double *xVal, 
+              const int *xInd, const double *y, 
+              double *resultDevHostPtr, 
+              hcsparseIndexBase_t idxBase)
+{
+  if (handle == nullptr)
+    return HCSPARSE_STATUS_NOT_INITIALIZED;
+
+  if (!xVal || !xInd || !y || !resultDevHostPtr)
+    return HCSPARSE_STATUS_ALLOC_FAILED;
+
+  if (idxBase != HCSPARSE_INDEX_BASE_ZERO)
+    return HCSPARSE_STATUS_INVALID_VALUE;
+
+  // temp code 
+  // TODO : Remove this in the future
+  hcsparseControl control(handle->currentAcclView);
+  hcsparseStatus stat = hcsparseSuccess;
+
+  int REDUCE_BLOCKS_NUMBER = nnz/BLOCK_SIZE + 1; 
+  double* partial = am_alloc(sizeof(double) * REDUCE_BLOCKS_NUMBER, 
+                            handle->currentAccl, 0);
+  double* result = am_alloc(sizeof(double) * 1, handle->currentAccl, 0);
+  
+  inner_product<double> (nnz, result, 0, (double *)xVal, 0, 
+                        (double *)y, 0, partial, REDUCE_BLOCKS_NUMBER, &control);
+
+  handle->currentAcclView.copy(result, resultDevHostPtr, sizeof(double)*1);
+
+  return HCSPARSE_STATUS_SUCCESS;
+}
+
 // 13. hcsparsecsc2dense()
 
 // This function converts the sparse matrix in CSC format that is defined
@@ -726,6 +760,39 @@ hcsparseScsc2dense(hcsparseHandle_t handle, int m, int n,
   return HCSPARSE_STATUS_SUCCESS;
 
 }
+
+hcsparseStatus_t 
+hcsparseDcsc2dense(hcsparseHandle_t handle, int m, int n, 
+                   const hcsparseMatDescr_t descrA, 
+                   const double *cscValA, 
+                   const int *cscRowIndA, const int *cscColPtrA,
+                   double *A, int lda)
+{
+  if (handle == nullptr) 
+    return HCSPARSE_STATUS_NOT_INITIALIZED;
+
+  if (!cscValA || !cscRowIndA || !cscColPtrA || !A)
+    return HCSPARSE_STATUS_ALLOC_FAILED;
+
+  if (descrA.MatrixType != HCSPARSE_MATRIX_TYPE_GENERAL)
+    return HCSPARSE_STATUS_INVALID_VALUE;
+
+  // temp code 
+  // TODO : Remove this in the future
+  hcsparseControl control(handle->currentAcclView);
+  hcsparseStatus stat = hcsparseSuccess;
+
+  fill_zero<double>((ulong)m*n, A, &control);
+
+  stat = transform_csc_2_dense<double> ((ulong)m*n, cscRowIndA, cscColPtrA, cscValA,\
+                                       m, n, A, &control);
+  if (stat != hcsparseSuccess)
+    return HCSPARSE_STATUS_EXECUTION_FAILED;
+
+  return HCSPARSE_STATUS_SUCCESS;
+
+}
+
 
 // 14. hcsparseXdense2csc
 
@@ -774,6 +841,37 @@ hcsparseSdense2csc(hcsparseHandle_t handle, int m, int n,
 
 }
 
+hcsparseStatus_t 
+hcsparseDdense2csc(hcsparseHandle_t handle, int m, int n, 
+                const hcsparseMatDescr_t descrA, 
+                const double    *A, 
+                int lda, const int *nnzPerCol, 
+                double  *cscValA, 
+                int *cscRowIndA, int *cscColPtrA)
+{
+  // TODO: nnzPerCol is unused. Make use of it in future
+  if (handle == nullptr) 
+    return HCSPARSE_STATUS_NOT_INITIALIZED;
+
+  if (!A || !cscValA || !cscRowIndA || !cscColPtrA)
+    return HCSPARSE_STATUS_ALLOC_FAILED;
+
+  if (descrA.MatrixType != HCSPARSE_MATRIX_TYPE_GENERAL)
+    return HCSPARSE_STATUS_INVALID_VALUE;
+
+  // temp code 
+  // TODO : Remove this in the future
+  hcsparseControl control(handle->currentAcclView);
+  hcsparseStatus stat = hcsparseSuccess;
+
+  stat = dense2csc<double> (&control, m, n, A, cscValA, cscColPtrA, cscRowIndA); 
+
+  if (stat != hcsparseSuccess)
+    return HCSPARSE_STATUS_EXECUTION_FAILED;
+
+  return HCSPARSE_STATUS_SUCCESS;
+
+}
 
 hcsparseStatus
 hcsparseSetup(void)

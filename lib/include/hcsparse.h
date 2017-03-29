@@ -353,6 +353,17 @@ hcsparseSnnz(hcsparseHandle_t handle,
              int *nnzPerRowColumn,
              int *nnzTotalDevHostPtr);
 
+hcsparseStatus_t 
+hcsparseDnnz(hcsparseHandle_t handle,
+             hcsparseDirection_t dirA,
+             int m, 
+             int n,
+             const hcsparseMatDescr_t descrA, 
+             const double *A, 
+             int lda,
+             int *nnzPerRowColumn,
+             int *nnzTotalDevHostPtr);
+
 // 12. hcsparseSdot()
 
 // This function returns the dot product of a vector x in sparse format
@@ -397,6 +408,13 @@ hcsparseScsc2dense(hcsparseHandle_t handle, int m, int n,
                    const int *cscRowIndA, const int *cscColPtrA,
                    float *A, int lda);
 
+hcsparseStatus_t 
+hcsparseDcsc2dense(hcsparseHandle_t handle, int m, int n, 
+                   const hcsparseMatDescr_t descrA, 
+                   const double *cscValA, 
+                   const int *cscRowIndA, const int *cscColPtrA,
+                   double *A, int lda);
+
 // 14. hcsparseXdense2csc
 
 // This function converts the sparse matrix in CSC format 
@@ -419,6 +437,15 @@ hcsparseSdense2csc(hcsparseHandle_t handle, int m, int n,
                    int lda, const int *nnzPerCol, 
                    float           *cscValA, 
                    int *cscRowIndA, int *cscColPtrA);
+
+hcsparseStatus_t 
+hcsparseDdense2csc(hcsparseHandle_t handle, int m, int n, 
+                   const hcsparseMatDescr_t descrA, 
+                   const double *A, 
+                   int lda, const int *nnzPerCol, 
+                   double    *cscValA, 
+                   int *cscRowIndA, int *cscColPtrA);
+
 
     /*!
     * \brief Initialize the hcsparse library
