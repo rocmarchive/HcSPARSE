@@ -2,8 +2,9 @@
 #include "hipsparse.h"
 #include <iostream>
 #include "hc_am.hpp"
+#include "gtest/gtest.h"
 
-int main(int argc, char *argv[])
+TEST(csc_dense_conv_double_test, func_check)
 {
 #if 0
     std::vector<accelerator>acc = accelerator::get_all();
@@ -15,7 +16,7 @@ int main(int argc, char *argv[])
     if (argc != 2)
     {
         std::cout<<"Required mtx input file"<<std::endl;
-        return 0;
+        exit(1);
     }
 
     const char* filename = argv[1];
@@ -26,7 +27,7 @@ int main(int argc, char *argv[])
     if (status != hcsparseSuccess)
     {
         std::cout<<"The input file should be in mtx format"<<std::endl;
-        return 0;
+        exit(1);
     }
 
     hcsparseSCsrMatrixfromFile(&gCsrMat, filename, &control, false);
@@ -74,19 +75,17 @@ int main(int argc, char *argv[])
 
     status1 = hipsparseCreate(&handle);
     if (status1 != HIPSPARSE_STATUS_SUCCESS) {
-      std::cout << "Error Initializing the sparse library."<<std::endl;
-      return -1;
+      std::cout << "Error Initializing the sparse library."<< status1 <<std::endl;
+      exit(1);
     }
-    std::cout << "Successfully initialized sparse library"<<std::endl;
 
     hipsparseMatDescr_t descrA;
 
     status1 = hipsparseCreateMatDescr(&descrA);
     if (status1 != HIPSPARSE_STATUS_SUCCESS) {
       std::cout << "error creating mat descrptr"<<std::endl;
-      return -1;
+      exit(1);
     }
-    std::cout << "successfully created mat descriptor"<<std::endl;
 
     double* cscValA = (double*) am_alloc(num_nonzero * sizeof(double), handle->currentAccl, 0);
     int* cscColPtrA = (int*) am_alloc((num_col+1) * sizeof(int), handle->currentAccl, 0);
@@ -109,9 +108,8 @@ int main(int argc, char *argv[])
                                  descrA, cscValA, cscColPtrA, cscRowIndA, A, num_col);
     if (status1 != HIPSPARSE_STATUS_SUCCESS) {
       std::cout << "Error csc2dense conversion "<<std::endl;
-      return -1;
+      exit(1);
     }
-    std::cout << "csc2dense conv. - success"<<std::endl;
 
     handle->currentAcclView.copy(cscValA, csc_val, num_nonzero * sizeof(double));
     handle->currentAcclView.copy(cscColPtrA, csc_colPtr, (num_col+1) * sizeof(int));
@@ -135,9 +133,8 @@ int main(int argc, char *argv[])
                                  descrA, A, num_row, &nnzperrow, cscValA, cscColPtrA, cscRowIndA);
     if (status1 != HIPSPARSE_STATUS_SUCCESS) {
       std::cout << "Error dense2csc conversion "<<std::endl;
-      return -1;
+      exit(1);
     }
-    std::cout << "dense2csc conv. - success"<<std::endl;
 
     handle->currentAcclView.copy(cscValA, csc_res_val, num_nonzero * sizeof(double));
     handle->currentAcclView.copy(cscColPtrA, csc_res_colPtr, (num_col+1) * sizeof(int));
@@ -149,36 +146,20 @@ int main(int argc, char *argv[])
     for (int i = 0; i < num_nonzero; i++)
     {
         double diff = std::abs(csc_val[i] - csc_res_val[i]);
-        if (diff > 0.01)
-        {
-            std::cout << i << " " << csc_val[i] << " " << csc_res_val[i] << std::endl;
-            ispassed = 0;
-            break;
-        }
+        EXPECT_LT(diff, 0.01);
     }
 
-    std::cout <<"rowind check" << std::endl;
     for (int i = 0; i < num_nonzero; i++)
     {
-        if (csc_rowInd[i] != csc_res_rowInd[i])
-        {
-            std::cout << i << " " << csc_rowInd[i] << " " << csc_res_rowInd[i] << std::endl;
-            ispassed = 0;
-            break;
-        }
+        double diff = std::abs(csc_rowInd[i] - csc_res_rowInd[i]);
+        EXPECT_LT(diff, 0.01);
     }
 
-    std::cout <<"col check" << std::endl;
     for (int i = 0; i < num_col+1; i++)
     {
-        if (csc_colPtr[i] != csc_res_colPtr[i])
-        {
-            std::cout << i << " " << csc_colPtr[i] << " " << csc_res_colPtr[i] << std::endl;
-            ispassed = 0;
-            break;
-        }
+        double diff = std::abs(csc_colPtr[i] - csc_res_colPtr[i]);
+        EXPECT_LT(diff, 0.01);
     }
-    std::cout << (ispassed?"TEST PASSED":"TEST FAILED") << std::endl;
 
     free(csc_val);
     free(csc_colPtr);
@@ -189,6 +170,4 @@ int main(int argc, char *argv[])
     am_free(cscValA);
     am_free(cscColPtrA);
     am_free(cscRowIndA);
-
-    return 0;
 }

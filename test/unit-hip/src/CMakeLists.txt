@@ -28,10 +28,10 @@ IF(${PLATFORM} MATCHES "hcc")
   
   SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY "bin/")
   ADD_EXECUTABLE(unit-hip-test ${SRCS})
-  SET(LINK "-lhc_am -lsparse -lhip_hcc")
+  SET(LINK "-lhc_am -lhcsparse -lhip_hcc")
   SET_PROPERTY(TARGET unit-hip-test APPEND_STRING PROPERTY LINK_FLAGS " ${HCC_LDFLAGS} ${LINK}")
 
-  TARGET_LINK_LIBRARIES(unit-hip-test hipblas_hcc)
+  TARGET_LINK_LIBRARIES(unit-hip-test hipsparse_hcc)
 
   add_test(NAME unit-hip-test COMMAND ./bin/unit-hip-test)
 

@@ -1,7 +1,10 @@
-#include <hcsparse.h>
+#include "hip/hip_runtime.h"
+#include "hipsparse.h"
 #include <iostream>
 #include "hc_am.hpp"
-int main()
+#include "gtest/gtest.h"
+
+TEST(nnz_float_test, func_check)
 {
     hcsparseScalar gR;
     hcdenseVector gX;
@@ -12,30 +15,26 @@ int main()
     hcsparseControl control(accl_view);
 
      /* Test New APIs */
-    hcsparseHandle_t handle;
-    hcsparseStatus_t status1;
-    hcsparseMatDescr_t descrA;
-    hc::accelerator accl;
-    hc::accelerator_view av = accl.get_default_view();
+    hipsparseHandle_t handle;
+    hipsparseStatus_t status1;
+    hipsparseMatDescr_t descrA;
 
-    status1 = hcsparseCreate(&handle, &av);
-    if (status1 != HCSPARSE_STATUS_SUCCESS) {
+    status1 = hipsparseCreate(&handle);
+    if (status1 != HIPSPARSE_STATUS_SUCCESS) {
       std::cout << "Error Initializing the sparse library."<<std::endl;
-      return -1;
+      exit(1);
     }
-    std::cout << "Successfully initialized sparse library"<<std::endl;
 
-    hcsparseDirection_t dir = HCSPARSE_DIRECTION_ROW;
+    hipsparseDirection_t dir = HCSPARSE_DIRECTION_ROW;
 
     int m = 64;
     int n = 259;
 
-    status1 = hcsparseCreateMatDescr(&descrA);
-    if (status1 != HCSPARSE_STATUS_SUCCESS) {
+    status1 = hipsparseCreateMatDescr(&descrA);
+    if (status1 != HIPSPARSE_STATUS_SUCCESS) {
       std::cout << "error creating mat descrptr"<<std::endl;
-      return -1;
+      exit(1);
     }
-    std::cout << "successfully created mat descriptor"<<std::endl;
 
     float *devA = am_alloc(sizeof(float)*m*n, acc[1], 0);
     int lda = m;
@@ -56,13 +55,12 @@ int main()
 
     control.accl_view.copy(hostA, devA, m*n*sizeof(float));
 
-    hcsparseStatus_t stat = hcsparseSnnz(handle, dir, m, n, descrA, devA, lda,
+    hipsparseStatus_t stat = hipsparseSnnz(handle, dir, m, n, descrA, devA, lda,
                                          nnzPerRowColumn, nnz);
 
     control.accl_view.copy(nnzPerRowColumn, nnzPerRowColumn_res, m*sizeof(int));
     control.accl_view.copy(&nnz, &nnz_res, 1*sizeof(int));
 
-    std::cout <<"Sparse nnz done!!" << std::endl;
 
     for (int i = 0; i < m; i++) {
       int rowCount = 0;
@@ -77,28 +75,18 @@ int main()
 
     bool ispassed = 1;
     for (int i = 0; i < m; i++) {
-      if (nnzPerRowColumn_res[i] != nnzPerRowColumn_h[i]) {
-         ispassed = 0;
-         std::cout << "nnPerRowColumn_h[" << i << "] = " << 
-                   nnzPerRowColumn_h[i] << " nnzPerRowColumn_res[" 
-                   << i << "] = " << nnzPerRowColumn_res[i] << std::endl;
-      }
+      float diff = std::abs(nnzPerRowColumn_h[i] - nnzPerRowColumn_res[i]);
+      EXPECT_LT(diff, 0.01);
     }
     
-    status1 = hcsparseDestroyMatDescr(&descrA);
-    if (status1 != HCSPARSE_STATUS_SUCCESS) {
-      std::cout << "error creating mat descrptr"<<std::endl;
-      return -1;
+    status1 = hipsparseDestroyMatDescr(descrA);
+    if (status1 != HIPSPARSE_STATUS_SUCCESS) {
+      exit(1);
     }
-    std::cout << "successfully created mat descriptor"<<std::endl;
 
-    status1 = hcsparseDestroy(&handle);
-    if (status1 != HCSPARSE_STATUS_SUCCESS) {
+    status1 = hipsparseDestroy(handle);
+    if (status1 != HIPSPARSE_STATUS_SUCCESS) {
       std::cout << "Error DeInitializing the sparse library."<<std::endl;
-      return -1;
+      exit(1);
     }
-    std::cout << "Successfully deinitialized sparse library"<<std::endl;
-   
-    /* End - Test of New APIs */
-   return 0; 
 }
