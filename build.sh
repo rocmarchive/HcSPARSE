@@ -136,7 +136,7 @@ if [ "$platform" = "hcc" ]; then
 # Invoke hip unit test script
        printf "* UNIT HIP TESTS *\n"
        printf "******************\n"
-       cd $current_work_dir/build/test/unit-hip/bin/
+       cd $current_work_dir/build/test/unit-hip/src/bin/
        ./unit-hip-test
      fi 
   fi

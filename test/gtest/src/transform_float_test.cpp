@@ -53,7 +53,7 @@ TEST(transform_float_test, func_check)
 
     bool ispassed = 1;
 
-    for (int j = 0; j < 4; j++)
+    for (int j = 0; j < 3; j++)
     {
         switch(j)
         {
@@ -86,7 +86,7 @@ TEST(transform_float_test, func_check)
 
                 for (int i = 0; i < num_elements; i++)
                 {
-                    host_res[i] = (host_Y[i] == 0) ? 0 : (host_X[i] / host_Y[i]);
+                    host_res[i] = (host_Y[i] == 0) ? 0 :(float)(host_X[i] / (float)host_Y[i]);
                 }
                 break;
         }
