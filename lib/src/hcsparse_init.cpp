@@ -11,6 +11,7 @@
 #include "blas1/hcdense-nrm1.h"
 #include "blas1/hcdense-nrm2.h"
 #include "blas1/hcdense-dot.h"
+#include "blas1/hcsparse-dot.h"
 #include "blas1/elementwise-transform.h"
 #include "io/mm_reader.h"
 #include "blas2/csr_meta.h"
@@ -672,8 +673,8 @@ hcsparseSdoti(hcsparseHandle_t handle, int nnz,
                             handle->currentAccl, 0);
   float* result = am_alloc(sizeof(float) * 1, handle->currentAccl, 0);
   
-  inner_product<float> (nnz, result, 0, (float *)xVal, 0, 
-                        (float *)y, 0, partial, REDUCE_BLOCKS_NUMBER, &control);
+  inner_product<float> (nnz, result, (float *)xVal, (int *)xInd, 
+			(float *)y, partial, REDUCE_BLOCKS_NUMBER, &control);
 
   handle->currentAcclView.copy(result, resultDevHostPtr, sizeof(float)*1);
 
@@ -706,8 +707,8 @@ hcsparseDdoti(hcsparseHandle_t handle, int nnz,
                             handle->currentAccl, 0);
   double* result = am_alloc(sizeof(double) * 1, handle->currentAccl, 0);
   
-  inner_product<double> (nnz, result, 0, (double *)xVal, 0, 
-                        (double *)y, 0, partial, REDUCE_BLOCKS_NUMBER, &control);
+  inner_product<double> (nnz, result, (double *)xVal, (int *)xInd, 
+			(double *)y, partial, REDUCE_BLOCKS_NUMBER, &control);
 
   handle->currentAcclView.copy(result, resultDevHostPtr, sizeof(double)*1);
 
