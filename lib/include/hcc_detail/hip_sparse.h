@@ -21,20 +21,20 @@ THE SOFTWARE.
 */
 #pragma once
 
-#include <hip_runtime_api.h>
+#include <hip/hip_runtime_api.h>
 #include <hcsparse.h>
 
 //HGSOS for Kalmar leave it as C++, only cuSPARSE needs C linkage.
 
-#ifdef   cplusplus
+#ifdef __cplusplus
 extern "C" {
 #endif
 
-typedef void *hipsparseHandle_t ;
-typedef void *hipsparseMatDescr_t ;
-typedef void *hipsparseIndexBase_t ;
-typedef void *hipsparseOperation_t;
-
+typedef hcsparseHandle_t hipsparseHandle_t ;
+typedef hcsparseMatDescr_t hipsparseMatDescr_t ;
+typedef hcsparseIndexBase_t hipsparseIndexBase_t ;
+typedef hcsparseOperation_t hipsparseOperation_t;
+typedef hcsparseDirection_t hipsparseDirection_t;
 
 hipsparseStatus_t hipHCSPARSEStatusToHIPStatus(hcsparseStatus_t hcStatus); 
 
@@ -155,6 +155,11 @@ hipsparseStatus_t hipsparseSnnz(hipsparseHandle_t handle, hipsparseDirection_t d
                               const float           *A, int lda, 
                               int *nnzPerRowColumn, int *nnzTotalDevHostPtr);
 
+hipsparseStatus_t hipsparseDnnz(hipsparseHandle_t handle, hipsparseDirection_t dirA, int m, 
+                              int n, const hipsparseMatDescr_t descrA, 
+                              const double           *A, int lda, 
+                              int *nnzPerRowColumn, int *nnzTotalDevHostPtr);
+
 hipsparseStatus_t hipsparseSdoti(hipsparseHandle_t handle, int nnz, 
                               const float           *xVal, 
                               const int *xInd, const float           *y, 
@@ -167,11 +172,24 @@ hipsparseStatus_t hipsparseScsc2dense(hipsparseHandle_t handle, int m, int n,
                               const int *cscRowIndA, const int *cscColPtrA,
                               float           *A, int lda);
 
+hipsparseStatus_t hipsparseDcsc2dense(hipsparseHandle_t handle, int m, int n, 
+                              const hipsparseMatDescr_t descrA, 
+                              const double *cscValA, 
+                              const int *cscRowIndA, const int *cscColPtrA,
+                              double *A, int lda);
+
 hipsparseStatus_t hipsparseSdense2csc(hipsparseHandle_t handle, int m, int n, 
                               const hipsparseMatDescr_t descrA, 
                               const float           *A, 
                               int lda, const int *nnzPerCol, 
                               float           *cscValA, 
+                              int *cscRowIndA, int *cscColPtrA);
+
+hipsparseStatus_t hipsparseDdense2csc(hipsparseHandle_t handle, int m, int n, 
+                              const hipsparseMatDescr_t descrA, 
+                              const double           *A, 
+                              int lda, const int *nnzPerCol, 
+                              double           *cscValA, 
                               int *cscRowIndA, int *cscColPtrA);
 
 hipsparseStatus_t hipsparseScsrmv(hipsparseHandle_t handle, hipsparseOperation_t transA, 

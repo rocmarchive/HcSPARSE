@@ -11,6 +11,7 @@
 #include "blas1/hcdense-nrm1.h"
 #include "blas1/hcdense-nrm2.h"
 #include "blas1/hcdense-dot.h"
+#include "blas1/hcsparse-dot.h"
 #include "blas1/elementwise-transform.h"
 #include "io/mm_reader.h"
 #include "blas2/csr_meta.h"
@@ -565,6 +566,73 @@ hcsparseSnnz(hcsparseHandle_t handle,
   return HCSPARSE_STATUS_SUCCESS;  
 }
 
+hcsparseStatus_t 
+hcsparseDnnz(hcsparseHandle_t handle,
+             hcsparseDirection_t dirA,
+             int m, 
+             int n,
+             const hcsparseMatDescr_t descrA, 
+             const double *A, 
+             int lda,
+             int *nnzPerRowColumn,
+             int *nnzTotalDevHostPtr)
+{
+  if (handle == nullptr)
+    return HCSPARSE_STATUS_NOT_INITIALIZED;
+
+  if (!A || !nnzPerRowColumn)
+    return HCSPARSE_STATUS_ALLOC_FAILED;
+
+  if (descrA.MatrixType != HCSPARSE_MATRIX_TYPE_GENERAL)
+    return HCSPARSE_STATUS_INVALID_VALUE;
+
+  // temp code 
+  // TODO : Remove this in the future
+  hcsparseControl control(handle->currentAcclView);
+  hcsparseStatus stat = hcsparseSuccess;
+
+  int *nnz_locations1 = am_alloc(sizeof(int)* m * n, handle->currentAccl, 0);
+
+  // TODO: Remove this in future and use direct function argument
+  int nnz;
+
+  // Stage 1:  nnz_locations is filled with 1/0 based on nonzero values
+  stat = calculate_num_nonzeros<double>((ulong)m*n, A, nnz_locations1, nnz, &control); 
+  control.accl_view.copy(&nnz, nnzTotalDevHostPtr, sizeof(int)*1);
+
+//#define DEBUG
+#ifdef DEBUG
+  int *nnz_loc_h = (int *)calloc(m*n, sizeof(int));
+  control.accl_view.copy(nnz_locations1, nnz_loc_h, sizeof(int)*m*n);
+
+  for (int i =0 ;i < m*n; i++) {
+    std::cout << "nnz[" << i << "] = " << nnz_loc_h[i]<< std::endl; 
+  }
+#endif
+
+  // stage 2: reduce to column/Row level to identify nnzPerRowColumn
+  int *partial = (int*) am_alloc(sizeof(int) * m,
+                                  handle->currentAccl, 0);
+  
+  reduce_row_column<int, RO_PLUS>(nnz_locations1, partial, m, n, &control);
+
+#ifdef DEBUG
+  int *partial_h = (int*)calloc(m,sizeof(int));
+  control.accl_view.copy(partial, partial_h, sizeof(int)*m);
+
+  for (int i =0 ;i < m; i++) {
+    std::cout << "nnzPerRow[" << i << "] = " << partial_h[i]<< std::endl; 
+  }
+#endif
+
+  control.accl_view.copy(partial, nnzPerRowColumn, sizeof(int)*m);
+
+  if (stat != hcsparseSuccess)
+   return HCSPARSE_STATUS_EXECUTION_FAILED;
+
+  return HCSPARSE_STATUS_SUCCESS;  
+}
+
 // 12. hcsparseSdot()
 
 // This function returns the dot product of a vector x in sparse format
@@ -605,10 +673,44 @@ hcsparseSdoti(hcsparseHandle_t handle, int nnz,
                             handle->currentAccl, 0);
   float* result = am_alloc(sizeof(float) * 1, handle->currentAccl, 0);
   
-  inner_product<float> (nnz, result, 0, (float *)xVal, 0, 
-                        (float *)y, 0, partial, REDUCE_BLOCKS_NUMBER, &control);
+  inner_product<float> (nnz, result, (float *)xVal, (int *)xInd, 
+			(float *)y, partial, REDUCE_BLOCKS_NUMBER, &control);
 
   handle->currentAcclView.copy(result, resultDevHostPtr, sizeof(float)*1);
+
+  return HCSPARSE_STATUS_SUCCESS;
+}
+
+hcsparseStatus_t 
+hcsparseDdoti(hcsparseHandle_t handle, int nnz, 
+              const double *xVal, 
+              const int *xInd, const double *y, 
+              double *resultDevHostPtr, 
+              hcsparseIndexBase_t idxBase)
+{
+  if (handle == nullptr)
+    return HCSPARSE_STATUS_NOT_INITIALIZED;
+
+  if (!xVal || !xInd || !y || !resultDevHostPtr)
+    return HCSPARSE_STATUS_ALLOC_FAILED;
+
+  if (idxBase != HCSPARSE_INDEX_BASE_ZERO)
+    return HCSPARSE_STATUS_INVALID_VALUE;
+
+  // temp code 
+  // TODO : Remove this in the future
+  hcsparseControl control(handle->currentAcclView);
+  hcsparseStatus stat = hcsparseSuccess;
+
+  int REDUCE_BLOCKS_NUMBER = nnz/BLOCK_SIZE + 1; 
+  double* partial = am_alloc(sizeof(double) * REDUCE_BLOCKS_NUMBER, 
+                            handle->currentAccl, 0);
+  double* result = am_alloc(sizeof(double) * 1, handle->currentAccl, 0);
+  
+  inner_product<double> (nnz, result, (double *)xVal, (int *)xInd, 
+			(double *)y, partial, REDUCE_BLOCKS_NUMBER, &control);
+
+  handle->currentAcclView.copy(result, resultDevHostPtr, sizeof(double)*1);
 
   return HCSPARSE_STATUS_SUCCESS;
 }
@@ -660,6 +762,39 @@ hcsparseScsc2dense(hcsparseHandle_t handle, int m, int n,
 
 }
 
+hcsparseStatus_t 
+hcsparseDcsc2dense(hcsparseHandle_t handle, int m, int n, 
+                   const hcsparseMatDescr_t descrA, 
+                   const double *cscValA, 
+                   const int *cscRowIndA, const int *cscColPtrA,
+                   double *A, int lda)
+{
+  if (handle == nullptr) 
+    return HCSPARSE_STATUS_NOT_INITIALIZED;
+
+  if (!cscValA || !cscRowIndA || !cscColPtrA || !A)
+    return HCSPARSE_STATUS_ALLOC_FAILED;
+
+  if (descrA.MatrixType != HCSPARSE_MATRIX_TYPE_GENERAL)
+    return HCSPARSE_STATUS_INVALID_VALUE;
+
+  // temp code 
+  // TODO : Remove this in the future
+  hcsparseControl control(handle->currentAcclView);
+  hcsparseStatus stat = hcsparseSuccess;
+
+  fill_zero<double>((ulong)m*n, A, &control);
+
+  stat = transform_csc_2_dense<double> ((ulong)m*n, cscRowIndA, cscColPtrA, cscValA,\
+                                       m, n, A, &control);
+  if (stat != hcsparseSuccess)
+    return HCSPARSE_STATUS_EXECUTION_FAILED;
+
+  return HCSPARSE_STATUS_SUCCESS;
+
+}
+
+
 // 14. hcsparseXdense2csc
 
 // This function converts the sparse matrix in CSC format 
@@ -707,6 +842,37 @@ hcsparseSdense2csc(hcsparseHandle_t handle, int m, int n,
 
 }
 
+hcsparseStatus_t 
+hcsparseDdense2csc(hcsparseHandle_t handle, int m, int n, 
+                const hcsparseMatDescr_t descrA, 
+                const double    *A, 
+                int lda, const int *nnzPerCol, 
+                double  *cscValA, 
+                int *cscRowIndA, int *cscColPtrA)
+{
+  // TODO: nnzPerCol is unused. Make use of it in future
+  if (handle == nullptr) 
+    return HCSPARSE_STATUS_NOT_INITIALIZED;
+
+  if (!A || !cscValA || !cscRowIndA || !cscColPtrA)
+    return HCSPARSE_STATUS_ALLOC_FAILED;
+
+  if (descrA.MatrixType != HCSPARSE_MATRIX_TYPE_GENERAL)
+    return HCSPARSE_STATUS_INVALID_VALUE;
+
+  // temp code 
+  // TODO : Remove this in the future
+  hcsparseControl control(handle->currentAcclView);
+  hcsparseStatus stat = hcsparseSuccess;
+
+  stat = dense2csc<double> (&control, m, n, A, cscValA, cscColPtrA, cscRowIndA); 
+
+  if (stat != hcsparseSuccess)
+    return HCSPARSE_STATUS_EXECUTION_FAILED;
+
+  return HCSPARSE_STATUS_SUCCESS;
+
+}
 
 hcsparseStatus
 hcsparseSetup(void)
