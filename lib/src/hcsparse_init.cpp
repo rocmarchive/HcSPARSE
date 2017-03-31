@@ -192,10 +192,15 @@ hcsparseScsrmm(hcsparseHandle_t handle,
   hcsparseControl control(handle->currentAcclView);
   hcsparseStatus stat = hcsparseSuccess;
 
+  // Convert sparse to dense to find the nnz and nnzPerRow
+  float *A = am_alloc(sizeof(float)*m*k, handle->currentAccl, 0);
+  hcsparseStatus_t status = hcsparseScsr2dense(handle, m, k, descrA, csrValA, csrRowPtrA,
+                                               csrColIndA, A, m); 
+
   int nnz1;
   int *nnz_locations = am_alloc(sizeof(int)*m*k, handle->currentAccl, 0);
 
-  calculate_num_nonzeros<float>((ulong)m*k, csrValA, nnz_locations, nnz1, &control);
+  calculate_num_nonzeros<float>((ulong)m*k, A, nnz_locations, nnz1, &control);
 
   int nnzPerRow = nnz1/m;
   stat = csrmm<float>(&control, nnzPerRow, m, n, k, alpha, csrValA, csrRowPtrA,
@@ -232,15 +237,19 @@ hcsparseDcsrmm(hcsparseHandle_t handle,
   hcsparseControl control(handle->currentAcclView);
   hcsparseStatus stat = hcsparseSuccess;
 
-  int nnz1;
+  // Convert sparse to dense to find the nnz and nnzPerRow
+  double *A = am_alloc(sizeof(double)*m*k, handle->currentAccl, 0);
+  hcsparseStatus_t status = hcsparseDcsr2dense(handle, m, k, descrA, csrValA, csrRowPtrA,
+                                               csrColIndA, A, m); 
+
+  int nnz1 = 0;
   int *nnz_locations = am_alloc(sizeof(int)*m*k, handle->currentAccl, 0);
 
-  calculate_num_nonzeros<double>((ulong)m*k, csrValA, nnz_locations, nnz1, &control);
+  calculate_num_nonzeros<double>((ulong)m*k, A, nnz_locations, nnz1, &control);
 
   int nnzPerRow = nnz1/m;
   stat = csrmm<double>(&control, nnzPerRow, m, n, k, alpha, csrValA, csrRowPtrA,
                       csrColIndA, B, ldb, beta, C, ldc);
-
   if (stat != hcsparseSuccess)
     return HCSPARSE_STATUS_EXECUTION_FAILED;
 
