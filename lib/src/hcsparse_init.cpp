@@ -718,14 +718,6 @@ hcsparseInitCsrMatrix (hcsparseCsrMatrix* csrMatx)
 };
 
 hcsparseStatus
-hcsparseInitCscMatrix (hcsparseCscMatrix* cscMatx)
-{
-    cscMatx->clear( );
-
-    return hcsparseSuccess;
-};
-
-hcsparseStatus
 hcdenseInitMatrix (hcdenseMatrix* denseMatx)
 {
     denseMatx->clear();
