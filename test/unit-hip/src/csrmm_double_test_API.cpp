@@ -12,7 +12,7 @@ TEST(csrmm_double_test, func_check)
 
     hcsparseControl control(accl_view);
 
-    const char* filename = "./../../../test/gtest/src/input.mtx";
+    const char* filename = "./../../../../../test/gtest/src/input.mtx";
 
     int num_nonzero, num_row_A, num_col_A;
 

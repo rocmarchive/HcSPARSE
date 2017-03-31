@@ -19,7 +19,7 @@ TEST(csr_dense_conv_float_test, func_check)
     gCsrMat.offColInd = 0;
     gCsrMat.offRowOff = 0;
 
-    const char* filename = "./../../../test/gtest/src/input.mtx";
+    const char* filename = "./../../../../../test/gtest/src/input.mtx";
     int num_nonzero, num_row, num_col;
     hcsparseStatus status;
 
