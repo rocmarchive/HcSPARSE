@@ -9,10 +9,20 @@ hipsparseStatus_t hipHCSPARSEStatusToHIPStatus(hcsparseStatus_t hcStatus)
 {
    switch(hcStatus)
    {
-      case hcsparseSuccess:
+      case HCSPARSE_STATUS_SUCCESS:
          return HIPSPARSE_STATUS_SUCCESS;
-      case hcsparseInvalid:
+      case HCSPARSE_STATUS_NOT_INITIALIZED:
+         return HIPSPARSE_STATUS_NOT_INITIALIZED;
+      case HCSPARSE_STATUS_ALLOC_FAILED:
+         return HIPSPARSE_STATUS_ALLOC_FAILED;
+      case HCSPARSE_STATUS_INVALID_VALUE:
+         return HIPSPARSE_STATUS_INVALID_VALUE;
+      case HCSPARSE_STATUS_MAPPING_ERROR:
+         return HIPSPARSE_STATUS_MAPPING_ERROR;
+      case HCSPARSE_STATUS_EXECUTION_FAILED:
          return HIPSPARSE_STATUS_EXECUTION_FAILED;
+      case HCSPARSE_STATUS_INTERNAL_ERROR:
+         return HIPSPARSE_STATUS_INTERNAL_ERROR;
       default:
          throw "Unimplemented status";
    }
