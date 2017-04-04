@@ -117,13 +117,74 @@ int main(int argc, char *argv[])
     gMatC.rowOffsets = am_alloc(sizeof(int) * (num_row+1), acc[1], 0);
     gMatC.colIndices = am_alloc(sizeof(int) * num_nonzero, acc[1], 0);
 
+#if 0
+    /* Test New APIs */
+    hcsparseHandle_t handle;
+    hcsparseStatus_t status1;
+    hc::accelerator accl;
+    hc::accelerator_view av = accl.get_default_view();
+
+    status1 = hcsparseCreate(&handle, &av);
+    if (status1 != HCSPARSE_STATUS_SUCCESS) {
+      std::cout << "Error Initializing the sparse library."<<std::endl;
+      return -1;
+    }
+    std::cout << "Successfully initialized sparse library"<<std::endl;
+
+    hcsparseMatDescr_t descrA;
+
+    status1 = hcsparseCreateMatDescr(&descrA);
+    if (status1 != HCSPARSE_STATUS_SUCCESS) {
+      std::cout << "error creating mat descrptr"<<std::endl;
+      return -1;
+    }
+    std::cout << "successfully created mat descriptor"<<std::endl;
+
+    hcsparseMatDescr_t descrB;
+
+    status1 = hcsparseCreateMatDescr(&descrB);
+    if (status1 != HCSPARSE_STATUS_SUCCESS) {
+      std::cout << "error creating mat descrptr"<<std::endl;
+      return -1;
+    }
+    std::cout << "successfully created mat descriptor"<<std::endl;
+
+    hcsparseMatDescr_t descrC;
+
+    status1 = hcsparseCreateMatDescr(&descrC);
+    if (status1 != HCSPARSE_STATUS_SUCCESS) {
+      std::cout << "error creating mat descrptr"<<std::endl;
+      return -1;
+    }
+    std::cout << "successfully created mat descriptor"<<std::endl;
+
+    hcsparseOperation_t transA = HCSPARSE_OPERATION_NON_TRANSPOSE;
+    hcsparseOperation_t transB = HCSPARSE_OPERATION_NON_TRANSPOSE;
+    
+    status1 = hcsparseScsrgemm(handle, transA, transB, num_row, num_col, num_row, descrA,
+                            0, (const float *)gMatA.values, (const int *)gMatA.rowOffsets,
+                            (const int *)gMatA.colIndices, descrB, 0, (const float *)gMatB.values,
+                            (const int *)gMatB.rowOffsets, (const int *)gMatB.colIndices,
+                            descrC, (float *)gMatC.values, (const int *)gMatC.rowOffsets,
+                            (int *)gMatC.colIndices);
+
+#endif
+
     hcsparseScsrSpGemm(&gMatA, &gMatB, &gMatC, &control);
 
-/*    hcsparseScsr2dense(&gMatA, &gDenseMatA, &control);
+#if 0
+    hcsparseScsr2dense(&gMatA, &gDenseMatA, &control);
     hcsparseScsr2dense(&gMatB, &gDenseMatB, &control); 
     hcsparseScsr2dense(&gMatC, &gDenseMatC, &control); 
  
     float *dense_val_res = (float*) calloc(num_row*num_col, sizeof(float));
+    float *denseA = (float*) calloc(num_row*num_col, sizeof(float));
+    float *denseB = (float*) calloc(num_row*num_col, sizeof(float));
+    float *denseC = (float*) calloc(num_row*num_col, sizeof(float));
+    control.accl_view.copy(gDenseMatA.values, denseA, sizeof(float) * num_row * num_col);
+    control.accl_view.copy(gDenseMatB.values, denseB, sizeof(int) * (num_row * num_col));
+    control.accl_view.copy(gDenseMatC.values, denseC, sizeof(int) * num_row * num_col);
+
 
     for (int i = 0; i < num_row; i++)
     {
@@ -131,7 +192,7 @@ int main(int argc, char *argv[])
         {
             for (int k = 0; k < num_col; k++)
             {
-                dense_val_res[i * num_col + j] = av_dense_val_A[i * num_col + k] * av_dense_val_B[k * num_col + j];
+                dense_val_res[i * num_col + j] = denseA[i * num_col + k] * denseB[k * num_col + j];
             }
         }
     } 
@@ -140,17 +201,19 @@ int main(int argc, char *argv[])
 
     for (int i = 0; i < num_row * num_col; i++)
     {
-        float diff = std::abs(dense_val_res[i] - av_dense_val_C[i]);
+        float diff = std::abs(dense_val_res[i] - denseC[i]);
         if (diff > 0.01)
         {
-        std::cout<<i<<" "<<dense_val_res[i]<<" "<<av_dense_val_C[i]<< " "<<diff<<std::endl;
+        std::cout<<i<<" "<<dense_val_res[i]<<" "<<denseC[i]<< " "<<diff<<std::endl;
             isPassed = 0;
             break;
         }
     }
 
+
     std::cout << (isPassed?"TEST PASSED":"TEST FAILED") << std::endl;
-*/
+#endif
+
     std::cout << "csrSpGemm Completed!" << std::endl;
 
     hcsparseTeardown();
