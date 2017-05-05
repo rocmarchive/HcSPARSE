@@ -33,7 +33,7 @@ T multi (T a, T b) __attribute__((hc, cpu))
 template<typename T>
 T div (T a, T b) __attribute__((hc, cpu))
 {
-    return a / b;
+    return (b == 0 ? 0 : (a / b));
 }
 
 template<typename T>

@@ -1,6 +1,9 @@
 #include <hcsparse.h>
-#include <iostream>
+
 #include "hc_am.hpp"
+
+#include <cmath>
+#include <iostream>
 
 #define TOLERANCE 0.01
 
@@ -48,7 +51,7 @@ int main()
     {
         host_res[0] += (host_X[i] * host_X[i]);
     }
-    host_res[0] = sqrt(host_res[0]);
+    host_res[0] = std::sqrt(host_res[0]);
 
     bool ispassed = 1;
 

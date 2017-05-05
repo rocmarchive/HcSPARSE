@@ -1,6 +1,6 @@
 #include <hcsparse.h>
 #include <iostream>
-#include "hc_am.hpp"
+#include <hc_am.hpp>
 int main(int argc, char *argv[])
 {
     hcsparseCsrMatrix gCsrMat_res;
@@ -65,6 +65,10 @@ int main(int argc, char *argv[])
     gCsrMat_ref.rowOffsets = (int*) am_alloc((num_row+1) * sizeof(int), acc[1], 0);
     gCsrMat_ref.colIndices = (int*) am_alloc(num_nonzero * sizeof(int), acc[1], 0);
 
+    float *coo_values = (float*)calloc(num_nonzero, sizeof(float));
+    int *coo_rowIndices = (int*)calloc(num_nonzero, sizeof(int));
+    int *coo_colIndices = (int*)calloc(num_nonzero, sizeof(int));
+
     gCooMat.values = (float*) am_alloc(num_nonzero * sizeof(float), acc[1], 0);
     gCooMat.rowIndices = (int*) am_alloc(num_nonzero * sizeof(int), acc[1], 0);
     gCooMat.colIndices = (int*) am_alloc(num_nonzero * sizeof(int), acc[1], 0);
@@ -87,10 +91,10 @@ int main(int argc, char *argv[])
 
     for (int i = 0; i < gCsrMat_res.num_nonzeros; i++)
     {
-        float diff = std::abs(csr_ref_values[i] - csr_res_values[i]);
+        int diff = std::abs((csr_ref_values)[i] - (csr_res_values)[i]);
         if (diff > 0.01)
         {
-            std::cout<<i<< " "<<csr_ref_values[i] <<" "<< csr_res_values[i]<<std::endl;
+            std::cout<<i<< " "<<(csr_ref_values)[i] <<" "<< (csr_res_values)[i]<<std::endl;
             ispassed = 0;
             break;
         }
@@ -98,9 +102,9 @@ int main(int argc, char *argv[])
 
     for (int i = 0; i < gCsrMat_res.num_nonzeros; i++)
     {
-        if (csr_ref_colIndices[i] != csr_res_colIndices[i])
+        if ((csr_ref_colIndices)[i] != (csr_res_colIndices)[i])
         {
-            std::cout<<i<<" "<<csr_ref_colIndices[i] << " " << csr_res_colIndices[i]<<std::endl;
+            std::cout<<i<<" "<<(csr_ref_colIndices)[i] << " " << (csr_res_colIndices)[i]<<std::endl;
             ispassed = 0;
             break;
         }
@@ -108,9 +112,9 @@ int main(int argc, char *argv[])
 
     for (int i = 0; i < gCsrMat_res.num_rows+1; i++)
     {
-        if (csr_ref_rowOff[i] != csr_res_rowOff[i])
+        if ((csr_ref_rowOff)[i] != (csr_res_rowOff)[i])
         {
-            std::cout<<i<<" "<<csr_ref_rowOff[i] << " " << csr_res_rowOff[i]<<std::endl;
+            std::cout<<i<<" "<<(csr_ref_rowOff)[i] << " " << (csr_res_rowOff)[i]<<std::endl;
             ispassed = 0;
             break;
         }
@@ -126,6 +130,9 @@ int main(int argc, char *argv[])
     free(csr_ref_values);
     free(csr_ref_rowOff);
     free(csr_ref_colIndices);
+    free(coo_values);
+    free(coo_rowIndices);
+    free(coo_colIndices);
     am_free(gCsrMat_res.values);
     am_free(gCsrMat_res.rowOffsets);
     am_free(gCsrMat_res.colIndices);

@@ -86,7 +86,7 @@ TEST(transform_double_test, func_check)
 
                 for (int i = 0; i < num_elements; i++)
                 {
-                    host_res[i] = host_X[i] / host_Y[i];
+                    host_res[i] = host_Y[i] == 0 ? 0 : (host_X[i] / host_Y[i]);
                 }
                 break;
         }
@@ -95,7 +95,8 @@ TEST(transform_double_test, func_check)
 
         for (int i = 0; i < num_elements; i++)
         {
-            EXPECT_EQ (host_res[i], host_R[i]);
+            double diff = std::abs(host_res[i] - host_R[i]);
+            EXPECT_LT (diff, 0.01);
         }
     }
 

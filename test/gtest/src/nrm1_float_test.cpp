@@ -1,7 +1,11 @@
 #include <hcsparse.h>
-#include <iostream>
+
 #include <hc_am.hpp>
 #include "gtest/gtest.h"
+
+#include <cmath>
+#include <cstdlib>
+#include <iostream>
 
 #define TOLERANCE 0.01
 
@@ -46,7 +50,7 @@ TEST(nrm1_float_test, func_check)
 
     for (int i = 0; i < num_elements; i++)
     {
-        host_res[0] += fabs(host_X[i]);
+        host_res[0] += std::fabs(host_X[i]);
     }
 
     control.accl_view.copy(gR.value, host_R, sizeof(float) * 1);

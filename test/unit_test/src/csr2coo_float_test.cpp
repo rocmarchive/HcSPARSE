@@ -1,6 +1,6 @@
 #include <hcsparse.h>
 #include <iostream>
-#include "hc_am.hpp"
+#include <hc_am.hpp>
 int main(int argc, char *argv[])
 {
     hcsparseCsrMatrix gCsrMat;
@@ -49,6 +49,10 @@ int main(int argc, char *argv[])
         return 0;
     }
 
+    float *csr_values = (float*)calloc(num_nonzero, sizeof(float));
+    int *csr_rowOff = (int*)calloc(num_row+1, sizeof(int));
+    int *csr_colIndices = (int*)calloc(num_nonzero, sizeof(int));    
+
     gCsrMat.values = (float*) am_alloc(num_nonzero * sizeof(float), acc[1], 0);
     gCsrMat.rowOffsets = (int*) am_alloc((num_row+1) * sizeof(int), acc[1], 0);
     gCsrMat.colIndices = (int*) am_alloc(num_nonzero * sizeof(int), acc[1], 0);
@@ -87,20 +91,11 @@ int main(int argc, char *argv[])
 
     for (int i = 0; i < gCooMat_res.num_nonzeros; i++)
     {
-        float diff = std::abs(coo_ref_values[i] - coo_res_values[i]);
-        if (diff > 0.01)
+        if (coo_ref_values[i] != coo_res_values[i])
         {
-            std::cout<<"values "<<i<< " "<<coo_ref_values[i] <<" "<< coo_res_values[i]<<std::endl;
-            ispassed = 0;
-            break;
-        }
-    }
-
-    for (int i = 0; i < gCooMat_res.num_nonzeros; i++)
-    {
-        if (coo_ref_rowIndices[i] != coo_res_rowIndices[i])
-        {
-            std::cout<<"rowIndices "<<i<<" "<<coo_ref_rowIndices[i] << " " << coo_res_rowIndices[i]<<std::endl;
+            std::cout<<i<< " "<<coo_ref_values[i] <<" "<< coo_res_values[i]<<std::endl;
+            std::cout<<i<< " "<<coo_ref_values[i+1] <<" "<< coo_res_values[i+1]<<std::endl;
+            std::cout<<i<< " "<<coo_ref_values[i+2] <<" "<< coo_res_values[i+2]<<std::endl;
             ispassed = 0;
             break;
         }
@@ -110,7 +105,21 @@ int main(int argc, char *argv[])
     {
         if (coo_ref_colIndices[i] != coo_res_colIndices[i])
         {
-            std::cout<<"colIndices "<<i<<" "<<coo_ref_colIndices[i] << " " << coo_res_colIndices[i]<<std::endl;
+            std::cout<<i<<" "<<coo_ref_colIndices[i] << " " << coo_res_colIndices[i]<<std::endl;
+            std::cout<<i<<" "<<coo_ref_colIndices[i+1] << " " << coo_res_colIndices[i+1]<<std::endl;
+            std::cout<<i<<" "<<coo_ref_colIndices[i+2] << " " << coo_res_colIndices[i+2]<<std::endl;
+            ispassed = 0;
+            break;
+        }
+    }
+
+    for (int i = 0; i < gCooMat_res.num_nonzeros; i++)
+    {
+        if (coo_ref_rowIndices[i] != coo_res_rowIndices[i])
+        {
+            std::cout<<i<<" "<<coo_ref_rowIndices[i] << " " << coo_res_rowIndices[i]<<std::endl;
+            std::cout<<i<<" "<<coo_ref_rowIndices[i+1] << " " << coo_res_rowIndices[i+1]<<std::endl;
+            std::cout<<i<<" "<<coo_ref_rowIndices[i+2] << " " << coo_res_rowIndices[i+2]<<std::endl;
             ispassed = 0;
             break;
         }
@@ -120,6 +129,9 @@ int main(int argc, char *argv[])
 
     hcsparseTeardown();
 
+    free(csr_values);
+    free(csr_rowOff);
+    free(csr_colIndices);
     free(coo_ref_values);
     free(coo_ref_rowIndices);
     free(coo_ref_colIndices);
