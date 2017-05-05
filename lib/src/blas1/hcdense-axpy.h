@@ -17,7 +17,7 @@ void axpy_kernel (const long size,
 {
     hc::extent<1> grdExt( globalSize );
     hc::tiled_extent<1> t_ext = grdExt.tile(BLOCK_SIZE);
-    hc::parallel_for_each(control->accl_view, t_ext, [=] (hc::tiled_index<1>& tidx) __attribute__((hc, cpu))
+    hc::parallel_for_each(control->accl_view, t_ext, [=] (hc::tiled_index<1>& tidx) [[hc]]
     {
         int i = tidx.global[0];
         if (i < size)

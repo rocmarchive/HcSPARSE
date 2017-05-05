@@ -44,7 +44,7 @@ scan (int size,
     hc::extent<1> grdExt_numElm(numElementsRUP/2);
     hc::tiled_extent<1> t_ext_numElm = grdExt_numElm.tile(BLOCK_SIZE);
 
-    hc::parallel_for_each(control->accl_view, t_ext_numElm, [=] (hc::tiled_index<1> &tidx) __attribute__((hc, cpu))
+    hc::parallel_for_each(control->accl_view, t_ext_numElm, [=] (hc::tiled_index<1> &tidx) [[hc]]
     {
         tile_static T lds[BLOCK_SIZE*2];
         size_t gloId = tidx.global[0];
@@ -94,7 +94,7 @@ scan (int size,
     hc::extent<1> grdExt_block(BLOCK_SIZE);
     hc::tiled_extent<1> t_ext_block = grdExt_block.tile(BLOCK_SIZE);
 
-    hc::parallel_for_each(control->accl_view, t_ext_block, [=] (hc::tiled_index<1> &tidx) __attribute__((hc, cpu))
+    hc::parallel_for_each(control->accl_view, t_ext_block, [=] (hc::tiled_index<1> &tidx) [[hc]]
     {
         tile_static T lds[BLOCK_SIZE];
         size_t gloId = tidx.global[0];
@@ -173,7 +173,7 @@ scan (int size,
     hc::extent<1> grdExt(numElementsRUP);
     hc::tiled_extent<1> t_ext = grdExt.tile(BLOCK_SIZE);
 
-    hc::parallel_for_each(control->accl_view, t_ext, [=] (hc::tiled_index<1> &tidx) __attribute__((hc, cpu))
+    hc::parallel_for_each(control->accl_view, t_ext, [=] (hc::tiled_index<1> &tidx) [[hc]]
     {
         tile_static T lds[BLOCK_SIZE];
         size_t gloId = tidx.global[0];

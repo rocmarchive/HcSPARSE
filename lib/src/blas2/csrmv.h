@@ -108,7 +108,7 @@ void atomic_add_float(void *ptr, const T temp ) __attribute__ ((hc, cpu))
 template <typename T>
 inline T two_sum( T x,
                   T y,
-                   T &sumk_err) __attribute__((hc, cpu))
+                   T &sumk_err) [[hc]]
 {
     const T sumk_s = x + y;
 #ifdef EXTENDED_PRECISION
@@ -150,7 +150,7 @@ template <typename T>
 inline T two_fma( const T x_vals,
                   const T x_vec,
                   T y,
-                  T &sumk_err ) __attribute__((hc, cpu))
+                  T &sumk_err ) [[hc]]
 {
 #ifdef EXTENDED_PRECISION
     T x = x_vals * x_vec;
@@ -192,7 +192,7 @@ inline T sum2_reduce( T cur_sum,
                       const INDEX_TYPE thread_lane,
                       const INDEX_TYPE round,
                       const INDEX_TYPE max_size,
-                      hc::tiled_index<1> tidx) __attribute__((hc, cpu))
+                      hc::tiled_index<1> tidx) [[hc]]
 {
     if (max_size > round)
     {
@@ -273,7 +273,7 @@ void csrmv_vector_kernel (const INDEX_TYPE num_rows,
 {
     hc::extent<1> grdExt(global_work_size);
     hc::tiled_extent<1> t_ext = grdExt.tile(WG_SIZE);
-    hc::parallel_for_each(control->accl_view, t_ext, [=] (hc::tiled_index<1> &tidx) __attribute__((hc, cpu))
+    hc::parallel_for_each(control->accl_view, t_ext, [=] (hc::tiled_index<1> &tidx) [[hc]]
     {
         tile_static T sdata [WG_SIZE + SUBWAVE_SIZE / 2];
 
@@ -417,7 +417,7 @@ csrmv_adaptive_kernel (const T *vals,
 {
     hc::extent<1> grdExt(global_work_size);
     hc::tiled_extent<1> t_ext = grdExt.tile(WG_SIZE);
-    hc::parallel_for_each(control->accl_view, t_ext, [=] (hc::tiled_index<1> &tidx) __attribute__((hc, cpu))
+    hc::parallel_for_each(control->accl_view, t_ext, [=] (hc::tiled_index<1> &tidx) [[hc]]
     {
         tile_static T partialSums[WG_SIZE];
         const unsigned int gid = tidx.tile[0];

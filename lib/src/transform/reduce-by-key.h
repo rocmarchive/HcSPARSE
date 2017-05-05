@@ -21,7 +21,7 @@ reduce_by_key (int size,
     hc::extent<1> grdExt_numElm(BLOCK_SIZE * numWrkGrp);
     hc::tiled_extent<1> t_ext_numElm = grdExt_numElm.tile(BLOCK_SIZE);
 
-    hc::parallel_for_each(control->accl_view, t_ext_numElm, [=] (hc::tiled_index<1> &tidx) __attribute__((hc, cpu))
+    hc::parallel_for_each(control->accl_view, t_ext_numElm, [=] (hc::tiled_index<1> &tidx) [[hc]]
     {
         size_t gloId = tidx.global[0];
         if (gloId >= size) return;
@@ -47,7 +47,7 @@ reduce_by_key (int size,
     T *preSumArray = (T*) am_alloc(numWrkGrp * sizeof(T), acc, 0);
     T *postSumArray = (T*) am_alloc(numWrkGrp * sizeof(T), acc, 0);
 
-    hc::parallel_for_each(control->accl_view, t_ext_numElm, [=] (hc::tiled_index<1> &tidx) __attribute__((hc, cpu))
+    hc::parallel_for_each(control->accl_view, t_ext_numElm, [=] (hc::tiled_index<1> &tidx) [[hc]]
     {
         tile_static T ldsKeys[BLOCK_SIZE];
         tile_static T ldsVals[BLOCK_SIZE];
@@ -105,7 +105,7 @@ reduce_by_key (int size,
 
     hc::extent<1> grdExt_blk(BLOCK_SIZE);
     hc::tiled_extent<1> t_ext_blk = grdExt_blk.tile(BLOCK_SIZE);
-    hc::parallel_for_each(control->accl_view, t_ext_blk, [=] (hc::tiled_index<1> &tidx) __attribute__((hc, cpu))
+    hc::parallel_for_each(control->accl_view, t_ext_blk, [=] (hc::tiled_index<1> &tidx) [[hc]]
     {
         tile_static T ldsVals[BLOCK_SIZE];
         tile_static T ldsKeys[BLOCK_SIZE];
@@ -193,7 +193,7 @@ reduce_by_key (int size,
         }
     }).wait();
 
-    hc::parallel_for_each(control->accl_view, t_ext_numElm, [=] (hc::tiled_index<1> &tidx) __attribute__((hc, cpu))
+    hc::parallel_for_each(control->accl_view, t_ext_numElm, [=] (hc::tiled_index<1> &tidx) [[hc]]
     {
         size_t gloId = tidx.global[0];
         size_t groId = tidx.tile[0];
@@ -214,7 +214,7 @@ reduce_by_key (int size,
         }
     }).wait();
 
-    hc::parallel_for_each(control->accl_view, t_ext_numElm, [=] (hc::tiled_index<1> &tidx) __attribute__((hc, cpu))
+    hc::parallel_for_each(control->accl_view, t_ext_numElm, [=] (hc::tiled_index<1> &tidx) [[hc]]
     {
         size_t gloId = tidx.global[0];
         //  Abort threads that are passed the end of the input vector

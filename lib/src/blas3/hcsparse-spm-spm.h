@@ -22,7 +22,7 @@ void binarysearch (int   *s_key,
                    int   key_input,
                    T     val_input,
                    int   merged_size,
-                   bool  *is_new_col) __attribute__ ((hc, cpu))
+                   bool  *is_new_col) [[hc]]
 {
     int start = 0;
     int stop  = merged_size - 1;
@@ -53,7 +53,7 @@ void binarysearch_sub (int   *s_key,
                        T     *s_val,
                        int   key_input,
                        T     val_input,
-                       int   merged_size) __attribute__ ((hc, cpu))
+                       int   merged_size) [[hc]]
 {
     int start = 0;
     int stop  = merged_size - 1;
@@ -83,7 +83,7 @@ void binarysearch_global (int *d_key,
                           int                 key_input,
                           T                   val_input,
                           int                 merged_size,
-                          bool                *is_new_col) __attribute__ ((hc, cpu))
+                          bool                *is_new_col) [[hc]]
 {
     int start = 0;
     int stop  = merged_size - 1;
@@ -113,7 +113,7 @@ void binarysearch_global_sub (int *d_key,
                               T   *d_val,
                               int                 key_input,
                               T                   val_input,
-                              int                 merged_size) __attribute__ ((hc, cpu))
+                              int                 merged_size) [[hc]]
 {
     int start = 0;
     int stop  = merged_size - 1;
@@ -139,7 +139,7 @@ void binarysearch_global_sub (int *d_key,
 inline
 void scan_256 (hc::tiled_index<1> &tidx,
                int                *s_scan,
-               const int          local_id) __attribute__ ((hc, cpu))
+               const int          local_id) [[hc]]
 {
     int ai, bi;
     int baseai = 1 + 2 * local_id;
@@ -174,7 +174,7 @@ void scan_256 (hc::tiled_index<1> &tidx,
 inline
 int y_pos (const int x_pos,
            const int b_length,
-           const int offset) __attribute__ ((hc, cpu))
+           const int offset) [[hc]]
 {
     int pos = b_length - (x_pos + b_length - offset);
     return pos > b_length ? b_length : pos;
@@ -185,7 +185,7 @@ int mergepath_partition_liu (int            *s_a_key,
                              const int      a_length,
                              int            *s_b_key,
                              const int      b_length,
-                             const int      offset) __attribute__ ((hc, cpu))
+                             const int      offset) [[hc]]
 {
     int x_start = offset > b_length ? offset - b_length : 0;
     int x_stop  = offset > a_length ? a_length : offset;
@@ -225,7 +225,7 @@ void mergepath_serialmerge_liu (int         *s_a_key,
                                 T           *s_b_val,
                                 const int   b_length,
                                 int         *reg_key,
-                                T           *reg_val) __attribute__ ((hc, cpu))
+                                T           *reg_val) [[hc]]
 {
     int a_pointer = 0;
     int b_pointer = 0;
@@ -259,7 +259,7 @@ void mergepath_liu (hc::tiled_index<1> &tidx,
                     int                *s_a_border,
                     int                *s_b_border,
                     int                *reg_key,
-                    T                  *reg_val) __attribute__ ((hc, cpu))
+                    T                  *reg_val) [[hc]]
 {
     if (b_length == 0)
         return;
@@ -314,7 +314,7 @@ int mergepath_partition_global_liu (int *s_a_key,
                                     const int           a_length,
                                     int *s_b_key,
                                     const int           b_length,
-                                    const int           offset) __attribute__ ((hc, cpu))
+                                    const int           offset) [[hc]]
 {
     int x_start = offset > b_length ? offset - b_length : 0;
     int x_stop  = offset > a_length ? a_length : offset;
@@ -358,7 +358,7 @@ void mergepath_global_2level_liu (hc::tiled_index<1>  &tidx,
                                   int                 *s_key,
                                   T                   *s_val,
                                   int *d_temp_key,
-                                  T   *d_temp_val) __attribute__ ((hc, cpu))
+                                  T   *d_temp_val) [[hc]]
 {
     if (b_length == 0)
         return;
@@ -434,7 +434,7 @@ void readwrite_mergedlist_global (hc::tiled_index<1>        &tidx,
                                   T         *d_val_merged,
                                   const int                 merged_size,
                                   const int                 row_offset,
-                                  const bool                is_write) __attribute__ ((hc, cpu))
+                                  const bool                is_write) [[hc]]
 {
     int local_id = tidx.local[0];
     int local_size = tidx.tile_dim[0];
@@ -470,7 +470,7 @@ void readwrite_mergedlist (hc::tiled_index<1>  &tidx,
                            T                   *s_val_merged,
                            const int           merged_size,
                            const int           row_offset,
-                           const bool          is_write) __attribute__ ((hc, cpu))
+                           const bool          is_write) [[hc]]
 {
     int local_id = tidx.local[0];
     int local_size = tidx.tile_dim[0];
@@ -504,7 +504,7 @@ void siftDown (int       *s_key,
                const int start,
                const int stop,
                const int local_id,
-               const int local_size) __attribute__ ((hc, cpu)) 
+               const int local_size) [[hc]] 
 {
     int root = start;
     int child, swap;
@@ -542,7 +542,7 @@ int heapsort (int       *s_key,
               T         *s_val,
               const int segment_size,
               const int local_id,
-              const int local_size) __attribute__ ((hc, cpu))
+              const int local_size) [[hc]]
 {
     // heapsort - heapify max-heap
     int start = (segment_size - 1) / 2;
@@ -610,7 +610,7 @@ void coex (int        *keyA,
            T          *valA,
            int        *keyB,
            T          *valB,
-           const int  dir) __attribute__ ((hc, cpu))
+           const int  dir) [[hc]]
 {
     int t;
     T v;
@@ -632,7 +632,7 @@ void bitonic (int   *s_key,
               int   stage,
               int   passOfStage,
               int   local_id,
-              int   local_counter) __attribute__ ((hc, cpu))
+              int   local_counter) [[hc]]
 {
     int sortIncreasing = 1;
     int pairDistance = 1 << (stage - passOfStage);
@@ -685,7 +685,7 @@ inline
 void bitonicsort (hc::tiled_index<1> &tidx,
                   int                *s_key,
                   T                  *s_val,
-                  int                arrayLength) __attribute__ ((hc, cpu))
+                  int                arrayLength) [[hc]]
 {
     int local_id = tidx.local[0];
     int numStages = 0;
@@ -712,7 +712,7 @@ void compression_scan (hc::tiled_index<1> &tidx,
                        const int          local_counter,
                        const int          local_size,
                        const int          local_id,
-                       const int          local_id_halfwidth) __attribute__ ((hc, cpu))
+                       const int          local_id_halfwidth) [[hc]]
 {
     // compression - prefix sum
     bool duplicate = 1;
@@ -821,7 +821,7 @@ hcsparseStatus compute_nnzCt (int m,
 
     hc::extent<1> grdExt(szGlobalWorkSize);
     hc::tiled_extent<1> t_ext = grdExt.tile(GROUPSIZE_256);
-    hc::parallel_for_each(control->accl_view, t_ext, [=] (hc::tiled_index<1> &tidx) __attribute__((hc, cpu))
+    hc::parallel_for_each(control->accl_view, t_ext, [=] (hc::tiled_index<1> &tidx) [[hc]]
     {
         int global_id = tidx.global[0];
         int start, stop, index, strideB, row_size_Ct = 0;
@@ -860,7 +860,7 @@ hcsparseStatus compute_nnzC_Ct_0 (int num_blocks, int j,
     
     hc::extent<1> grdExt(szGlobalWorkSize);
     hc::tiled_extent<1> t_ext = grdExt.tile(GROUPSIZE_256);
-    hc::parallel_for_each(control->accl_view, t_ext, [=] (hc::tiled_index<1> &tidx) __attribute__((hc, cpu))
+    hc::parallel_for_each(control->accl_view, t_ext, [=] (hc::tiled_index<1> &tidx) [[hc]]
     {
         int global_id = tidx.global[0];
         if (global_id < counter)
@@ -897,7 +897,7 @@ hcsparseStatus compute_nnzC_Ct_1 (int num_blocks, int j,
 
     hc::extent<1> grdExt(szGlobalWorkSize);
     hc::tiled_extent<1> t_ext = grdExt.tile(GROUPSIZE_256);
-    hc::parallel_for_each(control->accl_view, t_ext, [=] (hc::tiled_index<1> tidx) __attribute__((hc, cpu))
+    hc::parallel_for_each(control->accl_view, t_ext, [=] (hc::tiled_index<1> tidx) [[hc]]
     {
         int global_id = tidx.global[0];
         if (global_id < counter)
@@ -948,7 +948,7 @@ hcsparseStatus compute_nnzC_Ct_2heap_noncoalesced_local (int num_blocks, int j,
 
     hc::extent<1> grdExt(szGlobalWorkSize);
     hc::tiled_extent<1> t_ext = grdExt.tile(GROUPSIZE_256);
-    hc::parallel_for_each(control->accl_view, t_ext, [=] (hc::tiled_index<1> &tidx) __attribute__((hc, cpu))
+    hc::parallel_for_each(control->accl_view, t_ext, [=] (hc::tiled_index<1> &tidx) [[hc]]
     {
         tile_static int s_key[GROUPSIZE_256];
         tile_static T s_val[GROUPSIZE_256];
@@ -1021,7 +1021,7 @@ hcsparseStatus compute_nnzC_Ct_bitonic_scan (int num_blocks, int j, int position
 
     hc::extent<1> grdExt(szGlobalWorkSize);
     hc::tiled_extent<1> t_ext = grdExt.tile(GROUPSIZE_256);
-    hc::parallel_for_each(control->accl_view, t_ext, [=] (hc::tiled_index<1> &tidx) __attribute__((hc, cpu))
+    hc::parallel_for_each(control->accl_view, t_ext, [=] (hc::tiled_index<1> &tidx) [[hc]]
     {
         tile_static int s_key[2*GROUPSIZE_256];
         tile_static T s_val[2*GROUPSIZE_256];
@@ -1125,7 +1125,7 @@ hcsparseStatus compute_nnzC_Ct_mergepath (int num_blocks, int j, int mergebuffer
     
     hc::extent<1> grdExt(szGlobalWorkSize);
     hc::tiled_extent<1> t_ext = grdExt.tile(GROUPSIZE_256);
-    hc::parallel_for_each(control->accl_view, t_ext, [=] (hc::tiled_index<1> &tidx) __attribute__((hc, cpu))
+    hc::parallel_for_each(control->accl_view, t_ext, [=] (hc::tiled_index<1> &tidx) [[hc]]
     {
         tile_static int s_key_merged_l1[mergebuffer_size_local];
         tile_static T s_val_merged_l1[mergebuffer_size_local];
@@ -1433,7 +1433,7 @@ hcsparseStatus copy_Ct_to_C_Single (int num_blocks, int position, int size,
 
     hc::extent<1> grdExt(szGlobalWorkSize);
     hc::tiled_extent<1> t_ext = grdExt.tile(GROUPSIZE_256);
-    hc::parallel_for_each(control->accl_view, t_ext, [=] (hc::tiled_index<1> &tidx) __attribute__((hc, cpu))
+    hc::parallel_for_each(control->accl_view, t_ext, [=] (hc::tiled_index<1> &tidx) [[hc]]
     {
         int global_id = tidx.global[0];
         bool valid = (global_id < size);
@@ -1471,7 +1471,7 @@ hcsparseStatus copy_Ct_to_C_Loopless (int num_blocks, int position,
 
     hc::extent<1> grdExt(szGlobalWorkSize);
     hc::tiled_extent<1> t_ext = grdExt.tile(GROUPSIZE_256);
-    hc::parallel_for_each(control->accl_view, t_ext, [=] (hc::tiled_index<1> &tidx) __attribute__((hc, cpu))
+    hc::parallel_for_each(control->accl_view, t_ext, [=] (hc::tiled_index<1> &tidx) [[hc]]
     {
         int local_id = tidx.local[0];
         int group_id = tidx.tile[0];

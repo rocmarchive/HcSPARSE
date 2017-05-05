@@ -67,7 +67,7 @@ offsets_to_indices (const int num_rows,
     hc::extent<1> grdExt(global_work_size);
     hc::tiled_extent<1> t_ext = grdExt.tile(GROUP_SIZE);
 
-    hc::parallel_for_each(control->accl_view, t_ext, [=] (hc::tiled_index<1> &tidx) __attribute__((hc, cpu))
+    hc::parallel_for_each(control->accl_view, t_ext, [=] (hc::tiled_index<1> &tidx) [[hc]]
     {
         const int global_id   = tidx.global[0];
         const int local_id    = tidx.local[0];
@@ -122,7 +122,7 @@ transform_csr_2_dense (ulong size,
     hc::extent<1> grdExt(global_work_size);
     hc::tiled_extent<1> t_ext = grdExt.tile(GROUP_SIZE);
 
-    hc::parallel_for_each(control->accl_view, t_ext, [=] (hc::tiled_index<1> &tidx) __attribute__((hc, cpu))
+    hc::parallel_for_each(control->accl_view, t_ext, [=] (hc::tiled_index<1> &tidx) [[hc]]
     {
         const int global_id   = tidx.global[0];
         const int local_id    = tidx.local[0];
@@ -165,7 +165,7 @@ calculate_num_nonzeros (ulong dense_size,
     hc::extent<1> grdExt(global_work_size);
     hc::tiled_extent<1> t_ext = grdExt.tile(GROUP_SIZE);
 
-    hc::parallel_for_each(control->accl_view, t_ext, [=] (hc::tiled_index<1> &tidx) __attribute__((hc, cpu))
+    hc::parallel_for_each(control->accl_view, t_ext, [=] (hc::tiled_index<1> &tidx) [[hc]]
     {
         int index = tidx.global[0];
         if (index < dense_size)
@@ -225,7 +225,7 @@ dense_to_coo (ulong dense_size,
     hc::extent<1> grdExt(global_work_size);
     hc::tiled_extent<1> t_ext = grdExt.tile(GROUP_SIZE);
 
-    hc::parallel_for_each(control->accl_view, t_ext, [=] (hc::tiled_index<1> &tidx) __attribute__((hc, cpu))
+    hc::parallel_for_each(control->accl_view, t_ext, [=] (hc::tiled_index<1> &tidx) [[hc]]
     {
         int index = tidx.global[0];
         if (nnz_locations[index] == 1 && index < dense_size)
@@ -278,7 +278,7 @@ transform_csc_2_dense (ulong size,
     hc::extent<1> grdExt(global_work_size);
     hc::tiled_extent<1> t_ext = grdExt.tile(GROUP_SIZE);
 
-    hc::parallel_for_each(control->accl_view, t_ext, [=] (hc::tiled_index<1> &tidx) __attribute__((hc, cpu))
+    hc::parallel_for_each(control->accl_view, t_ext, [=] (hc::tiled_index<1> &tidx) [[hc]]
     {
         const int global_id   = tidx.global[0];
         const int local_id    = tidx.local[0];
