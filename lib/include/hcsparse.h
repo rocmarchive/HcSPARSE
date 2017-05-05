@@ -353,6 +353,17 @@ hcsparseSnnz(hcsparseHandle_t handle,
              int *nnzPerRowColumn,
              int *nnzTotalDevHostPtr);
 
+hcsparseStatus_t 
+hcsparseDnnz(hcsparseHandle_t handle,
+             hcsparseDirection_t dirA,
+             int m, 
+             int n,
+             const hcsparseMatDescr_t descrA, 
+             const double *A, 
+             int lda,
+             int *nnzPerRowColumn,
+             int *nnzTotalDevHostPtr);
+
 // 12. hcsparseSdot()
 
 // This function returns the dot product of a vector x in sparse format
@@ -375,7 +386,7 @@ hcsparseSdoti(hcsparseHandle_t handle, int nnz,
               hcsparseIndexBase_t idxBase);
 
 
-// 13. hcsparsecsc2dense()
+// 13. hcsparseXcsc2dense()
 
 // This function converts the sparse matrix in CSC format that is defined
 // by the three arrays cscValA, cscColPtrA, and cscRowIndA into the matrix
@@ -396,6 +407,45 @@ hcsparseScsc2dense(hcsparseHandle_t handle, int m, int n,
                    const float *cscValA, 
                    const int *cscRowIndA, const int *cscColPtrA,
                    float *A, int lda);
+
+hcsparseStatus_t 
+hcsparseDcsc2dense(hcsparseHandle_t handle, int m, int n, 
+                   const hcsparseMatDescr_t descrA, 
+                   const double *cscValA, 
+                   const int *cscRowIndA, const int *cscColPtrA,
+                   double *A, int lda);
+
+// 14. hcsparseXdense2csc
+
+// This function converts the sparse matrix in CSC format 
+// that is defined by the three arrays cscValA, cscColPtrA, and cscRowIndA 
+// into the matrix A in dense format. The dense matrix A is filled
+// in with the values of the sparse matrix and with zeros elsewhere.
+
+// Return Values
+// ----------------------------------------------------------------------
+// HCSPARSE_STATUS_SUCCESS              the operation completed successfully.
+// HCSPARSE_STATUS_NOT_INITIALIZED      the library was not initialized.
+// HCSPARSE_STATUS_ALLOC_FAILED         the resources could not be allocated.
+// HCSPARSE_STATUS_INVALID_VALUE        invalid parameters were passed (m, n, k, nnz<0 or ldb and ldc are incorrect).
+// HCSPARSE_STATUS_EXECUTION_FAILED     the function failed to launch on the GPU.
+
+hcsparseStatus_t 
+hcsparseSdense2csc(hcsparseHandle_t handle, int m, int n, 
+                   const hcsparseMatDescr_t descrA, 
+                   const float           *A, 
+                   int lda, const int *nnzPerCol, 
+                   float           *cscValA, 
+                   int *cscRowIndA, int *cscColPtrA);
+
+hcsparseStatus_t 
+hcsparseDdense2csc(hcsparseHandle_t handle, int m, int n, 
+                   const hcsparseMatDescr_t descrA, 
+                   const double *A, 
+                   int lda, const int *nnzPerCol, 
+                   double    *cscValA, 
+                   int *cscRowIndA, int *cscColPtrA);
+
 
     /*!
     * \brief Initialize the hcsparse library
@@ -464,6 +514,18 @@ hcsparseScsc2dense(hcsparseHandle_t handle, int m, int n,
     * \ingroup INIT
     */
     hcsparseStatus hcsparseInitCsrMatrix( hcsparseCsrMatrix* csrMatx );
+
+    /*!
+    * \brief Initialize a sparse matrix CSC structure to be used in the hcsparse library
+    * \note It is users responsibility to allocate OpenCL device memory
+    *
+    * \param[out] cscMatx  Sparse CSC matrix structure to be initialized
+    *
+    * \returns \b hcsparseSuccess
+    *
+    * \ingroup INIT
+    */
+    hcsparseStatus hcsparseInitCscMatrix( hcsparseCscMatrix* cscMatx );
 
     /*!
     * \brief Initialize a dense matrix structure to be used in the hcsparse library
