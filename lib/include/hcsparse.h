@@ -446,6 +446,40 @@ hcsparseDdense2csc(hcsparseHandle_t handle, int m, int n,
                    double    *cscValA, 
                    int *cscRowIndA, int *cscColPtrA);
 
+// 15. hcsparseXcsr2coo()
+
+// This function converts the array containing the compressed row 
+// pointers (corresponding to CSR format) into an array of
+//  uncompressed row indices (corresponding to COO format).
+
+// Return Values
+// ----------------------------------------------------------------------
+// HCSPARSE_STATUS_SUCCESS              the operation completed successfully.
+// HCSPARSE_STATUS_NOT_INITIALIZED      the library was not initialized.
+// HCSPARSE_STATUS_INVALID_VALUE        invalid parameters were passed (m, n, k, nnz<0 or ldb and ldc are incorrect).
+// HCSPARSE_STATUS_EXECUTION_FAILED     the function failed to launch on the GPU.
+
+hcsparseStatus_t 
+hcsparseXcsr2coo(hcsparseHandle_t handle, const int *csrRowPtr,
+                 int nnz, int m, int *cooRowInd,
+                 hcsparseIndexBase_t idxBase);
+
+// 16. hcsparseXcoo2csr()
+
+// This function converts the array containing the uncompressed
+// row indices (corresponding to COO format) into an array of
+// compressed row pointers (corresponding to CSR format).
+
+// Return Values
+// ----------------------------------------------------------------------
+// HCSPARSE_STATUS_SUCCESS              the operation completed successfully.
+// HCSPARSE_STATUS_NOT_INITIALIZED      the library was not initialized.
+// HCSPARSE_STATUS_INVALID_VALUE        invalid parameters were passed (m, n, k, nnz<0 or ldb and ldc are incorrect).
+// HCSPARSE_STATUS_EXECUTION_FAILED     the function failed to launch on the GPU.
+
+hcsparseStatus_t 
+hcsparseXcoo2csr(hcsparseHandle_t handle, const int *cooRowInd,
+                 int nnz, int m, int *csrRowPtr, hcsparseIndexBase_t idxBase);
 
     /*!
     * \brief Initialize the hcsparse library

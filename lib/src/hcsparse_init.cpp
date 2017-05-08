@@ -883,6 +883,83 @@ hcsparseDdense2csc(hcsparseHandle_t handle, int m, int n,
 
 }
 
+// 15. hcsparseXcsr2coo()
+
+// This function converts the array containing the compressed row 
+// pointers (corresponding to CSR format) into an array of
+//  uncompressed row indices (corresponding to COO format).
+
+// Return Values
+// ----------------------------------------------------------------------
+// HCSPARSE_STATUS_SUCCESS              the operation completed successfully.
+// HCSPARSE_STATUS_NOT_INITIALIZED      the library was not initialized.
+// HCSPARSE_STATUS_INVALID_VALUE        invalid parameters were passed (m, n, k, nnz<0 or ldb and ldc are incorrect).
+// HCSPARSE_STATUS_EXECUTION_FAILED     the function failed to launch on the GPU.
+
+hcsparseStatus_t 
+hcsparseXcsr2coo(hcsparseHandle_t handle, const int *csrRowPtr,
+                 int nnz, int m, int *cooRowInd,
+                 hcsparseIndexBase_t idxBase)
+
+{
+  if (handle == nullptr) 
+    return HCSPARSE_STATUS_NOT_INITIALIZED;
+
+  if (idxBase != HCSPARSE_INDEX_BASE_ZERO)
+    return HCSPARSE_STATUS_INVALID_VALUE;
+
+  // temp code 
+  // TODO : Remove this in the future
+  hcsparseControl control(handle->currentAcclView);
+  hcsparseStatus stat = hcsparseSuccess;
+
+  stat = offsets_to_indices<int> (m+1, nnz, cooRowInd, csrRowPtr, &control);
+
+  if (stat != hcsparseSuccess)
+    return HCSPARSE_STATUS_EXECUTION_FAILED;
+
+  return HCSPARSE_STATUS_SUCCESS;
+}
+
+
+// 16. hcsparseXcoo2csr()
+
+// This function converts the array containing the uncompressed
+// row indices (corresponding to COO format) into an array of
+// compressed row pointers (corresponding to CSR format).
+
+// Return Values
+// ----------------------------------------------------------------------
+// HCSPARSE_STATUS_SUCCESS              the operation completed successfully.
+// HCSPARSE_STATUS_NOT_INITIALIZED      the library was not initialized.
+// HCSPARSE_STATUS_INVALID_VALUE        invalid parameters were passed (m, n, k, nnz<0 or ldb and ldc are incorrect).
+// HCSPARSE_STATUS_EXECUTION_FAILED     the function failed to launch on the GPU.
+
+hcsparseStatus_t 
+hcsparseXcoo2csr(hcsparseHandle_t handle, const int *cooRowInd,
+                 int nnz, int m, int *csrRowPtr, hcsparseIndexBase_t idxBase)
+
+{
+  if (handle == nullptr) 
+    return HCSPARSE_STATUS_NOT_INITIALIZED;
+
+  if (idxBase != HCSPARSE_INDEX_BASE_ZERO)
+    return HCSPARSE_STATUS_INVALID_VALUE;
+
+  // temp code 
+  // TODO : Remove this in the future
+  hcsparseControl control(handle->currentAcclView);
+  hcsparseStatus stat = hcsparseSuccess;
+
+  stat = indices_to_offsets<int> (m+1, nnz, csrRowPtr, cooRowInd, &control);
+
+  if (stat != hcsparseSuccess)
+    return HCSPARSE_STATUS_EXECUTION_FAILED;
+
+  return HCSPARSE_STATUS_SUCCESS;
+}
+
+
 hcsparseStatus
 hcsparseSetup(void)
 {
