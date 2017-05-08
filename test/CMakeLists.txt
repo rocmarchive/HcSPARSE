@@ -20,5 +20,6 @@ ENDIF()
 
 IF(${PLATFORM} MATCHES "hcc")
   add_subdirectory(unit_test/src)
+  add_subdirectory(unit-API/src)
   add_subdirectory(gtest/src)
 ENDIF()

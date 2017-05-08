@@ -104,7 +104,7 @@ int main(int argc, char *argv[])
     gCsrMat.rowOffsets = am_alloc(sizeof(int) * (num_row_A+1), acc[1], 0);
     gCsrMat.colIndices = am_alloc(sizeof(int) * num_nonzero, acc[1], 0);
 
-    status = hcsparseSCsrMatrixfromFile(&gCsrMat, filename, &control, false);
+    status = hcsparseDCsrMatrixfromFile(&gCsrMat, filename, &control, false);
     if (status != hcsparseSuccess)
     {
         std::cout<<"The input file should be in mtx format"<<std::endl;
@@ -118,7 +118,7 @@ int main(int argc, char *argv[])
     hcsparseOperation_t transA = HCSPARSE_OPERATION_NON_TRANSPOSE;
     int nnz = 0;
 
-    status1 = hcsparseScsrmm(handle, transA, num_row_A, num_col_Y,
+    status1 = hcsparseDcsrmm(handle, transA, num_row_A, num_col_Y,
                             num_col_A, nnz, static_cast<const double*>(gAlpha), descrA,
                             static_cast<const double*>(gCsrMat.values),
                             (int *) gCsrMat.rowOffsets,

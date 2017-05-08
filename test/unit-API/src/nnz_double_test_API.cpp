@@ -56,7 +56,7 @@ int main()
 
     control.accl_view.copy(hostA, devA, m*n*sizeof(double));
 
-    hcsparseStatus_t stat = hcsparseSnnz(handle, dir, m, n, descrA, devA, lda,
+    hcsparseStatus_t stat = hcsparseDnnz(handle, dir, m, n, descrA, devA, lda,
                                          nnzPerRowColumn, nnz);
 
     control.accl_view.copy(nnzPerRowColumn, nnzPerRowColumn_res, m*sizeof(int));

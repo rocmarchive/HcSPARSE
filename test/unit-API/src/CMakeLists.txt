@@ -15,42 +15,11 @@ SET (TESTSRCS
     csrmm_double_test_API.cpp
     csr_dense_conv_float_test_API.cpp
     csr_dense_conv_double_test_API.cpp
+    csr_coo_conv_float_test_API.cpp
     csc_dense_conv_float_test_API.cpp
     csc_dense_conv_double_test_API.cpp
     nnz_float_test_API.cpp
     nnz_double_test_API.cpp
-#    scale_float_test.cpp
-#    scale_double_test.cpp
-#    axpy_float_test.cpp
-#    axpy_double_test.cpp
-#    axpby_float_test.cpp
-#    axpby_double_test.cpp
-#    reduce_int_test.cpp
-#    reduce_float_test.cpp
-#    reduce_double_test.cpp
-#    transform_float_test.cpp
-#    transform_double_test.cpp
-#    nrm1_float_test.cpp
-#    nrm2_float_test.cpp
-#    dot_float_test.cpp
-#    dot_double_test.cpp
-#    csrmv_float_test.cpp
-#    csrmv_double_test.cpp
-#    bicgStab_diagonal_float_test.cpp
-#    bicgStab_diagonal_double_test.cpp
-#    bicgStab_noprecond_float_test.cpp
-#    bicgStab_noprecond_double_test.cpp
-#    cg_diagonal_float_test.cpp
-#    cg_diagonal_double_test.cpp
-#    cg_noprecond_float_test.cpp
-#    cg_noprecond_double_test.cpp
-#    csr_dense_conv_double_test.cpp
-#    spcsrmm_float_test.cpp
-#    csrmv_adaptive_float_test.cpp
-#    csrmv_adaptive_double_test.cpp
-#    csrmm_double_test.cpp
-#    coo2csr_float_test.cpp
-#    csr2coo_float_test.cpp
    )
 
  # MCW HCC Specific. Version >= 0.3 is Must
@@ -79,7 +48,7 @@ SET (TESTSRCS
 
   FOREACH(test_file ${TESTSRCS})
     SET_PROPERTY(SOURCE ${test_file} APPEND_STRING PROPERTY COMPILE_FLAGS " ${HCC_CXXFLAGS}")
-    STRING( REPLACE "_test.cpp" "" testname ${test_file} )
+    STRING( REPLACE ".cpp" "" testname ${test_file} )
     ADD_EXECUTABLE( ../bin/${testname} ${test_file} )
     TARGET_LINK_LIBRARIES("../bin/${testname}" hc_am)
     SET_PROPERTY(TARGET ../bin/${testname} APPEND_STRING PROPERTY LINK_FLAGS " ${HCC_LDFLAGS} ${LINK}")
