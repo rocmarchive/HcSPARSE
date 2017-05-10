@@ -1565,8 +1565,10 @@ hcsparseStatus copy_Ct_to_C_general (int *counter_one,
                 int num_blocks  = hc::fast_math::ceil((double)counter / (double)num_threads);
                 run_status = copy_Ct_to_C_Single<T> (num_blocks, counter, counter_one[j], csrValC, csrRowPtrC, csrColIndC, csrValCt, csrRowPtrCt, csrColIndCt, queue_one, control);
             }
+#if 0
             else if (j > 1 && j <= 123)
                 run_status = copy_Ct_to_C_Loopless<T> (counter, counter_one[j], csrValC, csrRowPtrC, csrColIndC, csrValCt, csrRowPtrCt, csrColIndCt, queue_one, control);
+#endif
             else if (j == 124)
                 run_status = copy_Ct_to_C_Loop<T> (counter, counter_one[j], csrValC, csrRowPtrC, csrColIndC, csrValCt, csrRowPtrCt, csrColIndCt, queue_one, control);
             else if (j == 127)
@@ -1712,6 +1714,9 @@ csrSpGemm (const hcsparseCsrMatrix* matA,
 
     int *csrRowPtrC_h = (int*) calloc(m + 1, sizeof(int));
     control->accl_view.copy(csrRowPtrC, csrRowPtrC_h, (m + 1) * sizeof(int));
+
+    for (int i = 0 ;i < m + 1; i++)
+      std::cout << "csrRowPtr[" << i << "] = " << csrRowPtrC_h[i]<<std::endl;
 
     int old_val, new_val;
     old_val = csrRowPtrC_h[0];
