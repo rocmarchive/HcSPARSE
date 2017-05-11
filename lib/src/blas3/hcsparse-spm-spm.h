@@ -952,8 +952,8 @@ std::cout << "num_blocks = " << num_blocks << " counter = " << counter << std::e
     hc::tiled_extent<1> t_ext = grdExt.tile(GROUPSIZE_256);
     hc::parallel_for_each(control->accl_view, t_ext, [=] (hc::tiled_index<1> &tidx) [[hc]]
     {
-        tile_static int s_key[GROUPSIZE_256];
-        tile_static T s_val[GROUPSIZE_256];
+        tile_static int s_key[GROUPSIZE_256 * 32]; // NUM_THREADS * MAX SEGMENT PROCESSED
+        tile_static T s_val[GROUPSIZE_256 * 32];
         const int local_id = tidx.local[0];
         const int group_id = tidx.tile[0];
         const int global_id = tidx.global[0];
