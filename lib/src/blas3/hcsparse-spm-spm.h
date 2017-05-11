@@ -1021,6 +1021,8 @@ hcsparseStatus compute_nnzC_Ct_bitonic_scan (int num_blocks, int j, int position
     szLocalWorkSize  = GROUPSIZE_256;
     szGlobalWorkSize = num_blocks * szLocalWorkSize;
 
+std::cout << "num_blocks = " << num_blocks << std::endl;
+
     hc::extent<1> grdExt(szGlobalWorkSize);
     hc::tiled_extent<1> t_ext = grdExt.tile(GROUPSIZE_256);
     hc::parallel_for_each(control->accl_view, t_ext, [=] (hc::tiled_index<1> &tidx) [[hc]]
@@ -1381,14 +1383,20 @@ hcsparseStatus compute_nnzC_Ct_general (int *_h_counter_one,
                 run_status = compute_nnzC_Ct_2heap_noncoalesced_local<T> (num_blocks, j, counter, _h_counter_one[j], queue_one, csrRowPtrA, csrColIndA, csrValA,
                                                                           csrRowPtrB, csrColIndB, csrValB, csrRowPtrC, csrRowPtrCt, csrColIndCt, csrValCt, control);
             }
-#if 0
-            else if (j > 32 && j <= 124)
+            else if (j > 32 && j <= 40)
             {
                 int num_blocks = counter;
+
+                std::cout << "j = " << j << std::endl;
+
+                for (int i = 0 ; i  < counter; i++)
+                   std::cout << "queue[" << TUPLE_QUEUE * (_h_counter_one[j] + i) << "] = " << queue_one_h \
+                               [TUPLE_QUEUE * (_h_counter_one[j] + i)] <<std::endl;
 
                 run_status = compute_nnzC_Ct_bitonic_scan<T> (num_blocks, j, _h_counter_one[j], queue_one, csrRowPtrA, csrColIndA, csrValA, csrRowPtrB,
                                                               csrColIndB, csrValB, csrRowPtrC, csrRowPtrCt, csrColIndCt, csrValCt, _n, control);
             }
+#if 0
             else if (j == 127)
             {
                 int count_next = counter;
