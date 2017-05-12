@@ -315,17 +315,17 @@ hipsparseStatus_t hipsparseXcoo2csr(hipsparseHandle_t handle, const int *cooRowI
                                                   int nnz, int m, int *csrRowPtrA, 
                                                   hipsparseIndexBase_t idxBase){
 
-   return HIPSPARSE_STATUS_NOT_SUPPORTED;
+   return hipHCSPARSEStatusToHIPStatus(hcsparseXcoo2csr(handle, cooRowIndA, nnz,
+                                                        m, csrRowPtrA, idxBase));
 }
 
 hipsparseStatus_t hipsparseXcsr2coo(hipsparseHandle_t handle, const int *csrRowPtrA,
                                                   int nnz, int m, int *cooRowIndA, 
                                                   hipsparseIndexBase_t idxBase){
 
-  return HIPSPARSE_STATUS_NOT_SUPPORTED;
+  return hipHCSPARSEStatusToHIPStatus(hcsparseXcsr2coo(handle, csrRowPtrA, nnz,
+                                                       m, cooRowIndA, idxBase));
 }
-
-
 
 hipsparseStatus_t hipsparseSnnz(hipsparseHandle_t handle, hipsparseDirection_t dirA, int m, 
                               int n, const hipsparseMatDescr_t descrA, 
