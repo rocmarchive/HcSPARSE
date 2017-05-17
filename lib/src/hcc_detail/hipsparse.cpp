@@ -61,9 +61,6 @@ hipsparseStatus_t hipsparseDestroyMatDescr(hipsparseMatDescr_t descrA)
    return hipHCSPARSEStatusToHIPStatus(hcsparseDestroyMatDescr(&descrA));
 }
 
-// Not used for CNTK requirement
-// Will enable it in future
-#if 0
 //Sparse L2 BLAS operations
 
 hipsparseStatus_t hipsparseScsrmv(hipsparseHandle_t handle, hipsparseOperation_t transA, 
@@ -74,66 +71,10 @@ hipsparseStatus_t hipsparseScsrmv(hipsparseHandle_t handle, hipsparseOperation_t
                                   const float           *x, const float           *beta, 
                                   float           *y) {
 
-   hcsparseCsrMatrix gCsrMat;
-   hcdenseVector gX;
-   hcdenseVector gY;
-   hcsparseScalar gAlpha;
-   hcsparseScalar gBeta;
-
-   int deviceId;
-   hipError_t err;
-   hipsparseStatus_t retval = HIPSPARSE_STATUS_SUCCESS;
-
-   err = hipGetDevice(&deviceId);
-   hc::accelerator_view *av;
-
-   err = hipHccGetAcceleratorView(hipStreamDefault, &av);
-   if (err == hipSuccess) {
-     hcsparseControl control(*av);
-   }
-   else{
-     return HIPSPARSE_STATUS_EXECUTION_FAILED;
-   }
-   
-   array_view<float> dev_X(n, x);
-   array_view<float> dev_Y(m, y);
-   array_view<float> dev_alpha(1, alpha);
-   array_view<float> dev_beta(1, beta);
-
-   hcsparseSetup();
-   hcsparseInitCsrMatrix(&gCsrMat);
-   hcsparseInitScalar(&gAlpha);
-   hcsparseInitScalar(&gBeta);
-   hcsparseInitVector(&gX);
-   hcsparseInitVector(&gY);
-
-   gAlpha.value = &dev_alpha;
-   gBeta.value = &dev_beta;
-   gX.values = &dev_X;
-   gY.values = &dev_Y;
-
-   gAlpha.offValue = 0;
-   gBeta.offValue = 0;
-   gX.offValues = 0;
-   gY.offValues = 0;
-
-   gX.num_values = n;
-   gY.num_values = m;
-
-   gCsrMat.offValues = 0;
-   gCsrMat.offColInd = 0;
-   gCsrMat.offRowOff = 0;
-
-   array_view<float> av_values(nnz, csrValA);
-   array_view<int> av_rowOff(m+1, csrRowPtrA);
-   array_view<int> av_colIndices(nnz, csrColIndA);
-
-   gCsrMat.values = &av_values;
-   gCsrMat.rowOffsets = &av_rowOff;
-   gCsrMat.colIndices = &av_colIndices;
-
-   return hipHCSPARSEStatusToHIPStatus(hcsparseScsrmv( &gAlpha, gCsrMat, &gx, &gbeta,
-                                                        &gy, &control));
+   return hipHCSPARSEStatusToHIPStatus(hcsparseScsrmv(handle, transA, m, n,
+                                                      nnz, alpha, descrA,
+                                                      csrValA, csrRowPtrA,
+                                                      csrColIndA, x, beta, y));
 }
 
 
@@ -145,58 +86,12 @@ hipsparseStatus_t hipsparseDcsrmv(hipsparseHandle_t handle, hipsparseOperation_t
                                   const double           *x, const double           *beta, 
                                   double           *y) {
 
-   hcsparseCsrMatrix gCsrMat;
-   hcdenseVector gX;
-   hcdenseVector gY;
-   hcsparseScalar gAlpha;
-   hcsparseScalar gBeta;
-
-   accelerator acc = accelerator(accelerator::default_accelerator);
-   accelerator_view accl_view = acc.default_view;
-   hcsparseControl control(accl_view);
-
-   array_view<double> dev_X(n, x);
-   array_view<double> dev_Y(m, y);
-   array_view<double> dev_alpha(1, alpha);
-   array_view<double> dev_beta(1, beta);
-
-   hcsparseSetup();
-   hcsparseInitCsrMatrix(&gCsrMat);
-   hcsparseInitScalar(&gAlpha);
-   hcsparseInitScalar(&gBeta);
-   hcsparseInitVector(&gX);
-   hcsparseInitVector(&gY);
-
-   gAlpha.value = &dev_alpha;
-   gBeta.value = &dev_beta;
-   gX.values = &dev_X;
-   gY.values = &dev_Y;
-
-   gAlpha.offValue = 0;
-   gBeta.offValue = 0;
-   gX.offValues = 0;
-   gY.offValues = 0;
-
-   gX.num_values = n;
-   gY.num_values = m;
-
-   gCsrMat.offValues = 0;
-   gCsrMat.offColInd = 0;
-   gCsrMat.offRowOff = 0;
-
-   array_view<double> av_values(nnz, csrValA);
-   array_view<int> av_rowOff(m+1, csrRowPtrA);
-   array_view<int> av_colIndices(nnz, csrColIndA);
-
-   gCsrMat.values = &av_values;
-   gCsrMat.rowOffsets = &av_rowOff;
-   gCsrMat.colIndices = &av_colIndices;
-
-   return hipHCSPARSEStatusToHIPStatus(hcsparseDcsrmv( &gAlpha, gCsrMat, &gx, &gbeta,
-                                                        &gy, &control));
+   return hipHCSPARSEStatusToHIPStatus(hcsparseDcsrmv(handle, transA, m, n,
+                                                      nnz, alpha, descrA,
+                                                      csrValA, csrRowPtrA,
+                                                      csrColIndA, x, beta, y));
 
 }
-#endif
 
 //Sparse L3 BLAS operations
 

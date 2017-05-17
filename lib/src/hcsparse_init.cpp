@@ -959,6 +959,95 @@ hcsparseXcoo2csr(hcsparseHandle_t handle, const int *cooRowInd,
   return HCSPARSE_STATUS_SUCCESS;
 }
 
+// 17. hcsparseXcsrmv()
+
+// This function performs the matrix-vector operation
+// y = α ∗ op ( A ) ∗ x + β ∗ y
+
+// A is an m×n sparse matrix that is defined in CSR storage
+// format by the three arrays csrValA, csrRowPtrA, and csrColIndA;
+// x and y are vectors; α  and  β are scalars;
+
+// Return Values
+// ----------------------------------------------------------------------
+// HCSPARSE_STATUS_SUCCESS              the operation completed successfully.
+// HCSPARSE_STATUS_NOT_INITIALIZED 	the library was not initialized.
+// HCSPARSE_STATUS_ALLOC_FAILED 	the resources could not be allocated.
+// HCSPARSE_STATUS_INVALID_VALUE 	invalid parameters were passed (m,n,nnz<0).
+// HCSPARSE_STATUS_ARCH_MISMATCH 	the device does not support double precision.
+// HCSPARSE_STATUS_INTERNAL_ERROR 	an internal operation failed.
+// HCSPARSE_STATUS_MATRIX_TYPE_NOT_SUPPORTED 	the matrix type is not supported.
+
+hcsparseStatus_t 
+hcsparseScsrmv(hcsparseHandle_t handle, hcsparseOperation_t transA, 
+               int m, int n, int nnz, const float           *alpha, 
+               const hcsparseMatDescr_t descrA, 
+               const float           *csrValA, 
+               const int *csrRowPtrA, const int *csrColIndA,
+               const float           *x, const float           *beta, 
+               float           *y)
+{
+  if (handle == nullptr) 
+    return HCSPARSE_STATUS_NOT_INITIALIZED;
+
+  if (!csrValA || !csrRowPtrA || !csrColIndA || !x || !y || !alpha || !beta)
+    return HCSPARSE_STATUS_ALLOC_FAILED;
+
+  if (descrA.MatrixType != HCSPARSE_MATRIX_TYPE_GENERAL)
+    return HCSPARSE_STATUS_INVALID_VALUE;
+
+  if (m < 0 || n < 0 || nnz < 0)
+    return HCSPARSE_STATUS_INVALID_VALUE;
+
+  // temp code 
+  // TODO : Remove this in the future
+  hcsparseControl control(handle->currentAcclView);
+  hcsparseStatus stat = hcsparseSuccess;
+
+  csrmv <float> (&control, m, n, nnz, alpha, csrValA, csrRowPtrA, csrColIndA, x, beta, y);
+
+  if (stat != hcsparseSuccess)
+    return HCSPARSE_STATUS_EXECUTION_FAILED;
+
+  return HCSPARSE_STATUS_SUCCESS;
+
+}
+
+hcsparseStatus_t 
+hcsparseDcsrmv(hcsparseHandle_t handle, hcsparseOperation_t transA, 
+               int m, int n, int nnz, const double          *alpha, 
+               const hcsparseMatDescr_t descrA, 
+               const double          *csrValA, 
+               const int *csrRowPtrA, const int *csrColIndA,
+               const double          *x, const double          *beta, 
+               double          *y)
+{
+  if (handle == nullptr) 
+    return HCSPARSE_STATUS_NOT_INITIALIZED;
+
+  if (!csrValA || !csrRowPtrA || !csrColIndA || !x || !y || !alpha || !beta)
+    return HCSPARSE_STATUS_ALLOC_FAILED;
+
+  if (descrA.MatrixType != HCSPARSE_MATRIX_TYPE_GENERAL)
+    return HCSPARSE_STATUS_INVALID_VALUE;
+
+  if (m < 0 || n < 0 || nnz < 0)
+    return HCSPARSE_STATUS_INVALID_VALUE;
+
+  // temp code 
+  // TODO : Remove this in the future
+  hcsparseControl control(handle->currentAcclView);
+  hcsparseStatus stat = hcsparseSuccess;
+
+  csrmv <double> (&control, m, n, nnz, alpha, csrValA, csrRowPtrA, csrColIndA, x, beta, y);
+
+  if (stat != hcsparseSuccess)
+    return HCSPARSE_STATUS_EXECUTION_FAILED;
+
+  return HCSPARSE_STATUS_SUCCESS;
+
+}
+
 
 hcsparseStatus
 hcsparseSetup(void)

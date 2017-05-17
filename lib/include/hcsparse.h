@@ -481,6 +481,44 @@ hcsparseStatus_t
 hcsparseXcoo2csr(hcsparseHandle_t handle, const int *cooRowInd,
                  int nnz, int m, int *csrRowPtr, hcsparseIndexBase_t idxBase);
 
+
+// 17. hcsparseXcsrmv()
+
+// This function performs the matrix-vector operation
+// y = α ∗ op ( A ) ∗ x + β ∗ y
+
+// A is an m×n sparse matrix that is defined in CSR storage
+// format by the three arrays csrValA, csrRowPtrA, and csrColIndA;
+// x and y are vectors; α  and  β are scalars;
+
+// Return Values
+// ----------------------------------------------------------------------
+// HCSPARSE_STATUS_SUCCESS              the operation completed successfully.
+// HCSPARSE_STATUS_NOT_INITIALIZED 	the library was not initialized.
+// HCSPARSE_STATUS_ALLOC_FAILED 	the resources could not be allocated.
+// HCSPARSE_STATUS_INVALID_VALUE 	invalid parameters were passed (m,n,nnz<0).
+// HCSPARSE_STATUS_ARCH_MISMATCH 	the device does not support double precision.
+// HCSPARSE_STATUS_INTERNAL_ERROR 	an internal operation failed.
+// HCSPARSE_STATUS_MATRIX_TYPE_NOT_SUPPORTED 	the matrix type is not supported.
+
+hcsparseStatus_t 
+hcsparseScsrmv(hcsparseHandle_t handle, hcsparseOperation_t transA, 
+               int m, int n, int nnz, const float           *alpha, 
+               const hcsparseMatDescr_t descrA, 
+               const float           *csrValA, 
+               const int *csrRowPtrA, const int *csrColIndA,
+               const float           *x, const float           *beta, 
+               float           *y);
+
+hcsparseStatus_t 
+hcsparseDcsrmv(hcsparseHandle_t handle, hcsparseOperation_t transA, 
+               int m, int n, int nnz, const double          *alpha, 
+               const hcsparseMatDescr_t descrA, 
+               const double          *csrValA, 
+               const int *csrRowPtrA, const int *csrColIndA,
+               const double          *x, const double          *beta, 
+               double          *y);
+
     /*!
     * \brief Initialize the hcsparse library
     * \note Must be called before any other hcsparse API function is invoked.
