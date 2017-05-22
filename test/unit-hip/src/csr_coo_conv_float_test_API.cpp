@@ -50,7 +50,7 @@ TEST(csr_coo_conv_float_test, func_check)
     int* csrRowPtrA = (int*) am_alloc((num_row+1) * sizeof(int), handle->currentAccl, 0);
     int* cooRowIndA = (int*) am_alloc((num_nonzero) * sizeof(int), handle->currentAccl, 0);
 
-    handle->currentAcclView.copy(rowbuf.data(), csrRowPtrA, (num_row + 1) * sizeof(double));
+    handle->currentAcclView.copy(rowbuf.data(), csrRowPtrA, (num_row + 1) * sizeof(int));
 
     int *csr_rowPtr = (int*)calloc(num_row+1, sizeof(int));
     int *csr_res_rowPtr = (int*)calloc(num_row+1, sizeof(int));
