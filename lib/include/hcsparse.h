@@ -519,6 +519,70 @@ hcsparseDcsrmv(hcsparseHandle_t handle, hcsparseOperation_t transA,
                const double          *x, const double          *beta, 
                double          *y);
 
+
+// 18. hcsparseXcsrgeam()
+
+// This function performs following matrix-matrix operation
+// C = α ∗ A + β ∗ B
+
+// where A, B, and C are m×n sparse matrices
+// (defined in CSR storage format by the three arrays
+//  csrValA|csrValB|csrValC, csrRowPtrA|csrRowPtrB|csrRowPtrC,
+// and csrColIndA|csrColIndB|csrcolIndC respectively), and α and β are scalars.
+
+// Return Values
+// ----------------------------------------------------------------------
+// HCSPARSE_STATUS_SUCCESS              the operation completed successfully.
+// HCSPARSE_STATUS_NOT_INITIALIZED 	the library was not initialized.
+// HCSPARSE_STATUS_ALLOC_FAILED 	the resources could not be allocated.
+// HCSPARSE_STATUS_INVALID_VALUE 	invalid parameters were passed (m,n,nnz<0).
+// HCSPARSE_STATUS_ARCH_MISMATCH 	the device does not support double precision.
+// HCSPARSE_STATUS_INTERNAL_ERROR 	an internal operation failed.
+// HCSPARSE_STATUS_MATRIX_TYPE_NOT_SUPPORTED 	the matrix type is not supported.
+
+hcsparseStatus_t
+hcsparseScsrgeam(hcsparseHandle_t handle, 
+                 int m, 
+                 int n,
+                 const float *alpha,
+                 const hcsparseMatDescr_t descrA, 
+                 int nnzA,
+                 const float *csrValA, 
+                 const int *csrRowPtrA, 
+                 const int *csrColIndA,
+                 const float *beta,
+                 const hcsparseMatDescr_t descrB, 
+                 int nnzB,
+                 const float *csrValB, 
+                 const int *csrRowPtrB, 
+                 const int *csrColIndB,
+                 const hcsparseMatDescr_t descrC,
+                 float *csrValC, 
+                 int *csrRowPtrC, 
+                 int *csrColIndC);
+
+hcsparseStatus_t
+hcsparseDcsrgeam(hcsparseHandle_t handle, 
+                 int m, 
+                 int n,
+                 const double *alpha,
+                 const hcsparseMatDescr_t descrA, 
+                 int nnzA,
+                 const double *csrValA, 
+                 const int *csrRowPtrA, 
+                 const int *csrColIndA,
+                 const double *beta,
+                 const hcsparseMatDescr_t descrB, 
+                 int nnzB,
+                 const double *csrValB, 
+                 const int *csrRowPtrB, 
+                 const int *csrColIndB,
+                 const hcsparseMatDescr_t descrC,
+                 double *csrValC, 
+                 int *csrRowPtrC, 
+                 int *csrColIndC);
+
+
     /*!
     * \brief Initialize the hcsparse library
     * \note Must be called before any other hcsparse API function is invoked.
