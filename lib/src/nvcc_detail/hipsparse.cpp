@@ -1,4 +1,4 @@
-#include "hipfft.h"
+#include "hipsparse.h"
 
 #ifdef __cplusplus
 extern "C" {
