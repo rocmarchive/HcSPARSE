@@ -171,13 +171,12 @@ hcsparseStatus compute_nnzC_Ct_bitonic_scan_32 (int num_threads,
         ai = baseai - 1;     bi = basebi - 1;     s_scan[bi] += s_scan[ai];
         tidx.barrier.wait();
 
-#if 0
         if (local_size == 64) {
           if (local_id == 0) { s_scan[127] = s_scan[63]; s_scan[128] = s_scan[127]; s_scan[127] = 0; temp = s_scan[63]; s_scan[63] = 0; s_scan[127] += temp; }
-          s_scan[63] = 0;
           tidx.barrier.wait();
         }
         
+#if 0
           if (local_id < 16) { ai =  2 * baseai - 1;  bi =  2 * basebi - 1;   s_scan[bi] += s_scan[ai]; }
           if (local_id < 8)  { ai = 4 * baseai - 1;  bi = 4 * basebi - 1;   s_scan[bi] += s_scan[ai]; }
           if (local_id < 4)  { ai = 8 * baseai - 1;  bi = 8 * basebi - 1;   s_scan[bi] += s_scan[ai]; }
