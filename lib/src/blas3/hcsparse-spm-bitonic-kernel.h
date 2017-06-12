@@ -173,6 +173,7 @@ hcsparseStatus compute_nnzC_Ct_bitonic_scan_32 (int num_threads,
 
         if (local_size == 64) {
           if (local_id == 0) { s_scan[127] = s_scan[63]; s_scan[128] = s_scan[127]; s_scan[127] = 0; temp = s_scan[63]; s_scan[63] = 0; s_scan[127] += temp; }
+          s_scan[63] = 0;
           tidx.barrier.wait();
         }
         
