@@ -171,7 +171,13 @@ hcsparseStatus compute_nnzC_Ct_bitonic_scan_32 (int num_threads,
         ai = baseai - 1;     bi = basebi - 1;     s_scan[bi] += s_scan[ai];
         tidx.barrier.wait();
 
-        if (local_size == 32) {
+#if 0
+        if (local_size == 64) {
+          if (local_id == 0) { s_scan[127] = s_scan[63]; s_scan[128] = s_scan[127]; s_scan[127] = 0; temp = s_scan[63]; s_scan[63] = 0; s_scan[127] += temp; }
+          s_scan[63] = 0;
+          tidx.barrier.wait();
+        }
+        
           if (local_id < 16) { ai =  2 * baseai - 1;  bi =  2 * basebi - 1;   s_scan[bi] += s_scan[ai]; }
           if (local_id < 8)  { ai = 4 * baseai - 1;  bi = 4 * basebi - 1;   s_scan[bi] += s_scan[ai]; }
           if (local_id < 4)  { ai = 8 * baseai - 1;  bi = 8 * basebi - 1;   s_scan[bi] += s_scan[ai]; }
@@ -197,10 +203,11 @@ hcsparseStatus compute_nnzC_Ct_bitonic_scan_32 (int num_threads,
           if (local_id < 32) { ai = 2 * baseai - 1;  bi = 2 * basebi - 1;   temp = s_scan[ai]; s_scan[ai] = s_scan[bi]; s_scan[bi] += temp;}
           tidx.barrier.wait();
         }
+#endif
         ai = baseai - 1;   bi = basebi - 1;   temp = s_scan[ai]; s_scan[ai] = s_scan[bi]; s_scan[bi] += temp;
         tidx.barrier.wait();
 
-#if 1
+#if 0
         // compute final position and final value in registers
         int   move_pointer;
         int   final_position, final_position_halfwidth;
@@ -254,20 +261,20 @@ hcsparseStatus compute_nnzC_Ct_bitonic_scan_32 (int num_threads,
         local_counter = s_scan[width] - invalid_width;
 #endif
         if (local_id == 0)
-            csrRowPtrC[row_id] = local_counter;
+            csrRowPtrC[row_id] = 0; //local_counter;
 #if 1
         // write compressed lists to global mem
         int row_offset = queue_one[TUPLE_QUEUE * (position + group_id) + 1];
         if (local_id < local_counter)
         {
             global_offset = row_offset + local_id;
-            csrColIndCt[global_offset] = s_key[local_id];
+            csrColIndCt[global_offset] = s_scan[local_id]; //s_key[local_id];
             csrValCt[global_offset] = s_val[local_id];
         }
         if (local_id_halfwidth < local_counter)
         {
             global_offset = row_offset + local_id_halfwidth;
-            csrColIndCt[global_offset] = s_key[local_id_halfwidth];
+            csrColIndCt[global_offset] = s_scan[local_id_halfwidth]; //s_key[local_id_halfwidth];
             csrValCt[global_offset] = s_val[local_id_halfwidth];
         }
 #endif
