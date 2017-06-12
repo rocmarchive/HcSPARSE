@@ -13,6 +13,8 @@
 #define BHSPARSE_SUCCESS 0
 #define mergebuffer_size_local 2304
  
+#include "hcsparse-spm-bitonic-kernel.h"
+
 int statistics(int *_h_csrRowPtrCt, int *_h_counter, int *_h_counter_one, int *_h_counter_sum, int *_h_queue_one, int _m);
 
 template <typename T>
@@ -1383,9 +1385,10 @@ hcsparseStatus compute_nnzC_Ct_general (int *_h_counter_one,
                 run_status = compute_nnzC_Ct_2heap_noncoalesced_local<T> (num_blocks, j, counter, _h_counter_one[j], queue_one, csrRowPtrA, csrColIndA, csrValA,
                                                                           csrRowPtrB, csrColIndB, csrValB, csrRowPtrC, csrRowPtrCt, csrColIndCt, csrValCt, control);
             }
-            else if (j > 32 && j <= 40)
+            else if (j > 32 && j <= 64)
             {
                 int num_blocks = counter;
+                int num_threads = 32;
 
                 std::cout << "j = " << j << std::endl;
 
@@ -1393,10 +1396,52 @@ hcsparseStatus compute_nnzC_Ct_general (int *_h_counter_one,
                    std::cout << "queue[" << TUPLE_QUEUE * (_h_counter_one[j] + i) << "] = " << queue_one_h \
                                [TUPLE_QUEUE * (_h_counter_one[j] + i)] <<std::endl;
 
-                run_status = compute_nnzC_Ct_bitonic_scan<T> (num_blocks, j, _h_counter_one[j], queue_one, csrRowPtrA, csrColIndA, csrValA, csrRowPtrB,
+                run_status = compute_nnzC_Ct_bitonic_scan_32<T> (num_threads, num_blocks, j, _h_counter_one[j], queue_one, csrRowPtrA, csrColIndA, csrValA, csrRowPtrB,
                                                               csrColIndB, csrValB, csrRowPtrC, csrRowPtrCt, csrColIndCt, csrValCt, _n, control);
             }
-#if 0
+#if 1
+            else if (j > 64 && j <= 122)
+            {
+                int num_blocks = counter;
+                int num_threads = 64;
+
+                std::cout << "j = " << j << std::endl;
+
+                for (int i = 0 ; i  < counter; i++)
+                   std::cout << "queue[" << TUPLE_QUEUE * (_h_counter_one[j] + i) << "] = " << queue_one_h \
+                               [TUPLE_QUEUE * (_h_counter_one[j] + i)] <<std::endl;
+
+                run_status = compute_nnzC_Ct_bitonic_scan_32<T> (num_threads, num_blocks, j, _h_counter_one[j], queue_one, csrRowPtrA, csrColIndA, csrValA, csrRowPtrB,
+                                                              csrColIndB, csrValB, csrRowPtrC, csrRowPtrCt, csrColIndCt, csrValCt, _n, control);
+            }
+            else if (j == 123)
+            {
+                int num_blocks = counter;
+                int num_threads = 128;
+
+                std::cout << "j = " << j << std::endl;
+
+                for (int i = 0 ; i  < counter; i++)
+                   std::cout << "queue[" << TUPLE_QUEUE * (_h_counter_one[j] + i) << "] = " << queue_one_h \
+                               [TUPLE_QUEUE * (_h_counter_one[j] + i)] <<std::endl;
+
+                run_status = compute_nnzC_Ct_bitonic_scan_32<T> (num_threads, num_blocks, j, _h_counter_one[j], queue_one, csrRowPtrA, csrColIndA, csrValA, csrRowPtrB,
+                                                              csrColIndB, csrValB, csrRowPtrC, csrRowPtrCt, csrColIndCt, csrValCt, _n, control);
+            }
+            else if (j == 124)
+            {
+                int num_blocks = counter;
+                int num_threads = 256;
+
+                std::cout << "j = " << j << std::endl;
+
+                for (int i = 0 ; i  < counter; i++)
+                   std::cout << "queue[" << TUPLE_QUEUE * (_h_counter_one[j] + i) << "] = " << queue_one_h \
+                               [TUPLE_QUEUE * (_h_counter_one[j] + i)] <<std::endl;
+
+                run_status = compute_nnzC_Ct_bitonic_scan_32<T> (num_threads, num_blocks, j, _h_counter_one[j], queue_one, csrRowPtrA, csrColIndA, csrValA, csrRowPtrB,
+                                                              csrColIndB, csrValB, csrRowPtrC, csrRowPtrCt, csrColIndCt, csrValCt, _n, control);
+            }
             else if (j == 127)
             {
                 int count_next = counter;
@@ -1582,8 +1627,8 @@ hcsparseStatus copy_Ct_to_C_general (int *counter_one,
                 int num_blocks  = hc::fast_math::ceil((double)counter / (double)num_threads);
                 run_status = copy_Ct_to_C_Single<T> (num_blocks, counter, counter_one[j], csrValC, csrRowPtrC, csrColIndC, csrValCt, csrRowPtrCt, csrColIndCt, queue_one, control);
             }
-#if 0
-            else if (j > 1 && j <= 123)
+#if 1
+            else if (j > 1 && j <= 40)
                 run_status = copy_Ct_to_C_Loopless<T> (counter, counter_one[j], csrValC, csrRowPtrC, csrColIndC, csrValCt, csrRowPtrCt, csrColIndCt, queue_one, control);
 #endif
             else if (j == 124)
@@ -1722,7 +1767,11 @@ csrSpGemm (const hcsparseCsrMatrix* matA,
     int *queue_one_d = (int*) am_alloc(m * TUPLE_QUEUE * sizeof(int), acc, 0);
     control->accl_view.copy(queue_one, queue_one_d, m * TUPLE_QUEUE * sizeof(int));
 
+    for (int i = 0; i < TUPLE_QUEUE*m; i++)
+      std::cout << "q[" << i << "] = " << queue_one[i] << std::endl;
+
     int *csrColIndCt = (int*) am_alloc(nnzCt * sizeof(int), acc, 0);
+    int *csrColIndCt_h = (int*) calloc(nnzCt, sizeof(int));
     T *csrValCt = (T*) am_alloc(nnzCt * sizeof(T), acc, 0);
  
     // STAGE 3 - STEP 1 : compute nnzC and Ct
@@ -1731,9 +1780,12 @@ csrSpGemm (const hcsparseCsrMatrix* matA,
 
     int *csrRowPtrC_h = (int*) calloc(m + 1, sizeof(int));
     control->accl_view.copy(csrRowPtrC, csrRowPtrC_h, (m + 1) * sizeof(int));
+    control->accl_view.copy(csrColIndCt, csrColIndCt_h, (nnzCt) * sizeof(int));
 
     for (int i = 0 ;i < m + 1; i++)
       std::cout << "csrRowPtr[" << i << "] = " << csrRowPtrC_h[i]<<std::endl;
+    for (int i = 0 ;i < nnzCt; i++)
+      std::cout << "colCt[" << i << "] = " << csrColIndCt_h[i]<<std::endl;
 
     int old_val, new_val;
     old_val = csrRowPtrC_h[0];
@@ -1749,8 +1801,11 @@ csrSpGemm (const hcsparseCsrMatrix* matA,
 
     control->accl_view.copy(csrRowPtrC_h, csrRowPtrC, (m + 1) * sizeof(int));
     
+    for (int i = 0 ;i < m + 1; i++)
+      std::cout << "csrRowPtr[" << i << "] = " << csrRowPtrC_h[i]<<std::endl;
     int *csrColIndC = static_cast<int*>(matC->colIndices);
     T *csrValC = static_cast<T*>(matC->values);
+    int *csrCol_h = (int *)calloc(nnzC, sizeof(int));
 
     status2 = copy_Ct_to_C_general<T> (counter_one, csrValC, csrRowPtrC, csrColIndC, csrValCt, csrRowPtrCt_d, csrColIndCt, queue_one_d, control);
     
@@ -1758,6 +1813,11 @@ csrSpGemm (const hcsparseCsrMatrix* matA,
     matC->num_cols = n;
     matC->num_nonzeros  = nnzC;
  
+    control->accl_view.copy(csrColIndC, csrCol_h, nnzC * sizeof(int));
+
+    for (int i = 0; i < nnzC; i++)
+        std::cout << "col[" << i << "] = " << csrCol_h[i] << std::endl; 
+
     if (status1 == hcsparseSuccess && status2 == hcsparseSuccess)
         return hcsparseSuccess;
     else
