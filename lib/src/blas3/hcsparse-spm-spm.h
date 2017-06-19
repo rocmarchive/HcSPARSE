@@ -1582,13 +1582,13 @@ csrSpGemm(hcsparseControl* control,
           int m,
           int n,
           int k,
-          const float *csrValA,
+          const T *csrValA,
           const int *csrRowPtrA,
           const int *csrColIndA,
-          const float *csrValB,
+          const T *csrValB,
           const int *csrRowPtrB,
           const int *csrColIndB,
-          float *csrValC,
+          T *csrValC,
           const int *csrRowPtrC,
           int *csrColIndC)
 {
@@ -1622,7 +1622,7 @@ csrSpGemm(hcsparseControl* control,
     // STAGE 3 - STEP 1 : compute nnzC and Ct
     status1 = compute_nnzC_Ct_general<T>
                    (counter_one, queue_one_d, (int *)csrRowPtrA, (int *)csrColIndA, 
-                    (float *)csrValA, (int *)csrRowPtrB, (int *)csrColIndB, (float *)csrValB,
+                    (T *)csrValA, (int *)csrRowPtrB, (int *)csrColIndB, (T *)csrValB,
                     (int *)csrRowPtrC, csrRowPtrCt_d, csrColIndCt,
                     csrValCt, n, nnzCt, m, queue_one, control);
 

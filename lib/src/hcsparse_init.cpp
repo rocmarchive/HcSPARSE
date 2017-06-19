@@ -495,6 +495,62 @@ hcsparseScsrgemm(hcsparseHandle_t handle,
   return HCSPARSE_STATUS_SUCCESS;
 }
 
+hcsparseStatus_t
+hcsparseDcsrgemm(hcsparseHandle_t handle,
+                 hcsparseOperation_t transA,
+                 hcsparseOperation_t transB,
+                 int m,
+                 int n,
+                 int k,
+                 const hcsparseMatDescr_t descrA,
+                 const int nnzA,
+                 const double *csrValA,
+                 const int *csrRowPtrA,
+                 const int *csrColIndA,
+                 const hcsparseMatDescr_t descrB,
+                 const int nnzB,
+                 const double *csrValB,
+                 const int *csrRowPtrB, 
+                 const int *csrColIndB,
+                 const hcsparseMatDescr_t descrC,
+                 double *csrValC,
+                 const int *csrRowPtrC,
+                 int *csrColIndC )
+{
+  if (handle == nullptr)
+    return HCSPARSE_STATUS_NOT_INITIALIZED;
+
+  if (!csrValA || !csrRowPtrA || !csrColIndA || 
+      !csrValB || !csrRowPtrB || !csrColIndB ||
+      !csrValC || !csrRowPtrC || !csrColIndC )
+    return HCSPARSE_STATUS_ALLOC_FAILED;
+
+  if (descrA.MatrixType != HCSPARSE_MATRIX_TYPE_GENERAL || 
+      descrB.MatrixType != HCSPARSE_MATRIX_TYPE_GENERAL ||
+      descrC.MatrixType != HCSPARSE_MATRIX_TYPE_GENERAL )
+    return HCSPARSE_STATUS_INVALID_VALUE;
+
+  // Currently supports only NN version
+  // TODO : Extend for other version (NT, TN, TT)
+  if (transA != HCSPARSE_OPERATION_NON_TRANSPOSE ||
+      transB != HCSPARSE_OPERATION_NON_TRANSPOSE )
+     return HCSPARSE_STATUS_INVALID_VALUE;
+
+  // temp code 
+  // TODO : Remove this in the future
+  hcsparseControl control(handle->currentAcclView);
+  hcsparseStatus stat = hcsparseSuccess;
+
+  stat = csrSpGemm<double>(&control, m, n, k, csrValA, csrRowPtrA, csrColIndA,
+                          csrValB, csrRowPtrB, csrColIndB,
+                          csrValC, csrRowPtrC, csrColIndC);
+
+  if (stat != hcsparseSuccess)
+   return HCSPARSE_STATUS_EXECUTION_FAILED;
+
+  return HCSPARSE_STATUS_SUCCESS;
+}
+
 // 11. hcsparseXnnz()
 
 // This function computes the number of nonzero elements per
