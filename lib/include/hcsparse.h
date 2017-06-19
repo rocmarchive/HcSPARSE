@@ -329,6 +329,29 @@ hcsparseScsrgemm(hcsparseHandle_t handle,
                  const int *csrRowPtrC,
                  int *csrColIndC);
 
+hcsparseStatus_t
+hcsparseDcsrgemm(hcsparseHandle_t handle,
+                 hcsparseOperation_t transA,
+                 hcsparseOperation_t transB,
+                 int m,
+                 int n,
+                 int k,
+                 const hcsparseMatDescr_t descrA,
+                 const int nnzA,
+                 const double *csrValA,
+                 const int *csrRowPtrA,
+                 const int *csrColIndA,
+                 const hcsparseMatDescr_t descrB,
+                 const int nnzB,
+                 const double *csrValB,
+                 const int *csrRowPtrB,
+                 const int *csrColIndB,
+                 const hcsparseMatDescr_t descrC,
+                 double *csrValC,
+                 const int *csrRowPtrC,
+                 int *csrColIndC);
+
+
 // 11. hcsparseXnnz()
 
 // This function computes the number of nonzero elements per
@@ -385,6 +408,12 @@ hcsparseSdoti(hcsparseHandle_t handle, int nnz,
               float *resultDevHostPtr, 
               hcsparseIndexBase_t idxBase);
 
+hcsparseStatus_t 
+hcsparseDdoti(hcsparseHandle_t handle, int nnz, 
+              const double *xVal, 
+              const int *xInd, const double *y, 
+              double *resultDevHostPtr, 
+              hcsparseIndexBase_t idxBase);
 
 // 13. hcsparseXcsc2dense()
 
