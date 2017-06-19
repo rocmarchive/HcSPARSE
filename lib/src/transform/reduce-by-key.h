@@ -200,18 +200,22 @@ reduce_by_key (int size,
         //  Abort threads that are passed the end of the input vector
         if( gloId >= size) return;
         // accumulate prefix
-        T key1 = keySumArray[ groId-1 ];
+        T key1 = 0;
+        if (groId > 0)
+          key1 = keySumArray[ groId-1 ];
         T key2 = offsetArray[ gloId ];
         T key3 = -1;
         if(gloId < size -1 )
             key3 =  offsetArray[ gloId + 1];
-        if (groId > 0 && key1 == key2 && key2 != key3)
+
+        if (groId > 0 && key1 == key2 && key2 != key3 )
         {
             T scanResult = offsetValArray[ gloId ];
             T postBlockSum = postSumArray[ groId-1 ];
             T newResult = scanResult + postBlockSum;
             offsetValArray[ gloId ] = newResult;
         }
+
     }).wait();
 
     hc::parallel_for_each(control->accl_view, t_ext_numElm, [=] (hc::tiled_index<1> &tidx) [[hc]]

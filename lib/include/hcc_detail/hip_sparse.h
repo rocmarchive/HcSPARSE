@@ -22,7 +22,7 @@ THE SOFTWARE.
 #pragma once
 
 #include <hip/hip_runtime_api.h>
-#include <hip/hcc_detail/hcc_acc.h>
+#include <hip/hip_hcc.h>
 #include <hcsparse.h>
 
 //HGSOS for Kalmar leave it as C++, only cuSPARSE needs C linkage.

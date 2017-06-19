@@ -67,7 +67,7 @@ TEST(csr_dense_conv_float_test, func_check)
     int *csr_res_rowPtr = (int*)calloc(num_row+1, sizeof(int));
     int *csr_res_colInd = (int*)calloc(num_nonzero, sizeof(int));    
 
-    control.accl_view.copy(gCsrMat.values, csrValA, num_nonzero * sizeof(double));
+    control.accl_view.copy(gCsrMat.values, csrValA, num_nonzero * sizeof(float));
     control.accl_view.copy(gCsrMat.rowOffsets, csrRowPtrA, (num_row+1) * sizeof(int));
     control.accl_view.copy(gCsrMat.colIndices, csrColIndA, num_nonzero * sizeof(int));
 

@@ -46,6 +46,12 @@ SET (TESTSRCS
 
   SET (LINK "-lhcsparse")
 
+  if(POLICY CMP0037)
+    cmake_policy(PUSH)
+    cmake_policy(SET CMP0037 OLD)
+  endif()
+
+  SET ( CMAKE_RUNTIME_OUTPUT_DIRECTORY "../bin/")
   FOREACH(test_file ${TESTSRCS})
     SET_PROPERTY(SOURCE ${test_file} APPEND_STRING PROPERTY COMPILE_FLAGS " ${HCC_CXXFLAGS}")
     STRING( REPLACE ".cpp" "" testname ${test_file} )
@@ -53,4 +59,8 @@ SET (TESTSRCS
     TARGET_LINK_LIBRARIES("../bin/${testname}" hc_am)
     SET_PROPERTY(TARGET ../bin/${testname} APPEND_STRING PROPERTY LINK_FLAGS " ${HCC_LDFLAGS} ${LINK}")
   ENDFOREACH()
+
+  if(POLICY CMP0037)
+    cmake_policy(POP)
+  endif()
 
