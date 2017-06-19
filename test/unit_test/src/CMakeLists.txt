@@ -39,6 +39,7 @@ SET (TESTSRCS
      csr_dense_conv_float_test.cpp
      csr_dense_conv_double_test.cpp
      spcsrmm_float_test.cpp
+     spcsram_float_test.cpp
      csrmv_adaptive_float_test.cpp
      csrmv_adaptive_double_test.cpp
      csrmm_float_test.cpp

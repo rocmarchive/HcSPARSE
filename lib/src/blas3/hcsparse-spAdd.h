@@ -5,7 +5,7 @@ hcsparseStatus
 vector_add (int size, T *A, T *B, T *C, hcsparseControl *control)
 {
    int num_threads = 256;
-   int num_blocks = hc::fast_math::ceil(size/256);
+   int num_blocks = (size - 1) / 256 + 1;
 
    size_t szLocalWorkSize = num_threads;
    size_t szGlobalWorkSize = num_blocks * num_threads;
