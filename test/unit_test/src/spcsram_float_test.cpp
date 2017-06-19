@@ -182,7 +182,7 @@ int main(int argc, char *argv[])
     
     for (int i = 0; i < num_row * num_col; i++)
     {
-        dense_val_res[i] = denseMat_A[i] + denseMat_B[i];
+        dense_val_res[i] = host_alpha[0] * denseMat_A[i] + host_beta[0] * denseMat_B[i];
     } 
 
     bool isPassed = 1;  

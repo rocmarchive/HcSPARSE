@@ -2,8 +2,9 @@
 
 template <typename T>
 hcsparseStatus
-vector_add (int size, T *A, T *B, T *C, hcsparseControl *control)
-{
+vector_add (int size, T *A, T *B, const T *alpha,
+            const T *beta, T *C, hcsparseControl *control) {
+   
    int num_threads = 256;
    int num_blocks = (size - 1) / 256 + 1;
 
@@ -17,7 +18,7 @@ vector_add (int size, T *A, T *B, T *C, hcsparseControl *control)
      int global_id = tidx.global[0];
      if (global_id < size)
      {
-       C[global_id] += A[global_id] + B[global_id];
+       C[global_id] += alpha[0] * A[global_id] + beta[0] * B[global_id];
      }
 
    }).wait();
