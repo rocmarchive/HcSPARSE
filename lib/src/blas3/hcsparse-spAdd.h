@@ -20,5 +20,7 @@ vector_add (int size, T *A, T *B, T *C, hcsparseControl *control)
        C[global_id] += A[global_id] + B[global_id];
      }
 
-   }).wait(); 
+   }).wait();
+
+   return hcsparseSuccess;
 } 

@@ -1173,8 +1173,23 @@ hcsparseDcsrgeam(hcsparseHandle_t handle,
   // TODO : Remove this in the future
   hcsparseControl control(handle->currentAcclView);
   hcsparseStatus stat = hcsparseSuccess;
+ 
+  // Convert sparse to dense 
+  double *A = am_alloc(sizeof(double)*m*n, handle->currentAccl, 0);
+  hcsparseStatus_t status = hcsparseScsr2dense(handle, m, n, descrA, csrValA, csrRowPtrA,
+                                               csrColIndA, A, m);
 
-  
+  // Convert sparse to dense 
+  double *B = am_alloc(sizeof(double)*m*n, handle->currentAccl, 0);
+  status = hcsparseScsr2dense(handle, m, n, descrB, csrValB, csrRowPtrB,
+                                               csrColIndB, B, m);
+
+  double *C = am_alloc(sizeof(double)*m*n, handle->currentAccl, 0);
+  vector_add<double>(m*n, A, B, C, &control);
+
+  status = hcsparseSdense2csr(handle, m, n, descrC, C, m, 0, 
+                              csrValC, csrRowPtrC, csrColIndC);
+ 
   if (stat != hcsparseSuccess)
     return HCSPARSE_STATUS_EXECUTION_FAILED;
 
