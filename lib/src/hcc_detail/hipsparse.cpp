@@ -250,7 +250,7 @@ hipsparseStatus_t hipsparseScsrgeam(hipsparseHandle_t handle,
                                                         csrColIndA, beta, descrB, nnzB,
                                                         csrValB, csrRowPtrB, csrColIndB,
                                                         descrC, csrValC, csrRowPtrC,
-                                                        csrColIndC);
+                                                        csrColIndC));
 
 }
 
@@ -277,7 +277,7 @@ hipsparseStatus_t hipsparseDcsrgeam(hipsparseHandle_t handle,
                                                         csrColIndA, beta, descrB, nnzB,
                                                         csrValB, csrRowPtrB, csrColIndB,
                                                         descrC, csrValC, csrRowPtrC,
-                                                        csrColIndC);
+                                                        csrColIndC));
 
 }
 
