@@ -4,7 +4,7 @@
 
 This repository hosts the HCC implementation of linear algebraic routines for sparse matrices/vectors (HcSparse), on AMD devices. To know what HCC compiler features, refer [here](https://github.com/RadeonOpenCompute/hcc). 
 
-Following list the routines that are currently supported by HcSparse.
+Following list the routines that are currently supported by HcSparse that are grouped into four major categories.
 
    1. Level 1 BLAS Routines:
       * axpy : Product of Sparse Vector with constant and followed by addition of dense Vector.
@@ -21,7 +21,7 @@ Following list the routines that are currently supported by HcSparse.
       * coo2csr : COO to CSR conversions 
       * dense2csc : Dense to CSC conversions
       * csc2dense : CSC to Dense conversions
-   Input Reader functions:
+   5. Input Reader functions:
       * mm-reader : Functions to read matrix market files in COO or CSR format
 
 ## B. Key Features: ##
