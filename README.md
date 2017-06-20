@@ -6,22 +6,22 @@ This repository hosts the HCC implementation of linear algebraic routines for sp
 
 Following list the routines that are currently supported by HcSparse.
 
-   ### 1. Level 1 Routines: ###
+   1. Level 1 BLAS Routines:
       * axpy : Product of Sparse Vector with constant and followed by addition of dense Vector.
       * dot : Dot product of Sparse Vector with dense Vector
-   ### 2. Level 2 BLAS Routines: ###
+   2. Level 2 BLAS Routines:
       * csrmv  : Sparse Matrix - dense Vector multiply (SpM-dV) 
       * csrmm  : Sparse Matrix - dense Matrix multiply (SpM-dM)
-   ### 3. Level 3 BLAS Routines: ###
+   3. Level 3 BLAS Routines:
       * csrgemm : Sparse Matrix - Sparse Matrix multiply 
       * csrgeam : Sparse Matrix - Sparse Matrix addition
-   ### 4. Conversion Routines: ###
+   4. Conversion Routines:
       * dense2csr : Dense to CSR conversions
       * csr2dense : CSR to Dense conversions
       * coo2csr : COO to CSR conversions 
       * dense2csc : Dense to CSC conversions
       * csc2dense : CSC to Dense conversions
-   ### Input Reader functions: ###
+   Input Reader functions:
       * mm-reader : Functions to read matrix market files in COO or CSR format
 
 ## B. Key Features: ##
