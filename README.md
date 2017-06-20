@@ -1,60 +1,51 @@
-# ** HcSPARSE ** #
+## HcSPARSE ##
 
-##Introduction: ##
+## A. Introduction: ##
 
-This repository hosts the HCC implementation of SPARSE subroutines. The following are the sub-routines that are implemented
+This repository hosts the HCC implementation of linear algebraic routines for sparse matrices/vectors (HcSparse), on AMD devices. To know what HCC compiler features, refer [here](https://github.com/RadeonOpenCompute/hcc). 
 
-1. csrmv  : Sparse Matrix - dense Vector multiply (SpM-dV)
-2. csrmm  : Sparse Matrix - dense Matrix multiply (SpM-dM)
-3. conjugate-gradients : Iterative conjugate gradient solver (CG)
-4. biconjugate-gradients-stabilized : Iterative biconjugate gradient stabilized solver (BiCGStab)
-5. dense2csr : Dense to CSR conversions
-6. csr2dense : CSR to Dense conversions
-7. coo2csr : COO to CSR conversions 
-8. mm-reader : Functions to read matrix market files in COO or CSR format
+Following list the routines that are currently supported by HcSparse.
 
-##Prerequisites: ##
+   # 1. Level 1 Routines: # 
+      * axpy : Product of Sparse Vector with constant and followed by addition of dense Vector.
+      * dot : Dot product of Sparse Vector with dense Vector
+   # 2. Level 2 BLAS Routines: #
+      * csrmv  : Sparse Matrix - dense Vector multiply (SpM-dV) 
+      * csrmm  : Sparse Matrix - dense Matrix multiply (SpM-dM)
+   # 3. Level 3 BLAS Routines: #
+      * csrgemm : Sparse Matrix - Sparse Matrix multiply 
+      * csrgeam : Sparse Matrix - Sparse Matrix addition
+   # 4. Conversion Routines: #
+      * dense2csr : Dense to CSR conversions
+      * csr2dense : CSR to Dense conversions
+      * coo2csr : COO to CSR conversions 
+      * dense2csc : Dense to CSC conversions
+      * csc2dense : CSC to Dense conversions
+   # Input Reader functions: #
+   * mm-reader : Functions to read matrix market files in COO or CSR format
 
-**Hardware Requirements:**
+## B. Key Features: ##
 
-* CPU: mainstream brand, Better if with >=4 Cores Intel Haswell based CPU 
+   * Supports COO, CSR, CSC, Dense matrix formats.
+   * Level 1 Routines for sparse vector with dense formats
+   * Level 2 routines for sparse matrix with dense vector/matrix formats
+   * Level 2 routines for sparse matrix with sparse matrix operations.
+   * Conversion routines that supports conversion between different matrix formats.
+   * conjugate-gradients : iterative conjugate gradient solver (CG)
+   * biconjugate-gradients-stabilized : Iterative biconjugate gradient stabilized solver (BiCGStab)
 
+## C. Prerequisites ##
 
-**GPU SDK and driver Requirements:**
+* Refer Prerequisites section [here](https://github.com/ROCmSoftwarePlatform/HcSPARSE/wiki/Prerequisites)
 
-* AMD R9 Fury X, R9 Fur, R9 Nano + Boltzmann driver
-* AMD APU Kaveri or Carrizo + HSA driver
+## D. Tested Environment so far 
 
-**System software requirements:**
+* Refer Tested environments enumerated [here](https://github.com/ROCmSoftwarePlatform/HcSPARSE/wiki/Tested-Environments)
 
-* Ubuntu 14.04 trusty
-* GCC 4.6 and later
+## E. Installation  
 
+* Follow installation steps as described [here](https://github.com/ROCmSoftwarePlatform/HcSPARSE/wiki/Installation)
 
-## Installation Steps:    
+## F. Unit testing
 
-### A. HCC Compiler Installation: 
-   
-**Install HCC compiler debian package:**
-
- (i) Download the debian package from  [Compiler-Debians](https://bitbucket.org/multicoreware/hcc/downloads/hcc-0.8.16024-6617a6a-a152a36-5a1009a-Linux.deb)
-
- (ii) Install the deb package 
-               
-                  sudo dpkg -i  hcc-0.8.16024-6617a6a-a152a36-5a1009a-Linux.deb
-                  
-   Note: The hcc compiler binaries and libraries gets installed under /opt/hcc path
-   
-** Build and Install HcSparse: **
- 
- (i) Clone the hcsparse repo 
- 
-                   git clone https://bitbucket.org/multicoreware/hcsparse.git
-                   
- (ii) Build hcsparse library
-                    
-                    run ./build.sh
-                    
- (iii) Build and run test
- 
-                    run ./build.sh --test=on  (this will build and run the gtest)
+* Follow testing procedures as explained [here](https://github.com/ROCmSoftwarePlatform/HcSPARSE/wiki/Unit-testing)
