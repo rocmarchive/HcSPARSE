@@ -73,7 +73,7 @@ int main()
 
     bool ispassed = 1;
 
-    control.accl_view.copy(host_R, gR.values, sizeof(float) * num_elements);
+    control.accl_view.copy(gR.values, host_R, sizeof(float) * num_elements);
 
     for (int i = 0; i < num_elements; i++)
     {

@@ -107,7 +107,7 @@ TEST(csrmv_double_test, func_check)
         }
     }
 
-    control.accl_view.copy(host_Y, gY.values, sizeof(double) * num_row);
+    control.accl_view.copy(gY.values, host_Y, sizeof(double) * num_row);
 
     for (int i = 0; i < num_row; i++)
     {

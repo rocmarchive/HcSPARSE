@@ -112,7 +112,7 @@ TEST(csrmv_float_test, func_check)
             host_res[row] = host_alpha[0] * host_X[colIndices[col]] * values[col] + host_res[row];
         }
     }
-    control.accl_view.copy(host_Y, gY.values, sizeof(float) * num_row);
+    control.accl_view.copy(gY.values, host_Y, sizeof(float) * num_row);
 
     for (int i = 0; i < num_row; i++)
     {

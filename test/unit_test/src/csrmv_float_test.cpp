@@ -115,7 +115,7 @@ int main(int argc, char *argv[])
         }
     }
 
-    control.accl_view.copy(host_Y, gY.values, sizeof(float) * num_row);
+    control.accl_view.copy(gY.values, host_Y, sizeof(float) * num_row);
 
     bool isPassed = 1;  
  

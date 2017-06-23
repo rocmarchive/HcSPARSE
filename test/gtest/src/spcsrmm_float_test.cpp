@@ -109,9 +109,9 @@ TEST(spcsrmm_float_test, func_check)
     int *rowIndices_C = (int*)calloc(num_row+1, sizeof(int));
     int *colIndices_C = (int*)calloc(num_nonzero, sizeof(int));
 
-    gMatB.values = am_alloc(sizeof(float)*num_nonzero, acc[1], 0);
-    gMatB.rowOffsets = am_alloc(sizeof(float)*num_row+1, acc[1], 0);
-    gMatB.colIndices = am_alloc(sizeof(float)*num_nonzero, acc[1], 0);
+    gMatC.values = am_alloc(sizeof(float)*20736, acc[1], 0);
+    gMatC.rowOffsets = am_alloc(sizeof(float)*num_row+1, acc[1], 0);
+    gMatC.colIndices = am_alloc(sizeof(float)*20736, acc[1], 0);
 
     hcsparseScsrSpGemm(&gMatA, &gMatB, &gMatC, &control);
 
