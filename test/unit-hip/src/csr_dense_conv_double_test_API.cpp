@@ -34,7 +34,7 @@ TEST(csr_dense_conv_double_test, func_check)
     gCsrMat.rowOffsets = (int*) am_alloc((num_row+1) * sizeof(int), acc[1], 0);
     gCsrMat.colIndices = (int*) am_alloc(num_nonzero * sizeof(int), acc[1], 0);
 
-    hcsparseSCsrMatrixfromFile(&gCsrMat, filename, &control, false);
+    hcsparseDCsrMatrixfromFile(&gCsrMat, filename, &control, false);
 
      /* Test New APIs */
     hipsparseHandle_t handle;

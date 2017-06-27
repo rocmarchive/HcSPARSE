@@ -97,7 +97,7 @@ TEST(csrmm_double_test, func_check)
     gCsrMat.rowOffsets = am_alloc(sizeof(int) * (num_row_A+1), acc[1], 0);
     gCsrMat.colIndices = am_alloc(sizeof(int) * num_nonzero, acc[1], 0);
 
-    status = hcsparseSCsrMatrixfromFile(&gCsrMat, filename, &control, false);
+    status = hcsparseDCsrMatrixfromFile(&gCsrMat, filename, &control, false);
     if (status != hcsparseSuccess)
     {
         std::cout<<"The input file should be in mtx format"<<std::endl;

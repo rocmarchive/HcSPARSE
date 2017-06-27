@@ -108,31 +108,31 @@ int main(int argc, char *argv[])
     for (int i = 0; i < num_nonzero; i++)
     {
         float diff = std::abs(csr_val[i] - csr_res_val[i]);
-        if (diff > 0.01)
+//        if (diff > 0.01)
         {
-            std::cout << i << " " << csr_val[i] << " " << csr_res_val[i] << std::endl;
+            std::cout <<"values \t"<< i << " " << csr_val[i] << " " << csr_res_val[i] << std::endl;
             ispassed = 0;
-            break;
+//            break;
         }
     }
 
     for (int i = 0; i < num_nonzero; i++)
     {
-        if (csr_colInd[i] != csr_res_colInd[i])
+//        if (csr_colInd[i] != csr_res_colInd[i])
         {
-            std::cout << i << " " << csr_colInd[i] << " " << csr_res_colInd[i] << std::endl;
+            std::cout << "colIndices \t"<< i << " " << csr_colInd[i] << " " << csr_res_colInd[i] << std::endl;
             ispassed = 0;
-            break;
+//            break;
         }
     }
 
     for (int i = 0; i < num_row+1; i++)
     {
-        if (csr_rowPtr[i] != csr_res_rowPtr[i])
+//        if (csr_rowPtr[i] != csr_res_rowPtr[i])
         {
-            std::cout << i << " " << csr_rowPtr[i] << " " << csr_res_rowPtr[i] << std::endl;
+            std::cout << "rowOffsets \t"<< i << " " << csr_rowPtr[i] << " " << csr_res_rowPtr[i] << std::endl;
             ispassed = 0;
-            break;
+//            break;
         }
     }
     std::cout << (ispassed?"TEST PASSED":"TEST FAILED") << std::endl;

@@ -66,10 +66,10 @@ TEST(csrmv_double_test, func_check)
     gX.num_values = num_col;
     gY.num_values = num_row;
 
-    control.accl_view.copy(gX.values, host_X, sizeof(double) * num_col);
-    control.accl_view.copy(gY.values, host_Y, sizeof(double) * num_row);
-    control.accl_view.copy(gAlpha.value, host_alpha, sizeof(double) * 1);
-    control.accl_view.copy(gBeta.value, host_beta, sizeof(double) * 1);
+    control.accl_view.copy(host_X, gX.values, sizeof(double) * num_col);
+    control.accl_view.copy(host_Y, gY.values, sizeof(double) * num_row);
+    control.accl_view.copy(host_alpha, gAlpha.value,sizeof(double) * 1);
+    control.accl_view.copy(host_beta, gBeta.value, sizeof(double) * 1);
 
     gCsrMat.offValues = 0;
     gCsrMat.offColInd = 0;
@@ -91,9 +91,9 @@ TEST(csrmv_double_test, func_check)
         exit (1);
     }
  
-    control.accl_view.copy(values, gCsrMat.values, sizeof(double) * num_nonzero);
-    control.accl_view.copy(rowOffsets, gCsrMat.rowOffsets, sizeof(int) * (num_row+1));
-    control.accl_view.copy(colIndices, gCsrMat.colIndices, sizeof(int) * num_nonzero);
+    control.accl_view.copy(gCsrMat.values, values,  sizeof(double) * num_nonzero);
+    control.accl_view.copy(gCsrMat.rowOffsets, rowOffsets, sizeof(int) * (num_row+1));
+    control.accl_view.copy(gCsrMat.colIndices, colIndices, sizeof(int) * num_nonzero);
 
     hcsparseDcsrmv(&gAlpha, &gCsrMat, &gX, &gBeta, &gY, &control); 
 
