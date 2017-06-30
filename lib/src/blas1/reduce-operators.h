@@ -25,13 +25,13 @@ T sqr (T a, T b) __attribute__((hc, cpu))
 template <typename T>
 T fabs (T a, T b) __attribute__((hc, cpu))
 {
-    return a + hc::fast_math::fabs(b);
+    return a + hc::precise_math::fabsf((float)b);
 }
 
 template <typename T>
 T sqr_root (T a) __attribute__((hc, cpu))
 {
-    return hc::fast_math::sqrt(a);
+    return hc::precise_math::sqrtf((float)a);
 }
 
 template <typename T>

@@ -130,7 +130,7 @@ inline T two_sum( T x,
     // and "Rundungsfehleranalyse einiger Verfahren zur Summation endlicher
     // Summen (ZAMM Z. Angewandte Mathematik und Mechanik 54(1) pp. 39-51,
     // 1974), respectively.
-    if (hc::fast_math::fabs(x) < hc::fast_math::fabs(y))
+    if (hc::precise_math::fabs(x) < hc::precise_math::fabs(y))
     {
         const T swap = x;
         x = y;
@@ -155,7 +155,7 @@ inline T two_fma( const T x_vals,
 #ifdef EXTENDED_PRECISION
     T x = x_vals * x_vec;
     const T sumk_s = x + y;
-    if (hc::fast_math::fabs(x) < hc::fast_math::fabs(y))
+    if (hc::fast_math::fabsf(x) < hc::fast_math::fabsf(y))
     {
         const T swap = x;
         x = y;
@@ -236,7 +236,7 @@ T atomic_two_sum_float (T *x_ptr,
 #ifdef EXTENDED_PRECISION
     T x;
     sumk_s = atomic_add_float_extended(x_ptr, y, &x);
-    if (hc::fast_math::fabs(x) < hc::fast_math::fabs(y))
+    if (hc::precise_math::fabs(x) < hc::precise_math::fabs(y))
     {
         const T swap = x;
         x = y;

@@ -267,8 +267,8 @@ void mergepath_liu (hc::tiled_index<1> &tidx,
         return;
     int local_id = tidx.local[0];
     int local_size = tidx.tile_dim[0];
-    int delta = hc::fast_math::ceil((float)(a_length + b_length) / (float)local_size);
-    int active_threads = hc::fast_math::ceil((float)(a_length + b_length) / (float)delta);
+    int delta = hc::precise_math::ceil((float)(a_length + b_length) / (float)local_size);
+    int active_threads = hc::precise_math::ceil((float)(a_length + b_length) / (float)delta);
     int offset = delta * local_id;
     int a_start, a_stop, b_start, b_stop;
     if (!local_id)
@@ -368,7 +368,7 @@ void mergepath_global_2level_liu (hc::tiled_index<1>  &tidx,
     int local_id = tidx.local[0];
     int local_size = tidx.tile_dim[0];
     int delta_2level = local_size * 9;
-    int loop_2level = hc::fast_math::ceil((float)(a_length + b_length) / (float)delta_2level);
+    int loop_2level = hc::precise_math::ceil((float)(a_length + b_length) / (float)delta_2level);
     int a_border_2level_l, b_border_2level_l, a_border_2level_r, b_border_2level_r;
     for (int i = 0; i < loop_2level; i++)
     {
@@ -439,7 +439,7 @@ void readwrite_mergedlist_global (hc::tiled_index<1>        &tidx,
     int local_id = tidx.local[0];
     int local_size = tidx.tile_dim[0];
     int stride, offset_local_id, global_offset;
-    int loop = hc::fast_math::ceil((float)merged_size / (float)local_size);
+    int loop = hc::precise_math::ceil((float)merged_size / (float)local_size);
     for (int i = 0; i < loop; i++)
     {
         stride = i != loop - 1 ? local_size : merged_size - i * local_size;
@@ -475,7 +475,7 @@ void readwrite_mergedlist (hc::tiled_index<1>  &tidx,
     int local_id = tidx.local[0];
     int local_size = tidx.tile_dim[0];
     int stride, offset_local_id, global_offset;
-    int loop = hc::fast_math::ceil((float)merged_size / (float)local_size);
+    int loop = hc::precise_math::ceil((float)merged_size / (float)local_size);
     for (int i = 0; i < loop; i++)
     {
         stride = i != loop - 1 ? local_size : merged_size - i * local_size;
@@ -814,7 +814,7 @@ hcsparseStatus compute_nnzCt (int m,
     size_t szGlobalWorkSize;
 
     int num_threads = GROUPSIZE_256;
-    int num_blocks = hc::fast_math::ceil((double)m / (double)num_threads);
+    int num_blocks = hc::precise_math::ceil((double)m / (double)num_threads);
 
     szLocalWorkSize  = num_threads;
     szGlobalWorkSize = num_blocks * szLocalWorkSize;
@@ -1174,7 +1174,7 @@ hcsparseStatus compute_nnzC_Ct_mergepath (int num_blocks, int j, int mergebuffer
             is_last = false;
             stop_col_index_B  = csrRowPtrB[reg_reuse1 + 1];  // reg_reuse1 = row_id_B
             stride = stop_col_index_B - start_col_index_B;
-            loop  = hc::fast_math::ceil(stride / local_size_float); //ceil((float)stride / (float)local_size);
+            loop  = hc::precise_math::ceil(stride / local_size_float); //ceil((float)stride / (float)local_size);
             start_col_index_B += local_id;
             for (k = 0; k < loop; k++)
             {
@@ -1357,20 +1357,20 @@ hcsparseStatus compute_nnzC_Ct_general (int *_h_counter_one,
 
             if (j == 0)
             {
-                int num_blocks = hc::fast_math::ceil((double)counter / (double)GROUPSIZE_256);
+                int num_blocks = hc::precise_math::ceil((double)counter / (double)GROUPSIZE_256);
 
                 run_status = compute_nnzC_Ct_0<T> (num_blocks, j, counter, _h_counter_one[j], queue_one, csrRowPtrC, control);
             }
             else if (j == 1)
             {
-                int num_blocks = hc::fast_math::ceil((double)counter / (double)GROUPSIZE_256);
+                int num_blocks = hc::precise_math::ceil((double)counter / (double)GROUPSIZE_256);
 
                 run_status = compute_nnzC_Ct_1<T> (num_blocks, j, counter, _h_counter_one[j], queue_one, csrRowPtrA, csrColIndA, csrValA, csrRowPtrB,
                                                    csrColIndB, csrValB, csrRowPtrC, csrRowPtrCt, csrColIndCt, csrValCt, control);
             }
             else if (j > 1 && j <= 32)
             {
-                int num_blocks = hc::fast_math::ceil((double)counter / (double)GROUPSIZE_256);
+                int num_blocks = hc::precise_math::ceil((double)counter / (double)GROUPSIZE_256);
                 run_status = compute_nnzC_Ct_2heap_noncoalesced_local<T> (num_blocks, j, counter, _h_counter_one[j], queue_one, csrRowPtrA, csrColIndA, csrValA,
                                                                           csrRowPtrB, csrColIndB, csrValB, csrRowPtrC, csrRowPtrCt, csrColIndCt, csrValCt, control);
             }
@@ -1562,7 +1562,7 @@ hcsparseStatus copy_Ct_to_C_general (int *counter_one,
             if (j == 1)
             {
                 int num_threads = GROUPSIZE_256;
-                int num_blocks  = hc::fast_math::ceil((double)counter / (double)num_threads);
+                int num_blocks  = hc::precise_math::ceil((double)counter / (double)num_threads);
                 run_status = copy_Ct_to_C_Single<T> (num_blocks, counter, counter_one[j], csrValC, csrRowPtrC, csrColIndC, csrValCt, csrRowPtrCt, csrColIndCt, queue_one, control);
             }
             else if (j > 1 && j <= 123)
