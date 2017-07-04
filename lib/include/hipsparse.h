@@ -46,12 +46,12 @@ enum hipsparseStatus_t {
 // paths to provide a consistent include env and avoid "missing symbol" errors that only appears
 // on NVCC path:
 
-#if defined(__HIP_PLATFORM_HCC__) and not defined (__HIP_PLATFORM_NVCC__)
+#if defined(__HCC__)
 #include <hcc_detail/hip_sparse.h>
-#elif defined(__HIP_PLATFORM_NVCC__) and not defined (__HIP_PLATFORM_HCC__)
+#elif defined(__NVCC__) 
 #include <nvcc_detail/hip_sparse.h>
 #else 
-#error("Must define exactly one of __HIP_PLATFORM_HCC__ or __HIP_PLATFORM_NVCC__");
+#error("Must define exactly one of __HCC__ or __NVCC__");
 #endif 
 
 
