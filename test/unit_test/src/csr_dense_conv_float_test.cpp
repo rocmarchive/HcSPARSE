@@ -68,6 +68,11 @@ int main(int argc, char *argv[])
     gMat.num_rows = num_row;
     gMat.num_cols = num_col;
 
+    // Memset the device memory as there is no API available in hc as of now
+    control.accl_view.copy(csr_res_values, gCsrMat_res.values, num_nonzero * sizeof(float));
+    control.accl_view.copy(csr_res_rowOff, gCsrMat_res.rowOffsets, (num_row+1) * sizeof(int));
+    control.accl_view.copy(csr_res_colIndices, gCsrMat_res.colIndices, num_nonzero * sizeof(int));
+    
     hcsparseSCsrMatrixfromFile(&gCsrMat, filename, &control, false);
 
     hcsparseScsr2dense(&gCsrMat, &gMat, &control);
@@ -75,6 +80,9 @@ int main(int argc, char *argv[])
     control.accl_view.copy(gCsrMat.values, csr_values, num_nonzero * sizeof(float));
     control.accl_view.copy(gCsrMat.rowOffsets, csr_rowOff, (num_row+1) * sizeof(int));
     control.accl_view.copy(gCsrMat.colIndices, csr_colIndices, num_nonzero * sizeof(int));
+
+    float *A_h = (float*) calloc(num_row*num_col, sizeof(float));
+    control.accl_view.copy(gMat.values, A_h, num_row*num_col * sizeof(float));
 
     hcsparseSdense2csr(&gMat, &gCsrMat_res, &control);
 
@@ -84,6 +92,9 @@ int main(int argc, char *argv[])
 
     bool ispassed = 1;
 
+    for (int i = 0; i < num_row * num_col; i++) {
+       std::cout << i << "dense_val: " << A_h[i] << std::endl;
+    }
     for (int i = 0; i < num_nonzero; i++)
     {
         float diff = std::abs(csr_values[i] - csr_res_values[i]);

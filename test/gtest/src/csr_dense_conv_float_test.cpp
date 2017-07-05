@@ -64,6 +64,11 @@ TEST(csr_dense_conv_float_test, func_check)
     gMat.num_rows = num_row;
     gMat.num_cols = num_col;
 
+    // Memset the device memory as there is no API available in hc as of now
+    control.accl_view.copy(csr_res_values, gCsrMat_res.values, num_nonzero * sizeof(float));
+    control.accl_view.copy(csr_res_rowOff, gCsrMat_res.rowOffsets, (num_row+1) * sizeof(int));
+    control.accl_view.copy(csr_res_colIndices, gCsrMat_res.colIndices, num_nonzero * sizeof(int));
+
     hcsparseSCsrMatrixfromFile(&gCsrMat, filename, &control, false);
 
     hcsparseScsr2dense(&gCsrMat, &gMat, &control);

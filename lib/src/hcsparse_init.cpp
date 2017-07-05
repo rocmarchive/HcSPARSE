@@ -596,7 +596,6 @@ hcsparseSnnz(hcsparseHandle_t handle,
 
   // Stage 1:  nnz_locations is filled with 1/0 based on nonzero values
   stat = calculate_num_nonzeros<float>((ulong)m*n, A, nnz_locations1, nnz, &control); 
-  std::cout << "nnz total" << nnz<<std::endl;
   control.accl_view.copy(&nnz, nnzTotalDevHostPtr, sizeof(int)*1);
 
 //#define DEBUG
@@ -2012,9 +2011,16 @@ hcsparseSCsrMatrixfromFile (hcsparseCsrMatrix* csrMatx, const char* filePath, hc
     }
     else
         return hcsparseInvalid;
+
     // Read data from a file on disk into CPU buffers
     // Data is read natively as COO format with the reader
     MatrixMarketReader< float > mm_reader;
+
+    // Read header data of input file
+    if( mm_reader.MMReadHeader( filePath ) )
+        return hcsparseInvalid;
+    int header_nnz = mm_reader.GetNumNonZeroes( );
+
     if( mm_reader.MMReadFormat( filePath, read_explicit_zeroes ) )
         return hcsparseInvalid;
 
@@ -2026,13 +2032,23 @@ hcsparseSCsrMatrixfromFile (hcsparseCsrMatrix* csrMatx, const char* filePath, hc
     csrMatx->num_cols = mm_reader.GetNumCols( );
     csrMatx->num_nonzeros = mm_reader.GetNumNonZeroes( );
 
+
     Coordinate<float>* coords = mm_reader.GetUnsymCoordinates( );
 
     std::sort( coords, coords + csrMatx->num_nonzeros, CoordinateCompare< float > );
 
-    float *values = (float*)calloc(csrMatx->num_nonzeros, sizeof(float));
-    int *rowOffsets = (int*)calloc((csrMatx->num_rows)+1, sizeof(int));
-    int *colIndices = (int*)calloc(csrMatx->num_nonzeros, sizeof(int));
+    float *values;
+    int *rowOffsets, *colIndices;
+
+    if (header_nnz > csrMatx->num_nonzeros)  {
+      values = (float*)calloc(header_nnz, sizeof(float));
+      rowOffsets = (int*)calloc((csrMatx->num_rows)+1, sizeof(int));
+      colIndices = (int*)calloc(header_nnz, sizeof(int));
+    } else {
+      values = (float*)calloc(csrMatx->num_nonzeros, sizeof(float));
+      rowOffsets = (int*)calloc((csrMatx->num_rows)+1, sizeof(int));
+      colIndices = (int*)calloc(csrMatx->num_nonzeros, sizeof(int));
+    }
 
     int current_row = 0;
     rowOffsets[ 0 ] = 0;
@@ -2048,9 +2064,15 @@ hcsparseSCsrMatrixfromFile (hcsparseCsrMatrix* csrMatx, const char* filePath, hc
     while( current_row <= csrMatx->num_rows )
         rowOffsets[ current_row++ ] = csrMatx->num_nonzeros;
 
-    control->accl_view.copy(values, csrMatx->values, sizeof(float) * csrMatx->num_nonzeros);
-    control->accl_view.copy(rowOffsets, csrMatx->rowOffsets, sizeof(int) * (csrMatx->num_rows+1));
-    control->accl_view.copy(colIndices, csrMatx->colIndices, sizeof(int) * csrMatx->num_nonzeros);
+    if (header_nnz > csrMatx->num_nonzeros) {
+      control->accl_view.copy(values, csrMatx->values, sizeof(float) * header_nnz);
+      control->accl_view.copy(rowOffsets, csrMatx->rowOffsets, sizeof(int) * (csrMatx->num_rows+1));
+      control->accl_view.copy(colIndices, csrMatx->colIndices, sizeof(int) * header_nnz);
+    } else {
+      control->accl_view.copy(values, csrMatx->values, sizeof(float) * csrMatx->num_nonzeros);
+      control->accl_view.copy(rowOffsets, csrMatx->rowOffsets, sizeof(int) * (csrMatx->num_rows+1));
+      control->accl_view.copy(colIndices, csrMatx->colIndices, sizeof(int) * csrMatx->num_nonzeros);
+    }
 
     free(values);
     free(rowOffsets);
@@ -2077,7 +2099,13 @@ hcsparseDCsrMatrixfromFile (hcsparseCsrMatrix* csrMatx, const char* filePath, hc
 
     // Read data from a file on disk into CPU buffers
     // Data is read natively as COO format with the reader
-    MatrixMarketReader< double > mm_reader;
+    MatrixMarketReader< double > mm_reader; 
+
+    // Read header data of input file
+    if( mm_reader.MMReadHeader( filePath ) )
+        return hcsparseInvalid;
+    int header_nnz = mm_reader.GetNumNonZeroes( );
+
     if( mm_reader.MMReadFormat( filePath, read_explicit_zeroes ) )
         return hcsparseInvalid;
 
@@ -2089,9 +2117,19 @@ hcsparseDCsrMatrixfromFile (hcsparseCsrMatrix* csrMatx, const char* filePath, hc
 
     std::sort( coords, coords + csrMatx->num_nonzeros, CoordinateCompare<double> );
 
-    double *values = (double*)calloc(csrMatx->num_nonzeros, sizeof(double));
-    int *rowOffsets = (int*)calloc(csrMatx->num_rows+1, sizeof(int));
-    int *colIndices = (int*)calloc(csrMatx->num_nonzeros, sizeof(int));
+    double *values;
+    int *rowOffsets;
+    int *colIndices;
+
+    if (header_nnz > csrMatx->num_nonzeros) {
+      values = (double*)calloc(header_nnz, sizeof(double));
+      rowOffsets = (int*)calloc(csrMatx->num_rows+1, sizeof(int));
+      colIndices = (int*)calloc(header_nnz, sizeof(int));
+    } else {  
+      values = (double*)calloc(csrMatx->num_nonzeros, sizeof(double));
+      rowOffsets = (int*)calloc(csrMatx->num_rows+1, sizeof(int));
+      colIndices = (int*)calloc(csrMatx->num_nonzeros, sizeof(int));
+    }
 
     int current_row = 0;
     rowOffsets[ 0 ] = 0;
@@ -2107,9 +2145,15 @@ hcsparseDCsrMatrixfromFile (hcsparseCsrMatrix* csrMatx, const char* filePath, hc
     while( current_row <= csrMatx->num_rows )
         rowOffsets[ current_row++ ] = csrMatx->num_nonzeros;
 
-    control->accl_view.copy(values, csrMatx->values, sizeof(double) * csrMatx->num_nonzeros);
-    control->accl_view.copy(rowOffsets, csrMatx->rowOffsets, sizeof(int) * (csrMatx->num_rows+1));
-    control->accl_view.copy(colIndices, csrMatx->colIndices, sizeof(int) * csrMatx->num_nonzeros);
+    if (header_nnz > csrMatx->num_nonzeros) {
+      control->accl_view.copy(values, csrMatx->values, sizeof(double) * header_nnz);
+      control->accl_view.copy(rowOffsets, csrMatx->rowOffsets, sizeof(int) * (csrMatx->num_rows+1));
+      control->accl_view.copy(colIndices, csrMatx->colIndices, sizeof(int) * header_nnz);
+    } else {
+      control->accl_view.copy(values, csrMatx->values, sizeof(double) * csrMatx->num_nonzeros);
+      control->accl_view.copy(rowOffsets, csrMatx->rowOffsets, sizeof(int) * (csrMatx->num_rows+1));
+      control->accl_view.copy(colIndices, csrMatx->colIndices, sizeof(int) * csrMatx->num_nonzeros);
+    }
 
     free(values);
     free(rowOffsets);
