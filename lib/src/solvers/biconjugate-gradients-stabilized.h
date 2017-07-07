@@ -97,6 +97,7 @@ bicgStab(hcdenseVector *pX,
     T *one_buff = (T*) calloc(1, sizeof(T));
 
     one_buff[0] = 1;
+    T zero_buff = 1;
 
     hcsparseScalar one;
     hcsparseScalar zero;
@@ -104,15 +105,49 @@ bicgStab(hcdenseVector *pX,
     one.value = am_alloc(sizeof(T)*1, acc, 0);
     zero.value = am_alloc(sizeof(T)*1, acc, 0);
     control->accl_view.copy(one_buff, one.value, sizeof(T)*1);
+    control->accl_view.copy(&zero_buff, zero.value, sizeof(T)*1);
 
     one.offValue = 0;
     zero.offValue = 0;
 
     // y = A * x
+    control->accl_view.wait();
     status = csrmv<T>(&one, pA, pX, &zero, &y, control);
+    control->accl_view.wait();
+
+#if 0
+#ifndef NDEBUG
+    float *x_h = (float *)calloc(N, sizeof(T));
+    int *Arow = (int *)calloc(pA->num_rows+1, sizeof(int));
+    int *Acol = (int *)calloc(pA->num_nonzeros, sizeof(int));
+    T *Aval = (T *)calloc(pA->num_nonzeros, sizeof(T));
+    float *y_h = (float *)calloc(N, sizeof(T));
+    control->accl_view.copy(pX->values, x_h, N*sizeof(T));
+    control->accl_view.copy(pA->values, Aval, pA->num_nonzeros*sizeof(T));
+    control->accl_view.copy(pA->rowOffsets, Arow, (pA->num_rows+1)*sizeof(int));
+    control->accl_view.copy(pA->colIndices, Acol, pA->num_nonzeros*sizeof(int));
+    for (int i = 0; i < N ; i++) 
+      std::cout << i << " x_h : " << x_h[i] << std::endl;
+    for (int i = 0; i < pA->num_nonzeros ; i++) 
+      std::cout << i << " val : " << Aval[i] << " col : " << Acol[i] << std::endl;
+#endif
+#endif
 
     // r = b - y
     status = elementwise_transform<T, EW_MINUS>(&r, pB, &y, control);
+
+#if 0
+#ifndef NDEBUG
+    float *r_h = (float *)calloc(N, sizeof(T));
+    float *B_h = (float *)calloc(N, sizeof(T));
+    control->accl_view.copy(r.values, r_h, N*sizeof(T));
+    control->accl_view.copy(y.values, y_h, N*sizeof(T));
+    control->accl_view.copy(pB->values, B_h, N*sizeof(T));
+    for (int i = 0; i < N ; i++) 
+      std::cout << i << " r_h : " << r_h[i] << " pB : " 
+                << B_h[i] << " y_h : " << y_h[i] << std::endl;
+#endif
+#endif
 
     T *norm_r_buff = (T*) calloc(1, sizeof(T));
 
@@ -123,9 +158,10 @@ bicgStab(hcdenseVector *pX,
     status = Norm1<T>(&norm_r, &r, control);
     control->accl_view.copy(norm_r.value, norm_r_buff, sizeof(T)*1);
     T *residuum_buff = (T*) calloc(1, sizeof(T));
-    residuum_buff[0] = div<T>(norm_r_buff[0], norm_b_buff[0]);
+    residuum_buff[0] = (T)(norm_r_buff[0] / norm_b_buff[0]);
 
     solverControl->initialResidual = residuum_buff[0];
+
 #ifndef NDEBUG
     std::cout << "initial residuum = "
               << solverControl->initialResidual << std::endl;
