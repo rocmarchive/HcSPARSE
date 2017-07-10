@@ -18,10 +18,12 @@ dense2csr (hcsparseControl* control, int m, int n,
   int num_nonzeros = 0;
 
   calculate_num_nonzeros<T> (dense_size, Avalues, nnz_locations, num_nonzeros, control);
+  control->accl_view.wait();
 
   int *coo_indexes = (int*) am_alloc(dense_size * sizeof(int), acc, 0);
 
   exclusive_scan<int, EW_PLUS>(dense_size, coo_indexes, nnz_locations, control);
+  control->accl_view.wait();
 
   hcsparseCooMatrix coo;
   hcsparseCsrMatrix csr;
@@ -54,11 +56,15 @@ dense2csr (hcsparseControl* control, int m, int n,
   csr.colIndices = static_cast<int*>(csrColIndA);
 
   dense_to_coo<T> (dense_size, n, static_cast<int*>(coo.rowIndices), static_cast<int*>(coo.colIndices), static_cast<T*>(coo.values), Avalues, nnz_locations, coo_indexes, control);
+  control->accl_view.wait();
 
-  if (typeid(T) == typeid(double))
+  if (typeid(T) == typeid(double)) {
       hcsparseDcoo2csr(&coo, &csr, control);
-  else
+      control->accl_view.wait();
+  } else {
       hcsparseScoo2csr(&coo, &csr, control);
+      control->accl_view.wait();
+  }
 
   am_free(nnz_locations);
   am_free(coo_indexes);
