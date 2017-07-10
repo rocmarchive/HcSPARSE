@@ -29,11 +29,9 @@ indices_to_offsets (const int num_rows,
     exclusive_scan<T, EW_PLUS> (num_rows, av_csrOffsets, av_csrOffsets, control);
     control->accl_view.wait();
 
-#if 0
     free(values);
     am_free(av_values);
     am_free(av_keys_output);
-#endif
 
     return hcsparseSuccess;
 }
