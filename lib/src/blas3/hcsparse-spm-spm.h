@@ -1642,7 +1642,10 @@ csrSpGemm(hcsparseControl* control,
     int nnzC = csrRowPtrC_h[m];
 
     control->accl_view.copy(csrRowPtrC_h, (void *)csrRowPtrC, (m + 1) * sizeof(int));
-    
+
+    csrValC = (T*) am_alloc(nnzC * sizeof(T), acc, 0);
+    csrColIndC = (int *) am_alloc(nnzC * sizeof(int), acc, 0);
+
     status2 = copy_Ct_to_C_general<T> (counter_one, csrValC, (int*)csrRowPtrC, csrColIndC, csrValCt, csrRowPtrCt_d, csrColIndCt, queue_one_d, control);
     
     if (status1 == hcsparseSuccess && status2 == hcsparseSuccess)

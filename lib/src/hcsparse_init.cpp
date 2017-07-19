@@ -465,9 +465,15 @@ hcsparseScsrgemm(hcsparseHandle_t handle,
     return HCSPARSE_STATUS_NOT_INITIALIZED;
 
   if (!csrValA || !csrRowPtrA || !csrColIndA || 
-      !csrValB || !csrRowPtrB || !csrColIndB ||
-      !csrValC || !csrRowPtrC || !csrColIndC )
+      !csrValB || !csrRowPtrB || !csrColIndB )
     return HCSPARSE_STATUS_ALLOC_FAILED;
+
+  // Deallocate the output array varibles which are allocated
+  // inside the code after calculating the num of nonzeros 
+  if (csrValC) 
+    am_free(csrValC);
+  if (csrColIndC)
+    am_free(csrColIndC);
 
   if (descrA.MatrixType != HCSPARSE_MATRIX_TYPE_GENERAL || 
       descrB.MatrixType != HCSPARSE_MATRIX_TYPE_GENERAL ||
@@ -521,9 +527,15 @@ hcsparseDcsrgemm(hcsparseHandle_t handle,
     return HCSPARSE_STATUS_NOT_INITIALIZED;
 
   if (!csrValA || !csrRowPtrA || !csrColIndA || 
-      !csrValB || !csrRowPtrB || !csrColIndB ||
-      !csrValC || !csrRowPtrC || !csrColIndC )
+      !csrValB || !csrRowPtrB || !csrColIndB )
     return HCSPARSE_STATUS_ALLOC_FAILED;
+
+  // Deallocate the output array varibles which are allocated
+  // inside the code after calculating the num of nonzeros 
+  if (csrValC) 
+    am_free(csrValC);
+  if (csrColIndC)
+    am_free(csrColIndC);
 
   if (descrA.MatrixType != HCSPARSE_MATRIX_TYPE_GENERAL || 
       descrB.MatrixType != HCSPARSE_MATRIX_TYPE_GENERAL ||
