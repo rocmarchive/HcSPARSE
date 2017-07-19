@@ -113,9 +113,9 @@ int main(int argc, char *argv[])
     int *rowIndices_C = (int*)calloc(num_row+1, sizeof(int));
     int *colIndices_C = (int*)calloc(num_nonzero, sizeof(int));
 
-    gMatC.values = am_alloc(sizeof(float) * num_nonzero, acc[1], 0);
+    gMatC.values = am_alloc(sizeof(float) * 20736, acc[1], 0);
     gMatC.rowOffsets = am_alloc(sizeof(int) * (num_row+1), acc[1], 0);
-    gMatC.colIndices = am_alloc(sizeof(int) * num_nonzero, acc[1], 0);
+    gMatC.colIndices = am_alloc(sizeof(int) * 20736, acc[1], 0);
 
     hcsparseScsrSpGemm(&gMatA, &gMatB, &gMatC, &control);
 

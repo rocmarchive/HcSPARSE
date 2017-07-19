@@ -969,7 +969,7 @@ hcsparseXcsr2coo(hcsparseHandle_t handle, const int *csrRowPtr,
   hcsparseControl control(handle->currentAcclView);
   hcsparseStatus stat = hcsparseSuccess;
 
-  stat = offsets_to_indices<int> (m+1, nnz, cooRowInd, csrRowPtr, &control);
+  stat = offsets_to_indices<int> (m, nnz, cooRowInd, csrRowPtr, &control);
 
   if (stat != hcsparseSuccess)
     return HCSPARSE_STATUS_EXECUTION_FAILED;
@@ -1007,7 +1007,7 @@ hcsparseXcoo2csr(hcsparseHandle_t handle, const int *cooRowInd,
   hcsparseControl control(handle->currentAcclView);
   hcsparseStatus stat = hcsparseSuccess;
 
-  stat = indices_to_offsets<int> (m+1, nnz, csrRowPtr, cooRowInd, &control);
+  stat = indices_to_offsets<int> (m, nnz, csrRowPtr, cooRowInd, &control);
 
   if (stat != hcsparseSuccess)
     return HCSPARSE_STATUS_EXECUTION_FAILED;
