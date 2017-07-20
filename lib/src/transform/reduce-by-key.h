@@ -237,6 +237,7 @@ reduce_by_key (int size,
         }
     }).wait();
 
+    control->accl_view.wait();
     am_free(offsetArray);
     am_free(offsetValArray);
     am_free(keySumArray);
