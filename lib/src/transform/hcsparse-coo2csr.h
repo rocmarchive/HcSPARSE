@@ -46,6 +46,7 @@ coo2csr (const hcsparseCooMatrix* coo,
     int num_rows = coo->num_rows + 1;
  
     coo2csr_kernel<T> (coo_colIndices, coo_values, csr_colIndices, csr_values, size, control);
+    control->accl_view.wait();
 
     return indices_to_offsets<int> (num_rows, size, csr_rowOffsets, coo_rowIndices, control); 
 }

@@ -107,6 +107,7 @@ TEST(csrmv_adaptive_double_test, func_check)
     hcsparseCsrMetaCompute(&gCsrMat, &control);
  
     hcsparseDcsrmv(&gAlpha, &gCsrMat, &gX, &gBeta, &gY, &control); 
+    control.accl_view.wait();
 
     int col = 0;
     for (int row = 0; row < num_row; row++)
