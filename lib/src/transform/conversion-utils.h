@@ -296,6 +296,7 @@ transform_csc_2_dense (ulong size,
                 A[row_indices[j] * num_cols + col] = values[j];
         }
     }).wait();
+    control->accl_view.wait();
 
     return hcsparseSuccess;
 }

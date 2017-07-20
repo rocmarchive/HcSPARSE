@@ -829,9 +829,11 @@ hcsparseScsc2dense(hcsparseHandle_t handle, int m, int n,
   hcsparseStatus stat = hcsparseSuccess;
 
   fill_zero<float>((ulong)m*n, A, &control);
+  control.accl_view.wait();
 
   stat = transform_csc_2_dense<float> ((ulong)m*n, cscRowIndA, cscColPtrA, cscValA,\
                                        m, n, A, &control);
+
   if (stat != hcsparseSuccess)
     return HCSPARSE_STATUS_EXECUTION_FAILED;
 

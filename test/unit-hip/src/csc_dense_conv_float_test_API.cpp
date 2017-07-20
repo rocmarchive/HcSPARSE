@@ -136,6 +136,8 @@ TEST(csc_dense_conv_float_test, func_check)
       exit(1);
     }
 
+    handle->currentAcclView.wait();
+
     handle->currentAcclView.copy(cscValA, csc_res_val, num_nonzero * sizeof(float));
     handle->currentAcclView.copy(cscColPtrA, csc_res_colPtr, (num_col+1) * sizeof(int));
     handle->currentAcclView.copy(cscRowIndA, csc_res_rowInd, num_nonzero * sizeof(int));
