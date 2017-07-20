@@ -35,6 +35,7 @@ csr2dense (const hcsparseCsrMatrix* csr,
     T *Avalues = static_cast<T*>(A->values);
 
     fill_zero<T> (dense_size, Avalues, control);
+    control->accl_view.wait();
 
     return transform_csr_2_dense<T> (dense_size, offsets, indices, values,
                                      csr->num_rows, csr->num_cols, Avalues, control);

@@ -114,6 +114,7 @@ TEST(spcsrmm_float_test, func_check)
     gMatC.colIndices = am_alloc(sizeof(float)*20736, acc[1], 0);
 
     hcsparseScsrSpGemm(&gMatA, &gMatB, &gMatC, &control);
+    control.accl_view.wait();
 
 /*    hcsparseScsr2dense(&gMatA, &gDenseMatA, &control);
     hcsparseScsr2dense(&gMatB, &gDenseMatB, &control); 

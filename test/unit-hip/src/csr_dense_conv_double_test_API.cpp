@@ -73,6 +73,8 @@ TEST(csr_dense_conv_double_test, func_check)
 
     status1 = hipsparseDcsr2dense(handle, num_row, num_col,
                                  descrA, csrValA, csrRowPtrA, csrColIndA, A, num_row);
+    control.accl_view.wait();
+    
     if (status1 != HIPSPARSE_STATUS_SUCCESS) {
       std::cout << "Error csr2dense conversion "<<std::endl;
       exit(1);
@@ -85,6 +87,7 @@ TEST(csr_dense_conv_double_test, func_check)
     int nnzperrow = 0;
     status1 = hipsparseDdense2csr(handle, num_row, num_col,
                                  descrA, A, num_row, &nnzperrow, csrValA, csrRowPtrA, csrColIndA);
+    control.accl_view.wait();
     if (status1 != HIPSPARSE_STATUS_SUCCESS) {
       std::cout << "Error dense2csr conversion "<<std::endl;
       exit(1);

@@ -41,12 +41,14 @@ reduce_by_key (int size,
         }
     }).wait();
 
+    control->accl_view.wait();
     inclusive_scan<T, EW_PLUS>(size, offsetArray, offsetArray, control);
 
     T *keySumArray = (T*) am_alloc(numWrkGrp * sizeof(T), acc, 0);
     T *preSumArray = (T*) am_alloc(numWrkGrp * sizeof(T), acc, 0);
     T *postSumArray = (T*) am_alloc(numWrkGrp * sizeof(T), acc, 0);
 
+    control->accl_view.wait();
     hc::parallel_for_each(control->accl_view, t_ext_numElm, [=] (hc::tiled_index<1> &tidx) [[hc]]
     {
         tile_static T ldsKeys[BLOCK_SIZE];
@@ -103,6 +105,7 @@ reduce_by_key (int size,
 
     int workPerThread = (numWrkGrp - 1) / BLOCK_SIZE + 1;
 
+    control->accl_view.wait();
     hc::extent<1> grdExt_blk(BLOCK_SIZE);
     hc::tiled_extent<1> t_ext_blk = grdExt_blk.tile(BLOCK_SIZE);
     hc::parallel_for_each(control->accl_view, t_ext_blk, [=] (hc::tiled_index<1> &tidx) [[hc]]
@@ -193,6 +196,7 @@ reduce_by_key (int size,
         }
     }).wait();
 
+    control->accl_view.wait();
     hc::parallel_for_each(control->accl_view, t_ext_numElm, [=] (hc::tiled_index<1> &tidx) [[hc]]
     {
         size_t gloId = tidx.global[0];
@@ -218,6 +222,7 @@ reduce_by_key (int size,
 
     }).wait();
 
+    control->accl_view.wait();
     hc::parallel_for_each(control->accl_view, t_ext_numElm, [=] (hc::tiled_index<1> &tidx) [[hc]]
     {
         size_t gloId = tidx.global[0];
@@ -236,6 +241,7 @@ reduce_by_key (int size,
             offsetArray [ gloId ] = numSections;
         }
     }).wait();
+    control->accl_view.wait();
 
     am_free(offsetArray);
     am_free(offsetValArray);

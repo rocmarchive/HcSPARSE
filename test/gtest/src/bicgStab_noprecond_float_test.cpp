@@ -89,6 +89,7 @@ TEST(bicgStab_noprecond_float_test, func_check)
 
     hcsparseScsrbicgStab(&gX, &gA, &gB, solver_control, &control); 
 
+    control.accl_view.wait();
     hcsparseTeardown();
 
     free(host_X);

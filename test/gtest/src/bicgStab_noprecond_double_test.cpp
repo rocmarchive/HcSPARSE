@@ -86,7 +86,8 @@ TEST(bicgStab_noprecond_double_test, func_check)
     hcsparseSolverControl *solver_control;
 
     solver_control = hcsparseCreateSolverControl(NOPRECOND, maxIter, relTol, absTol); 
-    hcsparseDcsrbicgStab(&gX, &gA, &gB, solver_control, &control); 
+    hcsparseDcsrbicgStab(&gX, &gA, &gB, solver_control, &control);
+    control.accl_view.wait(); 
 
     hcsparseTeardown();
 
