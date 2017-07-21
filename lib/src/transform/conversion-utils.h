@@ -82,7 +82,7 @@ offsets_to_indices (const int num_rows,
             for(int j = row_start + thread_lane; j < row_end; j += subwave_size)
                 av_cooIndices[j] = row;
         }
-    }).wait();
+    });
 
     return hcsparseSuccess;
 }
@@ -137,7 +137,7 @@ transform_csr_2_dense (ulong size,
             for(int j = row_start + thread_lane; j < row_end; j += subwave_size)
                 A[row * num_cols + col_indices[j]] = values[j];
         }
-    }).wait();
+    });
 
     return hcsparseSuccess;
 }
@@ -176,7 +176,7 @@ calculate_num_nonzeros (ulong dense_size,
             else
                 nnz_locations[index] = 0;
         }
-    }).wait();
+    });
 
     control->accl_view.copy(nnz_locations, nnz_locations1, dense_size * sizeof(int));
 
@@ -238,7 +238,7 @@ dense_to_coo (ulong dense_size,
             col_indices[ location ] = col_index;
             values [ location ] = A[index];
         }
-    }).wait();
+    });
 
     return hcsparseSuccess;
 }
@@ -293,7 +293,7 @@ transform_csc_2_dense (ulong size,
             for(int j = col_start + thread_lane; j < col_end; j += subwave_size)
                 A[row_indices[j] * num_cols + col] = values[j];
         }
-    }).wait();
+    });
 
     return hcsparseSuccess;
 }

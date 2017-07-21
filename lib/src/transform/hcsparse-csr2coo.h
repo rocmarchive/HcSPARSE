@@ -21,7 +21,7 @@ void csr2coo_kernel (int *coo_col,
             coo_col[i] = csr_col[i];
             coo_values[i] = csr_values[i];
         }
-    }).wait();
+    });
 }
 
 template <typename T>

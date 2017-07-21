@@ -23,7 +23,7 @@ void elementwise_transform_kernel (const long size,
         {
             pR[i + pROffset] = operation<T, OP>(pX[i + pXOffset], pY[i + pYOffset]);
         }
-    }).wait();
+    });
 }
 
 template<typename T, ElementWiseOperator OP>

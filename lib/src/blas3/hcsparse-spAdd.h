@@ -21,7 +21,7 @@ vector_add (int size, T *A, T *B, const T *alpha,
        C[global_id] += alpha[0] * A[global_id] + beta[0] * B[global_id];
      }
 
-   }).wait();
+   });
 
    return hcsparseSuccess;
 } 

@@ -15,7 +15,7 @@ fill_zero (ulong size,
         int i = tidx.global[0];
         if (i < size)
             values[i] = 0;
-    }).wait();
+    });
 }
 
 template <typename T>

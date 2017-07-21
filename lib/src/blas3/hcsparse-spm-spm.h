@@ -839,7 +839,7 @@ hcsparseStatus compute_nnzCt (int m,
         }
         if (global_id == 0)
             csrRowPtrCt[m] = 0;
-    }).wait();
+    });
 
     return hcsparseSuccess;
  }
@@ -868,7 +868,7 @@ hcsparseStatus compute_nnzC_Ct_0 (int num_blocks, int j,
             int row_id = queue_one[TUPLE_QUEUE * (position + global_id)];
             csrRowPtrC[row_id] = 0;
         }
-    }).wait();
+    });
 
     return hcsparseSuccess;
 }
@@ -919,7 +919,7 @@ hcsparseStatus compute_nnzC_Ct_1 (int num_blocks, int j,
                 break;
             }
         }
-    }).wait();
+    });
 
     return hcsparseSuccess;
 }
@@ -992,7 +992,7 @@ hcsparseStatus compute_nnzC_Ct_2heap_noncoalesced_local (int num_blocks, int j,
                 csrValCt[base_index + i] = s_val[(local_start+i) * local_size + local_id];
             }
         }
-    }).wait();
+    });
 
     return hcsparseSuccess;
 }
@@ -1096,7 +1096,7 @@ hcsparseStatus compute_nnzC_Ct_bitonic_scan (int num_blocks, int j, int position
             csrColIndCt[global_offset] = s_key[local_id_halfwidth];
             csrValCt[global_offset] = s_val[local_id_halfwidth];
         }
-    }).wait();
+    });
     
     return hcsparseSuccess;
 }
@@ -1275,7 +1275,7 @@ hcsparseStatus compute_nnzC_Ct_mergepath (int num_blocks, int j, int mergebuffer
                                         s_key_merged_l1, s_val_merged_l1,
                                         &d_key_merged[merged_size_l2 + merged_size_l1],
                                         &d_val_merged[merged_size_l2 + merged_size_l1]);
-    }).wait();
+    });
 
     control->accl_view.copy(queue_one, _h_queue_one, m * TUPLE_QUEUE * sizeof(int)); 
 
@@ -1447,7 +1447,7 @@ hcsparseStatus copy_Ct_to_C_Single (int num_blocks, int position, int size,
             csrColIndC[C_base_start] = colC;
             csrValC[C_base_start]    = valC;
         }
-    }).wait();
+    });
 
     return hcsparseSuccess;
 }
@@ -1484,7 +1484,7 @@ hcsparseStatus copy_Ct_to_C_Loopless (int num_blocks, int position,
             csrColIndC[C_base_start] = csrColIndCt[Ct_base_start];
             csrValC[C_base_start]    = csrValCt[Ct_base_start];
         }
-    }).wait();
+    });
 
     return hcsparseSuccess;
     
@@ -1534,7 +1534,7 @@ hcsparseStatus copy_Ct_to_C_Loop (int num_blocks, int position,
             C_base_start += local_size;
             Ct_base_start += local_size;
         }
-    }).wait();
+    });
 
     return hcsparseSuccess;
 }
