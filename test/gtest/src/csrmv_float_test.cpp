@@ -102,7 +102,6 @@ TEST(csrmv_float_test, func_check)
     control.accl_view.copy(gCsrMat.colIndices, colIndices, sizeof(int) * num_nonzero);
 
     hcsparseScsrmv(&gAlpha, &gCsrMat, &gX, &gBeta, &gY, &control);
-    control.accl_view.wait(); 
 
     int col = 0;
     for (int row = 0; row < num_row; row++)

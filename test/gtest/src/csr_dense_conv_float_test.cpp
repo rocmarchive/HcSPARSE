@@ -72,15 +72,12 @@ TEST(csr_dense_conv_float_test, func_check)
     hcsparseSCsrMatrixfromFile(&gCsrMat, filename, &control, false);
 
     hcsparseScsr2dense(&gCsrMat, &gMat, &control);
-    control.accl_view.wait();
 
     control.accl_view.copy(gCsrMat.values, csr_values, num_nonzero * sizeof(float));
     control.accl_view.copy(gCsrMat.rowOffsets, csr_rowOff, (num_row+1) * sizeof(int));
     control.accl_view.copy(gCsrMat.colIndices, csr_colIndices, num_nonzero * sizeof(int));
-    control.accl_view.wait();
 
     hcsparseSdense2csr(&gMat, &gCsrMat_res, &control);
-    control.accl_view.wait();
 
     control.accl_view.copy(gCsrMat_res.values, csr_res_values, num_nonzero * sizeof(float));
     control.accl_view.copy(gCsrMat_res.rowOffsets, csr_res_rowOff, (num_row+1) * sizeof(int));

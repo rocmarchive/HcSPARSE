@@ -40,7 +40,6 @@ dense2csc (hcsparseControl* control,
 
   // Transpose the matrix so it will be in row major format
   transpose_kernel<T>(control, m, n, A, transA);
-  control->accl_view.wait();
 
   // Perform dense2csr conversion
   dense2csr(control, m, n, transA, cscValA, cscColPtrA, cscRowIndA);

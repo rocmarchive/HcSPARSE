@@ -1360,7 +1360,6 @@ hcsparseStatus compute_nnzC_Ct_general (int *_h_counter_one,
                 int num_blocks = hc::precise_math::ceil((double)counter / (double)GROUPSIZE_256);
 
                 run_status = compute_nnzC_Ct_0<T> (num_blocks, j, counter, _h_counter_one[j], queue_one, csrRowPtrC, control);
-                control->accl_view.wait();
             }
             else if (j == 1)
             {
@@ -1368,7 +1367,6 @@ hcsparseStatus compute_nnzC_Ct_general (int *_h_counter_one,
 
                 run_status = compute_nnzC_Ct_1<T> (num_blocks, j, counter, _h_counter_one[j], queue_one, csrRowPtrA, csrColIndA, csrValA, csrRowPtrB,
                                                    csrColIndB, csrValB, csrRowPtrC, csrRowPtrCt, csrColIndCt, csrValCt, control);
-                control->accl_view.wait();
             }
             else if (j > 1 && j <= 32)
             {
@@ -1382,7 +1380,6 @@ hcsparseStatus compute_nnzC_Ct_general (int *_h_counter_one,
 
                 run_status = compute_nnzC_Ct_bitonic_scan<T> (num_blocks, j, _h_counter_one[j], queue_one, csrRowPtrA, csrColIndA, csrValA, csrRowPtrB,
                                                               csrColIndB, csrValB, csrRowPtrC, csrRowPtrCt, csrColIndCt, csrValCt, _n, control);
-                control->accl_view.wait();
             }
             else if (j == 127)
             {
@@ -1401,7 +1398,6 @@ hcsparseStatus compute_nnzC_Ct_general (int *_h_counter_one,
                       
                     run_status = compute_nnzC_Ct_mergepath<T> (num_blocks, j, mergebuffer_size, _h_counter_one[j], &count_next, MERGEPATH_GLOBAL, queue_one, csrRowPtrA, csrColIndA,
                                                                csrValA, csrRowPtrB, csrColIndB, csrValB, csrRowPtrC, csrRowPtrCt, csrColIndCt, csrValCt, &_nnzCt, m, queue_one_h, control);
-                    control->accl_view.wait();
 
                 }
 
@@ -1568,17 +1564,13 @@ hcsparseStatus copy_Ct_to_C_general (int *counter_one,
                 int num_threads = GROUPSIZE_256;
                 int num_blocks  = hc::precise_math::ceil((double)counter / (double)num_threads);
                 run_status = copy_Ct_to_C_Single<T> (num_blocks, counter, counter_one[j], csrValC, csrRowPtrC, csrColIndC, csrValCt, csrRowPtrCt, csrColIndCt, queue_one, control);
-                control->accl_view.wait();
             }
             else if (j > 1 && j <= 123) {
                 run_status = copy_Ct_to_C_Loopless<T> (counter, counter_one[j], csrValC, csrRowPtrC, csrColIndC, csrValCt, csrRowPtrCt, csrColIndCt, queue_one, control);
-                control->accl_view.wait();
             } else if (j == 124) {
                 run_status = copy_Ct_to_C_Loop<T> (counter, counter_one[j], csrValC, csrRowPtrC, csrColIndC, csrValCt, csrRowPtrCt, csrColIndCt, queue_one, control);
-                control->accl_view.wait();
             } else if (j == 127) {
                 run_status = copy_Ct_to_C_Loop<T> (counter, counter_one[j], csrValC, csrRowPtrC, csrColIndC, csrValCt, csrRowPtrCt, csrColIndCt, queue_one, control);
-                control->accl_view.wait();
             }
         }
     }

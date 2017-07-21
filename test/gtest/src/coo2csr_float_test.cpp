@@ -79,7 +79,6 @@ TEST(coo2csr_float_test, func_check)
     hcsparseSCsrMatrixfromFile(&gCsrMat_ref, filename, &control, false);
 
     hcsparseScoo2csr(&gCooMat, &gCsrMat_res, &control);
-    control.accl_view.wait();
 
     control.accl_view.copy(gCsrMat_ref.values, csr_ref_values, num_nonzero * sizeof(float));
     control.accl_view.copy(gCsrMat_ref.rowOffsets, csr_ref_rowOff, (num_row+1) * sizeof(int));

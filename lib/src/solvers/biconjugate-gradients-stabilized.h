@@ -111,9 +111,7 @@ bicgStab(hcdenseVector *pX,
     zero.offValue = 0;
 
     // y = A * x
-    control->accl_view.wait();
     status = csrmv<T>(&one, pA, pX, &zero, &y, control);
-    control->accl_view.wait();
 
 #if 0
 #ifndef NDEBUG

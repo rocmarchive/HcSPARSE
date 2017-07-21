@@ -24,11 +24,10 @@ indices_to_offsets (const int num_rows,
     control->accl_view.copy(values, av_values, size * sizeof(T));
 
     reduce_by_key<T> (size, av_keys_output, av_csrOffsets, av_cooIndices, av_values, control);
-    control->accl_view.wait();
 
     exclusive_scan<T, EW_PLUS> (num_rows, av_csrOffsets, av_csrOffsets, control);
-    control->accl_view.wait();
 
+    control->accl_view.wait();
     free(values);
     am_free(av_values);
     am_free(av_keys_output);
@@ -139,7 +138,6 @@ transform_csr_2_dense (ulong size,
                 A[row * num_cols + col_indices[j]] = values[j];
         }
     }).wait();
-    control->accl_view.wait();
 
     return hcsparseSuccess;
 }
@@ -296,7 +294,6 @@ transform_csc_2_dense (ulong size,
                 A[row_indices[j] * num_cols + col] = values[j];
         }
     }).wait();
-    control->accl_view.wait();
 
     return hcsparseSuccess;
 }

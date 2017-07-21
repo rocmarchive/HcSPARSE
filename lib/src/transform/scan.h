@@ -88,7 +88,6 @@ scan (int size,
             preSumArray1[ groId ] = lds[wgSize/2 -1];
         }
     }).wait();
-    control->accl_view.wait();
 
     T workPerThread = sizeScanBuff / BLOCK_SIZE;
 
@@ -170,7 +169,6 @@ scan (int size,
             }
         } // for
     }).wait();
-    control->accl_view.wait();
 
     hc::extent<1> grdExt(numElementsRUP);
     hc::tiled_extent<1> t_ext = grdExt.tile(BLOCK_SIZE);
