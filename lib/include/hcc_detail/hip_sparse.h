@@ -23,7 +23,6 @@ THE SOFTWARE.
 
 #include <hip/hip_runtime_api.h>
 #include <hip/hip_hcc.h>
-#include <hcsparse.h>
 
 //HGSOS for Kalmar leave it as C++, only cuSPARSE needs C linkage.
 
@@ -31,8 +30,24 @@ THE SOFTWARE.
 extern "C" {
 #endif
 
-typedef hcsparseHandle_t hipsparseHandle_t ;
-typedef hcsparseMatDescr_t hipsparseMatDescr_t ;
+enum hcsparseIndexBase_t:uint32_t;
+enum hcsparseOperation_t:uint32_t;
+enum hcsparseDirection_t:uint32_t;
+enum hcsparseStatus_t:uint32_t;
+enum hcsparseFillMode_t:uint32_t;
+enum hcsparseDiagType_t:uint32_t;
+enum hcsparseMatrixType_t:uint32_t;
+
+typedef struct {
+    hcsparseMatrixType_t MatrixType;
+    hcsparseFillMode_t FillMode;
+    hcsparseDiagType_t DiagType;
+    hcsparseIndexBase_t IndexBase;
+} hipsparseMatDescr_t;
+
+
+
+typedef struct hcsparseLibrary* hipsparseHandle_t ;
 typedef hcsparseIndexBase_t hipsparseIndexBase_t ;
 typedef hcsparseOperation_t hipsparseOperation_t;
 typedef hcsparseDirection_t hipsparseDirection_t;

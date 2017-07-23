@@ -20,7 +20,7 @@ typedef int hcsparseStream_t;
 // core functions can be retrieved via  hcsparseGetError() . Currently, the 
 // following values are defined: 
 
-enum hcsparseStatus_t {
+enum hcsparseStatus_t : uint32_t {
   HCSPARSE_STATUS_SUCCESS,          // Function succeeds
   HCSPARSE_STATUS_NOT_INITIALIZED,  // HCSPARSE library not initialized
   HCSPARSE_STATUS_ALLOC_FAILED,     // resource allocation failed
@@ -39,7 +39,7 @@ enum hcsparseStatus_t {
 // Note that in this case the routine assumes the diagonal entries are equal to one, 
 // regardless of what those entries are actually set to in memory.
 
-enum hcsparseDiagType_t {
+enum hcsparseDiagType_t :uint32_t {
   HCSPARSE_DIAG_TYPE_NON_UNIT, // the matrix diagonal has non-unit elements.
   HCSPARSE_DIAG_TYPE_UNIT      // the matrix diagonal has unit elements.
 };
@@ -48,7 +48,7 @@ enum hcsparseDiagType_t {
 
 // This type indicates if the lower or upper part of a matrix is stored in sparse storage.
 
-enum hcsparseFillMode_t {
+enum hcsparseFillMode_t : uint32_t{
   HCSPARSE_FILL_MODE_LOWER,  // the lower triangular part is stored.
   HCSPARSE_FILL_MODE_UPPER   // the upper triangular part is stored.
 };
@@ -57,7 +57,7 @@ enum hcsparseFillMode_t {
 
 // This type indicates if the base of the matrix indices is zero or one.
 
-enum hcsparseIndexBase_t {
+enum hcsparseIndexBase_t : uint32_t {
   HCSPARSE_INDEX_BASE_ZERO,  // the base index is zero.
   HCSPARSE_INDEX_BASE_ONE
 };
@@ -68,7 +68,7 @@ enum hcsparseIndexBase_t {
 // Notice that for symmetric, Hermitian and triangular matrices only their lower 
 // or upper part is assumed to be stored.
 
-enum hcsparseMatrixType_t {
+enum hcsparseMatrixType_t:uint32_t{
   HCSPARSE_MATRIX_TYPE_GENERAL,    // the matrix is general.
   HCSPARSE_MATRIX_TYPE_SYMMETRIC,  // the matrix is symmetric.
   HCSPARSE_MATRIX_TYPE_HERMITIAN,  // the matrix is hermitian.
@@ -90,7 +90,7 @@ typedef struct {
 
 // This type indicates which operations need to be performed with the sparse matrix.
 
-enum hcsparseOperation_t {
+enum hcsparseOperation_t : uint32_t {
   HCSPARSE_OPERATION_NON_TRANSPOSE,
   HCSPARSE_OPERATION_TRANSPOSE,
   HCSPARSE_OPERATION_CONJUGATE_TRANSPOSE
@@ -101,7 +101,7 @@ enum hcsparseOperation_t {
 // This type indicates whether the elements of a dense matrix
 // should be parsed by rows or by columns in function hcsparse[S|D|C|Z]nnz.
 
-enum hcsparseDirection_t {
+enum hcsparseDirection_t : uint32_t{
   HCSPARSE_DIRECTION_ROW,
   HCSPARSE_DIRECTION_COLUMN
 };
