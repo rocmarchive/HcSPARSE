@@ -48,10 +48,15 @@ TEST(csr_coo_conv_float_test, func_check)
     int num_row = 16;
     int num_col = 16;
     int num_nonzero = col.size();
-    int* csrRowPtrA = (int*) am_alloc((num_row+1) * sizeof(int), handle->currentAccl, 0);
-    int* cooRowIndA = (int*) am_alloc((num_nonzero) * sizeof(int), handle->currentAccl, 0);
+    int *csrRowPtrA = NULL;
+    int *cooRowIndA = NULL;
+    hipError_t err;
 
-    handle->currentAcclView.copy(rowbuf.data(), csrRowPtrA, (num_row + 1) * sizeof(int));
+   
+    err = hipMalloc(&csrRowPtrA, (num_row+1) * sizeof(int));
+    err = hipMalloc(&cooRowIndA, (num_nonzero) * sizeof(int));
+
+    hipMemcpy(csrRowPtrA, rowbuf.data(), (num_row + 1) * sizeof(int), hipMemcpyHostToDevice);
 
     int *csr_rowPtr = (int*)calloc(num_row+1, sizeof(int));
     int *csr_res_rowPtr = (int*)calloc(num_row+1, sizeof(int));
@@ -65,8 +70,8 @@ TEST(csr_coo_conv_float_test, func_check)
       exit(1);
     }
 
-    control.accl_view.copy(csrRowPtrA, csr_rowPtr, (num_row+1) * sizeof(int));
-    control.accl_view.copy(cooRowIndA, coo_rowInd, (num_nonzero) * sizeof(int));
+    hipMemcpy(csr_rowPtr, csrRowPtrA, (num_row+1) * sizeof(int), hipMemcpyDeviceToHost);
+    hipMemcpy(coo_rowInd, cooRowIndA, (num_nonzero) * sizeof(int), hipMemcpyDeviceToHost);
 
     status1 = hipsparseXcoo2csr(handle, cooRowIndA, num_nonzero, num_row,
                                csrRowPtrA, HCSPARSE_INDEX_BASE_ZERO);
@@ -76,7 +81,7 @@ TEST(csr_coo_conv_float_test, func_check)
       exit(1);
     }
 
-    control.accl_view.copy(csrRowPtrA, csr_res_rowPtr, (num_row+1) * sizeof(int));
+    hipMemcpy(csr_res_rowPtr, csrRowPtrA, (num_row+1) * sizeof(int), hipMemcpyDeviceToHost);
 
     for (int i = 0; i < num_row+1; i++)
     {
@@ -95,6 +100,6 @@ TEST(csr_coo_conv_float_test, func_check)
   
     free(csr_rowPtr);
     free(csr_res_rowPtr);
-    am_free(csrRowPtrA);
-    am_free(cooRowIndA);
+    hipFree(csrRowPtrA);
+    hipFree(cooRowIndA);
 }

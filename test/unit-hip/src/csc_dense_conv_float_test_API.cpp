@@ -7,32 +7,6 @@
 
 TEST(csc_dense_conv_float_test, func_check)
 {
-#if 0
-    std::vector<accelerator>acc = accelerator::get_all();
-    accelerator_view accl_view = (acc[1].create_view()); 
-
-    hcsparseControl control(accl_view);
-    hcsparseSetup();
-
-    if (argc != 2)
-    {
-        std::cout<<"Required mtx input file"<<std::endl;
-        exit(1);
-    }
-
-    const char* filename = argv[1];
-    int num_nonzero, num_row, num_col;
-    hcsparseStatus status;
-
-   status = hcsparseHeaderfromFile(&num_nonzero, &num_row, &num_col, filename);
-    if (status != hcsparseSuccess)
-    {
-        std::cout<<"The input file should be in mtx format"<<std::endl;
-        exit(1);
-    }
-
-    hcsparseSCsrMatrixfromFile(&gCsrMat, filename, &control, false);
-#else
 
     int num_row = 4;
     int num_col = 5;
@@ -68,7 +42,6 @@ TEST(csc_dense_conv_float_test, func_check)
     rowInd[6] = 2;
     rowInd[7] = 2;
     rowInd[8] = 3;
-#endif
 
      /* Test New APIs */
     hipsparseHandle_t handle;
@@ -88,10 +61,16 @@ TEST(csc_dense_conv_float_test, func_check)
       exit(1);
     }
 
-    float* cscValA = (float*) am_alloc(num_nonzero * sizeof(float), handle->currentAccl, 0);
-    int* cscColPtrA = (int*) am_alloc((num_col+1) * sizeof(int), handle->currentAccl, 0);
-    int* cscRowIndA = (int*) am_alloc(num_nonzero * sizeof(int), handle->currentAccl, 0);
-    float* A = (float*) am_alloc(num_row*num_col * sizeof(float), handle->currentAccl, 0);
+    float* cscValA = NULL;
+    int *cscColPtrA = NULL;
+    int *cscRowIndA = NULL;
+    float *A = NULL;
+    hipError_t err;
+
+    err = hipMalloc(&cscValA, num_nonzero * sizeof(float));
+    err = hipMalloc(&cscColPtrA, (num_col+1) * sizeof(int));
+    err = hipMalloc(&cscRowIndA, num_nonzero * sizeof(int));
+    err = hipMalloc(&A, num_row*num_col * sizeof(float));
 
     float *csc_val = (float*)calloc(num_nonzero, sizeof(float));
     int *csc_colPtr = (int*)calloc(num_col+1, sizeof(int));
@@ -101,9 +80,9 @@ TEST(csc_dense_conv_float_test, func_check)
     int *csc_res_colPtr = (int*)calloc(num_col+1, sizeof(int));
     int *csc_res_rowInd = (int*)calloc(num_nonzero, sizeof(int));    
      
-    handle->currentAcclView.copy(valPtr, cscValA, num_nonzero * sizeof(double));
-    handle->currentAcclView.copy(colPtr, cscColPtrA, (num_col+1) * sizeof(int));
-    handle->currentAcclView.copy(rowInd, cscRowIndA, num_nonzero * sizeof(int));
+    hipMemcpy(cscValA, valPtr, num_nonzero * sizeof(double), hipMemcpyHostToDevice);
+    hipMemcpy(cscColPtrA, colPtr, (num_col+1) * sizeof(int), hipMemcpyHostToDevice);
+    hipMemcpy(cscRowIndA, rowInd, num_nonzero * sizeof(int), hipMemcpyHostToDevice);
 
     status1 = hipsparseScsc2dense(handle, num_row, num_col,
                                  descrA, cscValA, cscColPtrA, cscRowIndA, A, num_col);
@@ -112,22 +91,9 @@ TEST(csc_dense_conv_float_test, func_check)
       exit(1);
     }
 
-    handle->currentAcclView.copy(cscValA, csc_val, num_nonzero * sizeof(float));
-    handle->currentAcclView.copy(cscColPtrA, csc_colPtr, (num_col+1) * sizeof(int));
-    handle->currentAcclView.copy(cscRowIndA, csc_rowInd, num_nonzero * sizeof(int));
-
-#if 0
-    float* A_h = (float*) calloc(num_row*num_col, sizeof(float));
-    handle->currentAcclView.copy(A, A_h, num_row*num_col * sizeof(float));
-    std::cout << "After conversion - csrval" << std::endl;
-    for (int i = 0; i < num_nonzero; i++)
-      std::cout << i << " " << csc_val[i] <<  std::endl;
-
-    std::cout << "After conversion - dense A " << std::endl;
-    for (int i = 0; i < num_row*num_col; i++)
-      std::cout << i << " " << A_h[i] <<  std::endl;
-#endif
-
+    hipMemcpy(csc_val, cscValA, num_nonzero * sizeof(float), hipMemcpyDeviceToHost);
+    hipMemcpy(csc_colPtr, cscColPtrA, (num_col+1) * sizeof(int), hipMemcpyDeviceToHost);
+    hipMemcpy(csc_rowInd, cscRowIndA, num_nonzero * sizeof(int), hipMemcpyDeviceToHost);
 
     int nnzperrow = 0;
     status1 = hipsparseSdense2csc(handle, num_row, num_col,
@@ -139,13 +105,12 @@ TEST(csc_dense_conv_float_test, func_check)
 
     handle->currentAcclView.wait();
 
-    handle->currentAcclView.copy(cscValA, csc_res_val, num_nonzero * sizeof(float));
-    handle->currentAcclView.copy(cscColPtrA, csc_res_colPtr, (num_col+1) * sizeof(int));
-    handle->currentAcclView.copy(cscRowIndA, csc_res_rowInd, num_nonzero * sizeof(int));
+    hipMemcpy(csc_res_val, cscValA, num_nonzero * sizeof(float), hipMemcpyDeviceToHost);
+    hipMemcpy(csc_res_colPtr, cscColPtrA, (num_col+1) * sizeof(int), hipMemcpyDeviceToHost);
+    hipMemcpy(csc_res_rowInd, cscRowIndA, num_nonzero * sizeof(int), hipMemcpyDeviceToHost);
 
     bool ispassed = 1;
 
-    std::cout <<"Val check" << std::endl;
     for (int i = 0; i < num_nonzero; i++)
     {
         float diff = std::abs(csc_val[i] - csc_res_val[i]);
@@ -170,7 +135,7 @@ TEST(csc_dense_conv_float_test, func_check)
     free(csc_res_val);
     free(csc_res_colPtr);
     free(csc_res_rowInd);
-    am_free(cscValA);
-    am_free(cscColPtrA);
-    am_free(cscRowIndA);
+    hipFree(cscValA);
+    hipFree(cscColPtrA);
+    hipFree(cscRowIndA);
 }
