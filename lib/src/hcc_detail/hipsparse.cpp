@@ -28,6 +28,64 @@ hipsparseStatus_t hipHCSPARSEStatusToHIPStatus(hcsparseStatus_t hcStatus)
    }
 }
 
+hcsparseOperation_t hipHIPOperationToHCSPARSEOperation(hipsparseOperation_t op) 
+{
+   switch(op)
+   {
+      case HIPSPARSE_OPERATION_NON_TRANSPOSE:
+         return HCSPARSE_OPERATION_NON_TRANSPOSE;
+      case HIPSPARSE_OPERATION_TRANSPOSE:
+         return HCSPARSE_OPERATION_TRANSPOSE;
+      case HIPSPARSE_OPERATION_CONJUGATE_TRANSPOSE:
+         return HCSPARSE_OPERATION_CONJUGATE_TRANSPOSE;
+      default:
+         throw "Invalid Operation Specified";
+   }
+}
+
+hcsparseIndexBase_t hipHIPIndexBaseToHCSPARSEIndexBase(hipsparseIndexBase_t idBase) 
+{
+   switch(idBase)
+   {
+      case HIPSPARSE_INDEX_BASE_ZERO:
+         return HCSPARSE_INDEX_BASE_ZERO;
+      case HIPSPARSE_INDEX_BASE_ONE:
+         return HCSPARSE_INDEX_BASE_ONE;
+      default:
+         throw "Invalid Index Base Specified";
+   }
+}
+
+hcsparseMatrixType_t hipHIPMatrixTypeToHCSPARSEMatrixType(hipsparseMatrixType_t matType) 
+{
+   switch(matType)
+   {
+      case HIPSPARSE_MATRIX_TYPE_GENERAL:
+         return HCSPARSE_MATRIX_TYPE_GENERAL;
+      case HIPSPARSE_MATRIX_TYPE_SYMMETRIC:
+         return HCSPARSE_MATRIX_TYPE_SYMMETRIC;
+      case HIPSPARSE_MATRIX_TYPE_HERMITIAN:
+         return HCSPARSE_MATRIX_TYPE_HERMITIAN;
+      case HIPSPARSE_MATRIX_TYPE_TRIANGULAR:
+         return HCSPARSE_MATRIX_TYPE_TRIANGULAR;
+      default:
+         throw "Invalid Matrix Type Specified";
+   }
+}
+
+hcsparseDirection_t hipHIPDirectionToHCSPARSEDirection(hipsparseDirection_t dir) 
+{
+   switch(dir)
+   {
+      case HIPSPARSE_DIRECTION_ROW:
+         return HCSPARSE_DIRECTION_ROW;
+      case HIPSPARSE_DIRECTION_COLUMN:
+         return HCSPARSE_DIRECTION_COLUMN;
+      default:
+         throw "Invalid Index Base Specified";
+   }
+}
+
 hipsparseStatus_t hipsparseCreate(hipsparseHandle_t *handle)
 {
    int deviceId;
@@ -70,7 +128,8 @@ hipsparseStatus_t hipsparseSdoti(hipsparseHandle_t handle, int nnz,
                               hipsparseIndexBase_t idxBase){
 
   return hipHCSPARSEStatusToHIPStatus(hcsparseSdoti(handle, nnz, xVal, xInd, y, 
-                                                    resultDevHostPtr, idxBase));
+                                                    resultDevHostPtr,
+                                                    hipHIPIndexBaseToHCSPARSEIndexBase(idxBase)));
 }
 
 hipsparseStatus_t hipsparseDdoti(hipsparseHandle_t handle, int nnz, 
@@ -80,7 +139,8 @@ hipsparseStatus_t hipsparseDdoti(hipsparseHandle_t handle, int nnz,
                                  hipsparseIndexBase_t idxBase){
 
   return hipHCSPARSEStatusToHIPStatus(hcsparseDdoti(handle, nnz, xVal, xInd, y, 
-                                                    resultDevHostPtr, idxBase));
+                                                    resultDevHostPtr,
+                                                    hipHIPIndexBaseToHCSPARSEIndexBase(idxBase)));
 }
 
 //Sparse L2 BLAS operations
@@ -94,7 +154,7 @@ hipsparseStatus_t hipsparseScsrmv(hipsparseHandle_t handle, hipsparseOperation_t
                                   float           *y) {
 
    const hcsparseMatDescr_t *hcDescrA = reinterpret_cast<const hcsparseMatDescr_t*>(&descrA); 
-   return hipHCSPARSEStatusToHIPStatus(hcsparseScsrmv(handle, transA, m, n,
+   return hipHCSPARSEStatusToHIPStatus(hcsparseScsrmv(handle, hipHIPOperationToHCSPARSEOperation(transA), m, n,
                                                       nnz, alpha, *hcDescrA,
                                                       csrValA, csrRowPtrA,
                                                       csrColIndA, x, beta, y));
@@ -110,7 +170,7 @@ hipsparseStatus_t hipsparseDcsrmv(hipsparseHandle_t handle, hipsparseOperation_t
                                   double           *y) {
 
    const hcsparseMatDescr_t *hcDescrA = reinterpret_cast<const hcsparseMatDescr_t*>(&descrA); 
-   return hipHCSPARSEStatusToHIPStatus(hcsparseDcsrmv(handle, transA, m, n,
+   return hipHCSPARSEStatusToHIPStatus(hcsparseDcsrmv(handle, hipHIPOperationToHCSPARSEOperation(transA), m, n,
                                                       nnz, alpha, *hcDescrA,
                                                       csrValA, csrRowPtrA,
                                                       csrColIndA, x, beta, y));
@@ -132,7 +192,7 @@ hipsparseStatus_t hipsparseScsrmm(hipsparseHandle_t handle,
 
 
    const hcsparseMatDescr_t *hcDescrA = reinterpret_cast<const hcsparseMatDescr_t*>(&descrA); 
-   return hipHCSPARSEStatusToHIPStatus(hcsparseScsrmm(handle,transA, m, n, k, nnz,
+   return hipHCSPARSEStatusToHIPStatus(hcsparseScsrmm(handle,hipHIPOperationToHCSPARSEOperation(transA), m, n, k, nnz,
                                                       alpha, *hcDescrA, csrValA, csrRowPtrA,
                                                       csrColIndA, B, ldb, beta, C, ldc));
 }
@@ -149,7 +209,7 @@ hipsparseStatus_t hipsparseDcsrmm(hipsparseHandle_t handle,
                                                 const double *beta, double *C, int ldc) {
 
    const hcsparseMatDescr_t *hcDescrA = reinterpret_cast<const hcsparseMatDescr_t*>(&descrA); 
-   return hipHCSPARSEStatusToHIPStatus(hcsparseDcsrmm(handle, transA, m, n, k, nnz,
+   return hipHCSPARSEStatusToHIPStatus(hcsparseDcsrmm(handle, hipHIPOperationToHCSPARSEOperation(transA), m, n, k, nnz,
                                                       alpha, *hcDescrA, csrValA, csrRowPtrA,
                                                       csrColIndA, B, ldb, beta, C, ldc));
 }
@@ -173,14 +233,16 @@ hipsparseStatus_t hipsparseScsrgemm(hipsparseHandle_t handle,
    const hcsparseMatDescr_t *hcDescrA = reinterpret_cast<const hcsparseMatDescr_t*>(&descrA); 
    const hcsparseMatDescr_t *hcDescrB = reinterpret_cast<const hcsparseMatDescr_t*>(&descrB); 
    const hcsparseMatDescr_t *hcDescrC = reinterpret_cast<const hcsparseMatDescr_t*>(&descrC); 
-   return hipHCSPARSEStatusToHIPStatus(hcsparseScsrgemm(handle, transA,
-                                                          transB, m, n, k, *hcDescrA,
-                                                          nnzA, csrValA, csrRowPtrA,
-                                                          csrColIndA, *hcDescrB, nnzB,
-                                                          csrValB, csrRowPtrB,
-                                                          csrColIndB, *hcDescrC,
-                                                          csrValC, csrRowPtrC,
-                                                          csrColIndC));
+   return hipHCSPARSEStatusToHIPStatus(hcsparseScsrgemm(handle, 
+                                                        hipHIPOperationToHCSPARSEOperation(transA),
+                                                        hipHIPOperationToHCSPARSEOperation(transB),
+                                                        m, n, k, *hcDescrA,
+                                                        nnzA, csrValA, csrRowPtrA,
+                                                        csrColIndA, *hcDescrB, nnzB,
+                                                        csrValB, csrRowPtrB,
+                                                        csrColIndB, *hcDescrC,
+                                                        csrValC, csrRowPtrC,
+                                                        csrColIndC));
 }
 
 hipsparseStatus_t hipsparseDcsrgemm(hipsparseHandle_t handle,
@@ -202,14 +264,16 @@ hipsparseStatus_t hipsparseDcsrgemm(hipsparseHandle_t handle,
    const hcsparseMatDescr_t *hcDescrA = reinterpret_cast<const hcsparseMatDescr_t*>(&descrA); 
    const hcsparseMatDescr_t *hcDescrB = reinterpret_cast<const hcsparseMatDescr_t*>(&descrB); 
    const hcsparseMatDescr_t *hcDescrC = reinterpret_cast<const hcsparseMatDescr_t*>(&descrC); 
-   return hipHCSPARSEStatusToHIPStatus(hcsparseDcsrgemm(handle, transA,
-                                                          transB, m, n, k, *hcDescrA,
-                                                          nnzA, csrValA, csrRowPtrA,
-                                                          csrColIndA, *hcDescrB, nnzB,
-                                                          csrValB, csrRowPtrB,
-                                                          csrColIndB, *hcDescrC,
-                                                          csrValC, csrRowPtrC,
-                                                          csrColIndC));
+   return hipHCSPARSEStatusToHIPStatus(hcsparseDcsrgemm(handle, 
+                                                        hipHIPOperationToHCSPARSEOperation(transA),
+                                                        hipHIPOperationToHCSPARSEOperation(transB),
+                                                        m, n, k, *hcDescrA,
+                                                        nnzA, csrValA, csrRowPtrA,
+                                                        csrColIndA, *hcDescrB, nnzB,
+                                                        csrValB, csrRowPtrB,
+                                                        csrColIndB, *hcDescrC,
+                                                        csrValC, csrRowPtrC,
+                                                        csrColIndC));
 }
 
 hipsparseStatus_t hipsparseDcsrgemm(hipsparseHandle_t handle,
@@ -231,8 +295,10 @@ hipsparseStatus_t hipsparseDcsrgemm(hipsparseHandle_t handle,
    const hcsparseMatDescr_t *hcDescrA = reinterpret_cast<const hcsparseMatDescr_t*>(&descrA); 
    const hcsparseMatDescr_t *hcDescrB = reinterpret_cast<const hcsparseMatDescr_t*>(&descrB); 
    const hcsparseMatDescr_t *hcDescrC = reinterpret_cast<const hcsparseMatDescr_t*>(&descrC); 
-   return hipHCSPARSEStatusToHIPStatus(hcsparseDcsrgemm(handle, transA,
-                                                        transB, m, n, k, *hcDescrA,
+   return hipHCSPARSEStatusToHIPStatus(hcsparseDcsrgemm(handle,
+                                                        hipHIPOperationToHCSPARSEOperation(transA),
+                                                        hipHIPOperationToHCSPARSEOperation(transB),
+                                                        m, n, k, *hcDescrA,
                                                         nnzA, csrValA, csrRowPtrA,
                                                         csrColIndA, *hcDescrB, nnzB,
                                                         csrValB, csrRowPtrB,
@@ -360,7 +426,8 @@ hipsparseStatus_t hipsparseXcoo2csr(hipsparseHandle_t handle, const int *cooRowI
                                                   hipsparseIndexBase_t idxBase){
 
    return hipHCSPARSEStatusToHIPStatus(hcsparseXcoo2csr(handle, cooRowIndA, nnz,
-                                                        m, csrRowPtrA, idxBase));
+                                                        m, csrRowPtrA,
+                                                        hipHIPIndexBaseToHCSPARSEIndexBase(idxBase)));
 }
 
 hipsparseStatus_t hipsparseXcsr2coo(hipsparseHandle_t handle, const int *csrRowPtrA,
@@ -368,7 +435,8 @@ hipsparseStatus_t hipsparseXcsr2coo(hipsparseHandle_t handle, const int *csrRowP
                                                   hipsparseIndexBase_t idxBase){
 
   return hipHCSPARSEStatusToHIPStatus(hcsparseXcsr2coo(handle, csrRowPtrA, nnz,
-                                                       m, cooRowIndA, idxBase));
+                                                       m, cooRowIndA,
+                                                       hipHIPIndexBaseToHCSPARSEIndexBase(idxBase)));
 }
 
 hipsparseStatus_t hipsparseSnnz(hipsparseHandle_t handle, hipsparseDirection_t dirA, int m, 
@@ -377,7 +445,8 @@ hipsparseStatus_t hipsparseSnnz(hipsparseHandle_t handle, hipsparseDirection_t d
                               int *nnzPerRowColumn, int *nnzTotalDevHostPtr){
 
    const hcsparseMatDescr_t *hcDescrA = reinterpret_cast<const hcsparseMatDescr_t*>(&descrA); 
-  return hipHCSPARSEStatusToHIPStatus(hcsparseSnnz(handle, dirA, m, n, *hcDescrA, A, lda,
+  return hipHCSPARSEStatusToHIPStatus(hcsparseSnnz(handle, hipHIPDirectionToHCSPARSEDirection(dirA),
+                                      m, n, *hcDescrA, A, lda,
                                       nnzPerRowColumn, nnzTotalDevHostPtr));
 }
 
@@ -387,8 +456,9 @@ hipsparseStatus_t hipsparseDnnz(hipsparseHandle_t handle, hipsparseDirection_t d
                               int *nnzPerRowColumn, int *nnzTotalDevHostPtr){
 
    const hcsparseMatDescr_t *hcDescrA = reinterpret_cast<const hcsparseMatDescr_t*>(&descrA); 
-  return hipHCSPARSEStatusToHIPStatus(hcsparseDnnz(handle, dirA, m, n, *hcDescrA, A, lda,
-                                      nnzPerRowColumn, nnzTotalDevHostPtr));
+  return hipHCSPARSEStatusToHIPStatus(hcsparseDnnz(handle, hipHIPDirectionToHCSPARSEDirection(dirA),
+                                                   m, n, *hcDescrA, A, lda,
+                                                   nnzPerRowColumn, nnzTotalDevHostPtr));
 }
 
 hipsparseStatus_t hipsparseScsc2dense(hipsparseHandle_t handle, int m, int n, 

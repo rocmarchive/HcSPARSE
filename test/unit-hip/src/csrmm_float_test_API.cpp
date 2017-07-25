@@ -112,7 +112,7 @@ TEST(csrmm_float_test, func_check)
     control.accl_view.copy(gCsrMat.rowOffsets, rowOffsets, sizeof(int) * (num_row_A+1));
     control.accl_view.copy(gCsrMat.colIndices, colIndices, sizeof(int) * num_nonzero);
 
-    hipsparseOperation_t transA = HCSPARSE_OPERATION_NON_TRANSPOSE;
+    hipsparseOperation_t transA = HIPSPARSE_OPERATION_NON_TRANSPOSE;
     int nnz = 0;
 
     status1 = hipsparseScsrmm(handle, transA, num_row_A, num_col_Y,

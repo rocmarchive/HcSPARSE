@@ -28,7 +28,7 @@ TEST(nnz_double_test, func_check)
       exit(1);
     }
 
-    hipsparseDirection_t dir = HCSPARSE_DIRECTION_ROW;
+    hipsparseDirection_t dir = HIPSPARSE_DIRECTION_ROW;
 
     int m = 64;
     int n = 259;

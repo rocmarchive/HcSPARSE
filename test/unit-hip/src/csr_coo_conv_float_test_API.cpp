@@ -63,7 +63,7 @@ TEST(csr_coo_conv_float_test, func_check)
     int *coo_rowInd = (int*)calloc(num_nonzero, sizeof(int));
 
     status1 = hipsparseXcsr2coo(handle, csrRowPtrA, num_nonzero, num_row,
-                               cooRowIndA, HCSPARSE_INDEX_BASE_ZERO);
+                               cooRowIndA, HIPSPARSE_INDEX_BASE_ZERO);
     hipDeviceSynchronize();
 
     if (status1 != HIPSPARSE_STATUS_SUCCESS) {
@@ -75,7 +75,7 @@ TEST(csr_coo_conv_float_test, func_check)
     hipMemcpy(coo_rowInd, cooRowIndA, (num_nonzero) * sizeof(int), hipMemcpyDeviceToHost);
 
     status1 = hipsparseXcoo2csr(handle, cooRowIndA, num_nonzero, num_row,
-                               csrRowPtrA, HCSPARSE_INDEX_BASE_ZERO);
+                               csrRowPtrA, HIPSPARSE_INDEX_BASE_ZERO);
     hipDeviceSynchronize();
 
     if (status1 != HIPSPARSE_STATUS_SUCCESS) {

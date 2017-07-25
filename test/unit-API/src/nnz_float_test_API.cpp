@@ -85,7 +85,7 @@ int main()
       }
     }
     
-    status1 = hcsparseDestroyMatDescr(&descrA);
+    status1 = hcsparseDestroyMatDescr(descrA);
     if (status1 != HCSPARSE_STATUS_SUCCESS) {
       std::cout << "error creating mat descrptr"<<std::endl;
       return -1;

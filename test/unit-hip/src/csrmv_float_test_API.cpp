@@ -107,7 +107,7 @@ TEST(csrmv_float_test, func_check)
         exit(1);
     }
 
-    hipsparseOperation_t transA = HCSPARSE_OPERATION_NON_TRANSPOSE;
+    hipsparseOperation_t transA = HIPSPARSE_OPERATION_NON_TRANSPOSE;
     int nnz = 0;
 
     status1 = hipsparseScsrmv(handle, transA, num_row, num_col,

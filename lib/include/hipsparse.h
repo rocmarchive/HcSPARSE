@@ -42,6 +42,29 @@ enum hipsparseStatus_t {
   HIPSPARSE_STATUS_NOT_SUPPORTED     // cuSPARSE supports this, but not hcSPARSE
 };
 
+enum hipsparseIndexBase_t {
+  HIPSPARSE_INDEX_BASE_ZERO,  // the base index is zero.
+  HIPSPARSE_INDEX_BASE_ONE
+};
+
+enum hipsparseMatrixType_t {
+  HIPSPARSE_MATRIX_TYPE_GENERAL,    // the matrix is general.
+  HIPSPARSE_MATRIX_TYPE_SYMMETRIC,  // the matrix is symmetric.
+  HIPSPARSE_MATRIX_TYPE_HERMITIAN,  // the matrix is hermitian.
+  HIPSPARSE_MATRIX_TYPE_TRIANGULAR  // the matrix is triangular.
+};
+
+enum hipsparseOperation_t {
+  HIPSPARSE_OPERATION_NON_TRANSPOSE,
+  HIPSPARSE_OPERATION_TRANSPOSE,
+  HIPSPARSE_OPERATION_CONJUGATE_TRANSPOSE
+};
+
+enum hipsparseDirection_t {
+  HIPSPARSE_DIRECTION_ROW,
+  HIPSPARSE_DIRECTION_COLUMN
+};
+
 // Some standard header files, these are included by hc.hpp and so want to make them avail on both
 // paths to provide a consistent include env and avoid "missing symbol" errors that only appears
 // on NVCC path:

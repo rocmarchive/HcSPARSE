@@ -40,11 +40,16 @@ enum hcsparseMatrixType_t:uint32_t;
 
 typedef struct hcsparseMatDescr* hipsparseMatDescr_t;
 typedef struct hcsparseLibrary* hipsparseHandle_t ;
-typedef hcsparseIndexBase_t hipsparseIndexBase_t ;
-typedef hcsparseOperation_t hipsparseOperation_t;
-typedef hcsparseDirection_t hipsparseDirection_t;
 
 hipsparseStatus_t hipHCSPARSEStatusToHIPStatus(hcsparseStatus_t hcStatus); 
+
+hcsparseOperation_t hipHIPOperationToHCSPARSEOperation(hipsparseOperation_t op);
+
+hcsparseIndexBase_t hipHIPIndexBaseToHCSPARSEIndexBase(hipsparseIndexBase_t idBase);
+
+hcsparseMatrixType_t hipHIPMatrixTypeToHCSPARSEMatrixType(hipsparseMatrixType_t matType);
+
+hcsparseDirection_t hipHIPDirectionToHCSPARSEDirection(hipsparseDirection_t dir);
 
 hipsparseStatus_t hipsparseCreate(hipsparseHandle_t* handle);
 

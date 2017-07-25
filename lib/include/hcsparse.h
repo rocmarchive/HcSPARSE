@@ -179,7 +179,7 @@ hcsparseCreateMatDescr(hcsparseMatDescr_t *descrA);
 // HCSPARSE_STATUS_SUCCESS            initialization succeeded
 
 hcsparseStatus_t
-hcsparseDestroyMatDescr(hcsparseMatDescr_t* descrA);
+hcsparseDestroyMatDescr(hcsparseMatDescr_t descrA);
 
 // 7. hcsparseXcsrmm()
 
