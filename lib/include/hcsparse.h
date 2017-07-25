@@ -79,12 +79,13 @@ enum hcsparseMatrixType_t:uint32_t{
 
 // This structure is used to describe the shape and properties of a matrix.
 
-typedef struct {
+struct hcsparseMatDescr{
     hcsparseMatrixType_t MatrixType;
     hcsparseFillMode_t FillMode;
     hcsparseDiagType_t DiagType;
     hcsparseIndexBase_t IndexBase;
-} hcsparseMatDescr_t;
+};
+typedef struct hcsparseMatDescr* hcsparseMatDescr_t;
 
 // 2.2.8. hcsparseOperation_t
 

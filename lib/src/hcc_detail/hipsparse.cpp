@@ -54,12 +54,12 @@ hipsparseStatus_t hipsparseDestroy(hipsparseHandle_t handle)
 
 hipsparseStatus_t hipsparseCreateMatDescr(hipsparseMatDescr_t *descrA)
 {
-   return hipHCSPARSEStatusToHIPStatus(hcsparseCreateMatDescr(reinterpret_cast<hcsparseMatDescr_t*>(descrA)));
+   return hipHCSPARSEStatusToHIPStatus(hcsparseCreateMatDescr(descrA));
 }
 
 hipsparseStatus_t hipsparseDestroyMatDescr(hipsparseMatDescr_t descrA)
 {
-   return hipHCSPARSEStatusToHIPStatus(hcsparseDestroyMatDescr(reinterpret_cast<hcsparseMatDescr_t*>(&descrA)));
+   return hipHCSPARSEStatusToHIPStatus(hcsparseDestroyMatDescr(descrA));
 }
 //Sparse L1 BLAS operations
 

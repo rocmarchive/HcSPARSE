@@ -38,15 +38,7 @@ enum hcsparseFillMode_t:uint32_t;
 enum hcsparseDiagType_t:uint32_t;
 enum hcsparseMatrixType_t:uint32_t;
 
-typedef struct {
-    hcsparseMatrixType_t MatrixType;
-    hcsparseFillMode_t FillMode;
-    hcsparseDiagType_t DiagType;
-    hcsparseIndexBase_t IndexBase;
-} hipsparseMatDescr_t;
-
-
-
+typedef struct hcsparseMatDescr* hipsparseMatDescr_t;
 typedef struct hcsparseLibrary* hipsparseHandle_t ;
 typedef hcsparseIndexBase_t hipsparseIndexBase_t ;
 typedef hcsparseOperation_t hipsparseOperation_t;

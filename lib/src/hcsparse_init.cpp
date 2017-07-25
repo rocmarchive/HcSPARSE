@@ -124,14 +124,15 @@ hcsparseStatus_t  hcsparseGetAcclView(hcsparseHandle_t handle, hc::accelerator_v
 // HCSPARSE_STATUS_ALLOC_FAILED       the resources could not be allocated  
 hcsparseStatus_t
 hcsparseCreateMatDescr(hcsparseMatDescr_t *descrA) {
-  if (descrA == nullptr) {
-    descrA = (hcsparseMatDescr_t*)malloc(sizeof(hcsparseMatDescr_t));
+  if (descrA == NULL) {
+     descrA = (hcsparseMatDescr_t*)malloc(sizeof(hcsparseMatDescr_t));
     if (descrA == NULL)
       return HCSPARSE_STATUS_ALLOC_FAILED;
   }
+  *descrA = (hcsparseMatDescr_t)malloc(sizeof(struct hcsparseMatDescr));
 
-  descrA->MatrixType = HCSPARSE_MATRIX_TYPE_GENERAL;
-  descrA->IndexBase = HCSPARSE_INDEX_BASE_ZERO;
+  (*descrA)->MatrixType = HCSPARSE_MATRIX_TYPE_GENERAL;
+  (*descrA)->IndexBase = HCSPARSE_INDEX_BASE_ZERO;
   return HCSPARSE_STATUS_SUCCESS;
 }
 
@@ -144,8 +145,9 @@ hcsparseCreateMatDescr(hcsparseMatDescr_t *descrA) {
 // HCSPARSE_STATUS_SUCCESS            initialization succeeded
 
 hcsparseStatus_t
-hcsparseDestroyMatDescr(hcsparseMatDescr_t *descrA) {
+hcsparseDestroyMatDescr(hcsparseMatDescr_t descrA) {
   if (descrA != NULL) {
+    free(descrA);
     descrA = NULL;
   }
   return HCSPARSE_STATUS_SUCCESS;
@@ -185,7 +187,7 @@ hcsparseScsrmm(hcsparseHandle_t handle,
       !alpha || !beta)
     return HCSPARSE_STATUS_ALLOC_FAILED;
 
-  if (descrA.MatrixType != HCSPARSE_MATRIX_TYPE_GENERAL)
+  if (descrA->MatrixType != HCSPARSE_MATRIX_TYPE_GENERAL)
     return HCSPARSE_STATUS_INVALID_VALUE;
 
   // temp code 
@@ -230,7 +232,7 @@ hcsparseDcsrmm(hcsparseHandle_t handle,
       !alpha || !beta)
     return HCSPARSE_STATUS_ALLOC_FAILED;
 
-  if (descrA.MatrixType != HCSPARSE_MATRIX_TYPE_GENERAL)
+  if (descrA->MatrixType != HCSPARSE_MATRIX_TYPE_GENERAL)
     return HCSPARSE_STATUS_INVALID_VALUE;
 
   // temp code 
@@ -289,7 +291,7 @@ hcsparseScsr2dense(hcsparseHandle_t handle,
   if (!csrValA || !csrRowPtrA || !csrColIndA || !A)
     return HCSPARSE_STATUS_ALLOC_FAILED;
 
-  if (descrA.MatrixType != HCSPARSE_MATRIX_TYPE_GENERAL)
+  if (descrA->MatrixType != HCSPARSE_MATRIX_TYPE_GENERAL)
     return HCSPARSE_STATUS_INVALID_VALUE;
 
   // temp code 
@@ -324,7 +326,7 @@ hcsparseDcsr2dense(hcsparseHandle_t handle,
   if (!csrValA || !csrRowPtrA || !csrColIndA || !A)
     return HCSPARSE_STATUS_ALLOC_FAILED;
 
-  if (descrA.MatrixType != HCSPARSE_MATRIX_TYPE_GENERAL)
+  if (descrA->MatrixType != HCSPARSE_MATRIX_TYPE_GENERAL)
     return HCSPARSE_STATUS_INVALID_VALUE;
 
   // temp code 
@@ -374,7 +376,7 @@ hcsparseSdense2csr(hcsparseHandle_t handle,
   if (!A)
     return HCSPARSE_STATUS_ALLOC_FAILED;
 
-  if (descrA.MatrixType != HCSPARSE_MATRIX_TYPE_GENERAL)
+  if (descrA->MatrixType != HCSPARSE_MATRIX_TYPE_GENERAL)
     return HCSPARSE_STATUS_INVALID_VALUE;
 
   // temp code 
@@ -408,7 +410,7 @@ hcsparseDdense2csr(hcsparseHandle_t handle,
   if (!A)
     return HCSPARSE_STATUS_ALLOC_FAILED;
 
-  if (descrA.MatrixType != HCSPARSE_MATRIX_TYPE_GENERAL)
+  if (descrA->MatrixType != HCSPARSE_MATRIX_TYPE_GENERAL)
     return HCSPARSE_STATUS_INVALID_VALUE;
 
   // temp code 
@@ -475,9 +477,9 @@ hcsparseScsrgemm(hcsparseHandle_t handle,
   if (csrColIndC)
     am_free(csrColIndC);
 
-  if (descrA.MatrixType != HCSPARSE_MATRIX_TYPE_GENERAL || 
-      descrB.MatrixType != HCSPARSE_MATRIX_TYPE_GENERAL ||
-      descrC.MatrixType != HCSPARSE_MATRIX_TYPE_GENERAL )
+  if (descrA->MatrixType != HCSPARSE_MATRIX_TYPE_GENERAL || 
+      descrB->MatrixType != HCSPARSE_MATRIX_TYPE_GENERAL ||
+      descrC->MatrixType != HCSPARSE_MATRIX_TYPE_GENERAL )
     return HCSPARSE_STATUS_INVALID_VALUE;
 
   // Currently supports only NN version
@@ -537,9 +539,9 @@ hcsparseDcsrgemm(hcsparseHandle_t handle,
   if (csrColIndC)
     am_free(csrColIndC);
 
-  if (descrA.MatrixType != HCSPARSE_MATRIX_TYPE_GENERAL || 
-      descrB.MatrixType != HCSPARSE_MATRIX_TYPE_GENERAL ||
-      descrC.MatrixType != HCSPARSE_MATRIX_TYPE_GENERAL )
+  if (descrA->MatrixType != HCSPARSE_MATRIX_TYPE_GENERAL || 
+      descrB->MatrixType != HCSPARSE_MATRIX_TYPE_GENERAL ||
+      descrC->MatrixType != HCSPARSE_MATRIX_TYPE_GENERAL )
     return HCSPARSE_STATUS_INVALID_VALUE;
 
   // Currently supports only NN version
@@ -593,7 +595,7 @@ hcsparseSnnz(hcsparseHandle_t handle,
   if (!A || !nnzPerRowColumn)
     return HCSPARSE_STATUS_ALLOC_FAILED;
 
-  if (descrA.MatrixType != HCSPARSE_MATRIX_TYPE_GENERAL)
+  if (descrA->MatrixType != HCSPARSE_MATRIX_TYPE_GENERAL)
     return HCSPARSE_STATUS_INVALID_VALUE;
 
   // temp code 
@@ -660,7 +662,7 @@ hcsparseDnnz(hcsparseHandle_t handle,
   if (!A || !nnzPerRowColumn)
     return HCSPARSE_STATUS_ALLOC_FAILED;
 
-  if (descrA.MatrixType != HCSPARSE_MATRIX_TYPE_GENERAL)
+  if (descrA->MatrixType != HCSPARSE_MATRIX_TYPE_GENERAL)
     return HCSPARSE_STATUS_INVALID_VALUE;
 
   // temp code 
@@ -820,7 +822,7 @@ hcsparseScsc2dense(hcsparseHandle_t handle, int m, int n,
   if (!cscValA || !cscRowIndA || !cscColPtrA || !A)
     return HCSPARSE_STATUS_ALLOC_FAILED;
 
-  if (descrA.MatrixType != HCSPARSE_MATRIX_TYPE_GENERAL)
+  if (descrA->MatrixType != HCSPARSE_MATRIX_TYPE_GENERAL)
     return HCSPARSE_STATUS_INVALID_VALUE;
 
   // temp code 
@@ -853,7 +855,7 @@ hcsparseDcsc2dense(hcsparseHandle_t handle, int m, int n,
   if (!cscValA || !cscRowIndA || !cscColPtrA || !A)
     return HCSPARSE_STATUS_ALLOC_FAILED;
 
-  if (descrA.MatrixType != HCSPARSE_MATRIX_TYPE_GENERAL)
+  if (descrA->MatrixType != HCSPARSE_MATRIX_TYPE_GENERAL)
     return HCSPARSE_STATUS_INVALID_VALUE;
 
   // temp code 
@@ -903,7 +905,7 @@ hcsparseSdense2csc(hcsparseHandle_t handle, int m, int n,
   if (!A || !cscValA || !cscRowIndA || !cscColPtrA)
     return HCSPARSE_STATUS_ALLOC_FAILED;
 
-  if (descrA.MatrixType != HCSPARSE_MATRIX_TYPE_GENERAL)
+  if (descrA->MatrixType != HCSPARSE_MATRIX_TYPE_GENERAL)
     return HCSPARSE_STATUS_INVALID_VALUE;
 
   // temp code 
@@ -935,7 +937,7 @@ hcsparseDdense2csc(hcsparseHandle_t handle, int m, int n,
   if (!A || !cscValA || !cscRowIndA || !cscColPtrA)
     return HCSPARSE_STATUS_ALLOC_FAILED;
 
-  if (descrA.MatrixType != HCSPARSE_MATRIX_TYPE_GENERAL)
+  if (descrA->MatrixType != HCSPARSE_MATRIX_TYPE_GENERAL)
     return HCSPARSE_STATUS_INVALID_VALUE;
 
   // temp code 
@@ -1062,7 +1064,7 @@ hcsparseScsrmv(hcsparseHandle_t handle, hcsparseOperation_t transA,
   if (!csrValA || !csrRowPtrA || !csrColIndA || !x || !y || !alpha || !beta)
     return HCSPARSE_STATUS_ALLOC_FAILED;
 
-  if (descrA.MatrixType != HCSPARSE_MATRIX_TYPE_GENERAL)
+  if (descrA->MatrixType != HCSPARSE_MATRIX_TYPE_GENERAL)
     return HCSPARSE_STATUS_INVALID_VALUE;
 
   if (m < 0 || n < 0 || nnz < 0)
@@ -1097,7 +1099,7 @@ hcsparseDcsrmv(hcsparseHandle_t handle, hcsparseOperation_t transA,
   if (!csrValA || !csrRowPtrA || !csrColIndA || !x || !y || !alpha || !beta)
     return HCSPARSE_STATUS_ALLOC_FAILED;
 
-  if (descrA.MatrixType != HCSPARSE_MATRIX_TYPE_GENERAL)
+  if (descrA->MatrixType != HCSPARSE_MATRIX_TYPE_GENERAL)
     return HCSPARSE_STATUS_INVALID_VALUE;
 
   if (m < 0 || n < 0 || nnz < 0)
@@ -1167,7 +1169,7 @@ hcsparseScsrgeam(hcsparseHandle_t handle,
       !alpha || !beta)
     return HCSPARSE_STATUS_ALLOC_FAILED;
 
-  if (descrA.MatrixType != HCSPARSE_MATRIX_TYPE_GENERAL)
+  if (descrA->MatrixType != HCSPARSE_MATRIX_TYPE_GENERAL)
     return HCSPARSE_STATUS_INVALID_VALUE;
 
   if (m < 0 || n < 0 || nnzA < 0 || nnzB < 0)
@@ -1231,7 +1233,7 @@ hcsparseDcsrgeam(hcsparseHandle_t handle,
       !alpha || !beta)
     return HCSPARSE_STATUS_ALLOC_FAILED;
 
-  if (descrA.MatrixType != HCSPARSE_MATRIX_TYPE_GENERAL)
+  if (descrA->MatrixType != HCSPARSE_MATRIX_TYPE_GENERAL)
     return HCSPARSE_STATUS_INVALID_VALUE;
 
   if (m < 0 || n < 0 || nnzA < 0 || nnzB < 0)
