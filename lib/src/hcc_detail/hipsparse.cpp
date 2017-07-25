@@ -131,7 +131,7 @@ hipsparseStatus_t hipsparseSetMatType(hipsparseMatDescr_t descrA,
 hipsparseStatus_t hipsparseSetMatIndexBase(hipsparseMatDescr_t descrA, 
                                            hipsparseIndexBase_t base)
 {
-  return hipHCSPARSEStatusToHIPStatus(hcsparseSetMatType(descrA,
+  return hipHCSPARSEStatusToHIPStatus(hcsparseSetMatIndexBase(descrA,
                                       hipHIPIndexBaseToHCSPARSEIndexBase(base)));
 }
 
