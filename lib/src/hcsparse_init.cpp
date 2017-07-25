@@ -153,6 +153,51 @@ hcsparseDestroyMatDescr(hcsparseMatDescr_t descrA) {
   return HCSPARSE_STATUS_SUCCESS;
 }
 
+// 7. hcsparseSetMatType()
+
+// This function sets the MatrixType field of the matrix descriptor descrA.
+
+// Return Values
+// --------------------------------------------------------------------
+// HCSPARSE_STATUS_SUCCESS            initialization succeeded
+// HCSPARSE_STATUS_INVALID_VALUE	An invalid type parameter was passed.
+
+hcsparseStatus_t
+hcsparseSetMatType(hcsparseMatDescr_t descrA, hcsparseMatrixType_t type) {
+
+  if (descrA == NULL)
+    return HCSPARSE_STATUS_INVALID_VALUE;
+  if (type >= HCSPARSE_MATRIX_TYPE_GENERAL && type <= HCSPARSE_MATRIX_TYPE_TRIANGULAR){ 
+    descrA->MatrixType = type;
+    return HCSPARSE_STATUS_SUCCESS;
+  } else
+    return HCSPARSE_STATUS_INVALID_VALUE;
+
+}
+
+// 8. hcsparseSetMatIndexBase()
+
+// This function sets the IndexBase field of the matrix descriptor descrA.
+
+// Return Values
+// --------------------------------------------------------------------
+// HCSPARSE_STATUS_SUCCESS            initialization succeeded
+// HCSPARSE_STATUS_INVALID_VALUE	An invalid type parameter was passed.
+
+hcsparseStatus_t
+hcsparseSetMatIndexBase(hcsparseMatDescr_t descrA, 
+                        hcsparseIndexBase_t base) {
+
+  if (descrA == NULL)
+    return HCSPARSE_STATUS_INVALID_VALUE;
+
+  if (base == HCSPARSE_INDEX_BASE_ZERO ||  base == HCSPARSE_INDEX_BASE_ONE) {
+    descrA->IndexBase = base;
+    return HCSPARSE_STATUS_SUCCESS;
+  } else
+    return HCSPARSE_STATUS_INVALID_VALUE;
+}
+
 // 7. hcsparseXcsrmm()
 
 // This function performs one of the following matrix-matrix operations:
