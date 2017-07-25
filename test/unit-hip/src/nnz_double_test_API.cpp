@@ -60,6 +60,7 @@ TEST(nnz_double_test, func_check)
 
     hipsparseStatus_t stat = hipsparseDnnz(handle, dir, m, n, descrA, devA, lda,
                                          nnzPerRowColumn, nnz);
+    hipDeviceSynchronize();
 
     control.accl_view.copy(nnzPerRowColumn, nnzPerRowColumn_res, m*sizeof(int));
     control.accl_view.copy(&nnz, &nnz_res, 1*sizeof(int));

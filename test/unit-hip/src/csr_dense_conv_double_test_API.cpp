@@ -79,6 +79,7 @@ TEST(csr_dense_conv_double_test, func_check)
       std::cout << "Error csr2dense conversion "<<std::endl;
       exit(1);
     }
+    hipDeviceSynchronize();
 
     control.accl_view.copy(csrValA, csr_val, num_nonzero * sizeof(double));
     control.accl_view.copy(csrRowPtrA, csr_rowPtr, (num_row+1) * sizeof(int));
@@ -91,6 +92,7 @@ TEST(csr_dense_conv_double_test, func_check)
       std::cout << "Error dense2csr conversion "<<std::endl;
       exit(1);
     }
+    hipDeviceSynchronize();
 
     control.accl_view.copy(csrValA, csr_res_val, num_nonzero * sizeof(double));
     control.accl_view.copy(csrRowPtrA, csr_res_rowPtr, (num_row+1) * sizeof(int));

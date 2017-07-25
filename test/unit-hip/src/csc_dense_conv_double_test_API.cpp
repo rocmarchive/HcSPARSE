@@ -88,6 +88,7 @@ TEST(csc_dense_conv_double_test, func_check)
       std::cout << "Error csc2dense conversion "<<std::endl;
       exit(1);
     }
+    hipDeviceSynchronize();
 
     hipMemcpy(csc_val, cscValA, num_nonzero * sizeof(double), hipMemcpyDeviceToHost);
     hipMemcpy(csc_colPtr, cscColPtrA, (num_col+1) * sizeof(int), hipMemcpyDeviceToHost);
@@ -101,6 +102,7 @@ TEST(csc_dense_conv_double_test, func_check)
       std::cout << "Error dense2csc conversion "<<std::endl;
       exit(1);
     }
+    hipDeviceSynchronize();
 
     hipMemcpy(csc_res_val, cscValA, num_nonzero * sizeof(double), hipMemcpyDeviceToHost);
     hipMemcpy(csc_res_colPtr, cscColPtrA, (num_col+1) * sizeof(int), hipMemcpyDeviceToHost);

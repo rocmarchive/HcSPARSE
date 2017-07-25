@@ -64,6 +64,7 @@ TEST(csr_coo_conv_float_test, func_check)
 
     status1 = hipsparseXcsr2coo(handle, csrRowPtrA, num_nonzero, num_row,
                                cooRowIndA, HCSPARSE_INDEX_BASE_ZERO);
+    hipDeviceSynchronize();
 
     if (status1 != HIPSPARSE_STATUS_SUCCESS) {
       std::cout << "Error csr2coo conversion "<<std::endl;
@@ -75,6 +76,7 @@ TEST(csr_coo_conv_float_test, func_check)
 
     status1 = hipsparseXcoo2csr(handle, cooRowIndA, num_nonzero, num_row,
                                csrRowPtrA, HCSPARSE_INDEX_BASE_ZERO);
+    hipDeviceSynchronize();
 
     if (status1 != HIPSPARSE_STATUS_SUCCESS) {
       std::cout << "Error coo2csr conversion "<<std::endl;

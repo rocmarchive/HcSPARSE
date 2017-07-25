@@ -118,6 +118,7 @@ TEST(csrmm_double_test, func_check)
                             (int *) gCsrMat.rowOffsets,
                             (int *)gCsrMat.colIndices, (double*)gX, num_col_X,
                             static_cast<const double*>(gBeta), (double *)gY, num_col_Y);
+    hipDeviceSynchronize();
 
     for (int col = 0; col < num_col_X; col++)
     {

@@ -121,6 +121,7 @@ TEST(csrmm_float_test, func_check)
                             (int *) gCsrMat.rowOffsets,
                             (int *)gCsrMat.colIndices, (float*)gX, num_col_X,
                             static_cast<const float*>(gBeta), (float *)gY, num_col_Y);
+    hipDeviceSynchronize();
 
     for (int col = 0; col < num_col_X; col++)
     {
