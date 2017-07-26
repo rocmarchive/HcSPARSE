@@ -250,6 +250,8 @@ hcsparseScsrmm(hcsparseHandle_t handle,
 
   calculate_num_nonzeros<float>((ulong)m*k, A, nnz_locations, nnz1, &control);
 
+  control.accl_view.wait();
+
   // Deallocate resource
   hc::am_free(A);
   hc::am_free(nnz_locations);
@@ -257,9 +259,6 @@ hcsparseScsrmm(hcsparseHandle_t handle,
   int nnzPerRow = nnz1/m;
   stat = csrmm<float>(&control, nnzPerRow, m, n, k, alpha, csrValA, csrRowPtrA,
                       csrColIndA, B, ldb, beta, C, ldc);
-
-  am_free(A);
-  am_free(nnz_locations);
 
   if (stat != hcsparseSuccess)
     return HCSPARSE_STATUS_EXECUTION_FAILED;
@@ -302,6 +301,8 @@ hcsparseDcsrmm(hcsparseHandle_t handle,
 
   calculate_num_nonzeros<double>((ulong)m*k, A, nnz_locations, nnz1, &control);
 
+  control.accl_view.wait();
+
   // Deallocate resource
   hc::am_free(A);
   hc::am_free(nnz_locations);
@@ -309,9 +310,6 @@ hcsparseDcsrmm(hcsparseHandle_t handle,
   int nnzPerRow = nnz1/m;
   stat = csrmm<double>(&control, nnzPerRow, m, n, k, alpha, csrValA, csrRowPtrA,
                       csrColIndA, B, ldb, beta, C, ldc);
-
-  am_free(A);
-  am_free(nnz_locations);
 
   if (stat != hcsparseSuccess)
     return HCSPARSE_STATUS_EXECUTION_FAILED;
@@ -707,9 +705,6 @@ hcsparseSnnz(hcsparseHandle_t handle,
   hc::am_free(nnz_locations1);
   hc::am_free(partial);
 
-  am_free(nnz_locations1);
-  am_free(partial);
-  
   if (stat != hcsparseSuccess)
    return HCSPARSE_STATUS_EXECUTION_FAILED;
 
