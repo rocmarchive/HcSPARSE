@@ -250,6 +250,10 @@ hcsparseScsrmm(hcsparseHandle_t handle,
 
   calculate_num_nonzeros<float>((ulong)m*k, A, nnz_locations, nnz1, &control);
 
+  // Deallocate resource
+  hc::am_free(A);
+  hc::am_free(nnz_locations);
+
   int nnzPerRow = nnz1/m;
   stat = csrmm<float>(&control, nnzPerRow, m, n, k, alpha, csrValA, csrRowPtrA,
                       csrColIndA, B, ldb, beta, C, ldc);
@@ -294,6 +298,10 @@ hcsparseDcsrmm(hcsparseHandle_t handle,
   int *nnz_locations = am_alloc(sizeof(int)*m*k, handle->currentAccl, 0);
 
   calculate_num_nonzeros<double>((ulong)m*k, A, nnz_locations, nnz1, &control);
+
+  // Deallocate resource
+  hc::am_free(A);
+  hc::am_free(nnz_locations);
 
   int nnzPerRow = nnz1/m;
   stat = csrmm<double>(&control, nnzPerRow, m, n, k, alpha, csrValA, csrRowPtrA,
@@ -683,6 +691,10 @@ hcsparseSnnz(hcsparseHandle_t handle,
 #endif
 
   control.accl_view.copy(partial, nnzPerRowColumn, sizeof(int)*m);
+  
+  // Deallocate resources
+  hc::am_free(nnz_locations1);
+  hc::am_free(partial);
 
   if (stat != hcsparseSuccess)
    return HCSPARSE_STATUS_EXECUTION_FAILED;
@@ -751,6 +763,9 @@ hcsparseDnnz(hcsparseHandle_t handle,
 
   control.accl_view.copy(partial, nnzPerRowColumn, sizeof(int)*m);
 
+  // Deallocate resources
+  hc::am_free(nnz_locations1);
+  hc::am_free(partial);
   if (stat != hcsparseSuccess)
    return HCSPARSE_STATUS_EXECUTION_FAILED;
 
@@ -802,6 +817,8 @@ hcsparseSdoti(hcsparseHandle_t handle, int nnz,
 
   handle->currentAcclView.copy(result, resultDevHostPtr, sizeof(float)*1);
 
+  // Deallocate resources
+  hc::am_free(partial);
   return HCSPARSE_STATUS_SUCCESS;
 }
 
@@ -836,6 +853,8 @@ hcsparseDdoti(hcsparseHandle_t handle, int nnz,
 
   handle->currentAcclView.copy(result, resultDevHostPtr, sizeof(double)*1);
 
+  // Deallocate resources
+  hc::am_free(partial);
   return HCSPARSE_STATUS_SUCCESS;
 }
 
@@ -1241,6 +1260,8 @@ hcsparseScsrgeam(hcsparseHandle_t handle,
   status = hcsparseSdense2csr(handle, m, n, descrC, C, m, 0, 
                               csrValC, csrRowPtrC, csrColIndC);
 
+  // Deallocate resources
+  hc::am_free(A);
   if (stat != hcsparseSuccess)
     return HCSPARSE_STATUS_EXECUTION_FAILED;
 
@@ -1304,7 +1325,11 @@ hcsparseDcsrgeam(hcsparseHandle_t handle,
 
   status = hcsparseDdense2csr(handle, m, n, descrC, C, m, 0, 
                               csrValC, csrRowPtrC, csrColIndC);
- 
+
+  // Deallocate resources
+  hc::am_free(A);
+  hc::am_free(B);
+  hc::am_free(C);
   if (stat != hcsparseSuccess)
     return HCSPARSE_STATUS_EXECUTION_FAILED;
 
