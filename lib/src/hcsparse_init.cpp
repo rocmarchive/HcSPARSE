@@ -254,6 +254,9 @@ hcsparseScsrmm(hcsparseHandle_t handle,
   stat = csrmm<float>(&control, nnzPerRow, m, n, k, alpha, csrValA, csrRowPtrA,
                       csrColIndA, B, ldb, beta, C, ldc);
 
+  am_free(A);
+  am_free(nnz_locations);
+
   if (stat != hcsparseSuccess)
     return HCSPARSE_STATUS_EXECUTION_FAILED;
 
@@ -298,6 +301,10 @@ hcsparseDcsrmm(hcsparseHandle_t handle,
   int nnzPerRow = nnz1/m;
   stat = csrmm<double>(&control, nnzPerRow, m, n, k, alpha, csrValA, csrRowPtrA,
                       csrColIndA, B, ldb, beta, C, ldc);
+
+  am_free(A);
+  am_free(nnz_locations);
+
   if (stat != hcsparseSuccess)
     return HCSPARSE_STATUS_EXECUTION_FAILED;
 
@@ -665,6 +672,8 @@ hcsparseSnnz(hcsparseHandle_t handle,
   for (int i =0 ;i < m*n; i++) {
     std::cout << "nnz[" << i << "] = " << nnz_loc_h[i]<< std::endl; 
   }
+
+  free(nnz_loc_h);
 #endif
 
   // stage 2: reduce to column/Row level to identify nnzPerRowColumn
@@ -680,10 +689,15 @@ hcsparseSnnz(hcsparseHandle_t handle,
   for (int i =0 ;i < m; i++) {
     std::cout << "nnzPerRow[" << i << "] = " << partial_h[i]<< std::endl; 
   }
+
+  free(partial_h);
 #endif
 
   control.accl_view.copy(partial, nnzPerRowColumn, sizeof(int)*m);
 
+  am_free(nnz_locations1);
+  am_free(partial);
+  
   if (stat != hcsparseSuccess)
    return HCSPARSE_STATUS_EXECUTION_FAILED;
 
@@ -732,6 +746,8 @@ hcsparseDnnz(hcsparseHandle_t handle,
   for (int i =0 ;i < m*n; i++) {
     std::cout << "nnz[" << i << "] = " << nnz_loc_h[i]<< std::endl; 
   }
+
+  free(nnz_loc_h);
 #endif
 
   // stage 2: reduce to column/Row level to identify nnzPerRowColumn
@@ -747,9 +763,14 @@ hcsparseDnnz(hcsparseHandle_t handle,
   for (int i =0 ;i < m; i++) {
     std::cout << "nnzPerRow[" << i << "] = " << partial_h[i]<< std::endl; 
   }
+
+  free(partial_h);
 #endif
 
   control.accl_view.copy(partial, nnzPerRowColumn, sizeof(int)*m);
+
+  am_free(nnz_locations1);
+  am_free(partial);
 
   if (stat != hcsparseSuccess)
    return HCSPARSE_STATUS_EXECUTION_FAILED;
@@ -802,6 +823,9 @@ hcsparseSdoti(hcsparseHandle_t handle, int nnz,
 
   handle->currentAcclView.copy(result, resultDevHostPtr, sizeof(float)*1);
 
+  am_free(partial);
+  am_free(result);
+
   return HCSPARSE_STATUS_SUCCESS;
 }
 
@@ -835,6 +859,9 @@ hcsparseDdoti(hcsparseHandle_t handle, int nnz,
 			(double *)y, partial, REDUCE_BLOCKS_NUMBER, &control);
 
   handle->currentAcclView.copy(result, resultDevHostPtr, sizeof(double)*1);
+
+  am_free(partial);
+  am_free(result);
 
   return HCSPARSE_STATUS_SUCCESS;
 }
@@ -1241,6 +1268,10 @@ hcsparseScsrgeam(hcsparseHandle_t handle,
   status = hcsparseSdense2csr(handle, m, n, descrC, C, m, 0, 
                               csrValC, csrRowPtrC, csrColIndC);
 
+  am_free(A);
+  am_free(B);
+  am_free(C);
+
   if (stat != hcsparseSuccess)
     return HCSPARSE_STATUS_EXECUTION_FAILED;
 
@@ -1305,6 +1336,10 @@ hcsparseDcsrgeam(hcsparseHandle_t handle,
   status = hcsparseDdense2csr(handle, m, n, descrC, C, m, 0, 
                               csrValC, csrRowPtrC, csrColIndC);
  
+  am_free(A);
+  am_free(B);
+  am_free(C);
+
   if (stat != hcsparseSuccess)
     return HCSPARSE_STATUS_EXECUTION_FAILED;
 

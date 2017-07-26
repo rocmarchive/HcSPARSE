@@ -87,6 +87,10 @@ hcsparseStatus dot(hcsparseScalar* pR,
                      pY->offValues,
                      partial, REDUCE_BLOCKS_NUMBER, control);
 
+    control->accl_view.wait();
+
+    am_free(partial);
+
     return hcsparseSuccess;
 }
 

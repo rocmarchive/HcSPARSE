@@ -44,6 +44,8 @@ dense2csc (hcsparseControl* control,
   // Perform dense2csr conversion
   dense2csr(control, m, n, transA, cscValA, cscColPtrA, cscRowIndA);
 
+  am_free(transA);
+
   return hcsparseSuccess;
 
 }

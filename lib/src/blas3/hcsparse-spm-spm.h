@@ -1648,7 +1648,18 @@ csrSpGemm(hcsparseControl* control,
     csrColIndC = (int *) am_alloc(nnzC * sizeof(int), acc, 0);
 
     status2 = copy_Ct_to_C_general<T> (counter_one, csrValC, (int*)csrRowPtrC, csrColIndC, csrValCt, csrRowPtrCt_d, csrColIndCt, queue_one_d, control);
-    
+
+    control->accl_view.wait();
+
+    am_free(csrRowPtrCt_d);
+    am_free(csrColIndCt);
+    am_free(csrValCt);
+    am_free(queue_one_d);
+    free(counter);
+    free(counter_one);
+    free(counter_sum);
+    free(queue_one);
+ 
     if (status1 == hcsparseSuccess && status2 == hcsparseSuccess)
         return hcsparseSuccess;
     else
@@ -1739,6 +1750,17 @@ csrSpGemm (const hcsparseCsrMatrix* matA,
     matC->num_rows = m;
     matC->num_cols = n;
     matC->num_nonzeros  = nnzC;
+
+    control->accl_view.wait();
+
+    am_free(csrRowPtrCt_d);
+    am_free(csrColIndCt);
+    am_free(csrValCt);
+    am_free(queue_one_d);
+    free(counter);
+    free(counter_one);
+    free(counter_sum);
+    free(queue_one);
  
     if (status1 == hcsparseSuccess && status2 == hcsparseSuccess)
         return hcsparseSuccess;

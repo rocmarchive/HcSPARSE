@@ -110,6 +110,10 @@ reduce (hcsparseScalar* pR,
 
     global_reduce<T, G_OP, F_OP> (size, avR, pR->offValue, avX, pX->offValues, partial, REDUCE_BLOCKS_NUMBER, control);
 
+    control->accl_view.wait();
+
+    am_free(partial);
+
     return hcsparseSuccess;
 }
 

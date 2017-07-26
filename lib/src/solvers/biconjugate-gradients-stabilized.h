@@ -329,6 +329,42 @@ bicgStab(hcdenseVector *pX,
         solverControl->print();
     }
 
+    am_free(norm_b.value);
+    free(norm_b_buff);
+    am_free(y.values);
+    am_free(p.values);
+    am_free(r.values);
+    am_free(r_star.values);
+    am_free(s.values);
+    am_free(Mp.values);
+    am_free(AMp.values);
+    am_free(Ms.values);
+    am_free(AMs.values);
+    am_free(one.value);
+    am_free(zero.value);
+    free(one_buff);
+    am_free(norm_r.value);
+    free(norm_r_buff);
+    free(residuum_buff);
+    am_free(r_star_r_old.value);
+    free(r_star_r_old_buff);
+    am_free(r_star_r_new.value);
+    free(r_star_r_new_buff);
+    free(alpha_buff);
+    free(beta_buff);
+    free(omega_buff);
+    am_free(alpha.value);
+    am_free(beta.value);
+    am_free(omega.value);
+    am_free(r_star_AMp.value);
+    am_free(AMsS.value);
+    am_free(AMsAMs.value);
+    am_free(norm_s.value);
+    free(r_star_AMp_buff);
+    free(AMsS_buff);
+    free(AMsAMs_buff);
+    free(norm_s_buff);
+
     return hcsparseSuccess;
 }
 

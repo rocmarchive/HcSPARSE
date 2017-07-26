@@ -235,6 +235,34 @@ cg (hcdenseVector *pX,
 
         solverControl->print();
     }
+
+    am_free(norm_b.value); 
+    am_free(y.values); 
+    am_free(z.values); 
+    am_free(r.values); 
+    am_free(p.values); 
+    am_free(one.value);
+    am_free(zero.value);
+    am_free(norm_r.value);
+    am_free(rz.value);
+    am_free(alpha.value);
+    am_free(beta.value);
+    am_free(yp.value);
+    am_free(rz_old.value);
+    free(norm_b_Buff);
+    free(y_Buff);
+    free(z_Buff);
+    free(r_Buff);
+    free(p_Buff);
+    free(one_buff);
+    free(norm_r_Buff);
+    free(residuum_Buff);
+    free(rz_Buff);
+    free(alpha_Buff);
+    free(beta_Buff);
+    free(yp_Buff);
+    free(rz_old_Buff);
+
     return hcsparseSuccess;
 }
 
