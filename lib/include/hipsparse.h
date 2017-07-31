@@ -30,6 +30,7 @@ THE SOFTWARE.
 //
 
 #pragma once
+#include <hip/hip_runtime_api.h>
 
 enum hipsparseStatus_t {
   HIPSPARSE_STATUS_SUCCESS,          // Function succeeds

@@ -56,7 +56,7 @@ IF (${PLATFORM} MATCHES "hcc")
   set (HCC_LDFLAGS "${HCC_LDFLAGS}")
 
   IF (${HIP_SUPPORT} MATCHES "on") 
-    set (HCC_CXXFLAGS "${HCC_CXXFLAGS} -I${CMAKE_CURRENT_SOURCE_DIR}/../include -I${ROCM_PATH}/include -I${HIP_PATH}/include -D__HIP_PLATFORM_HCC__=")
+    set (HCC_CXXFLAGS "${HCC_CXXFLAGS} -I${CMAKE_CURRENT_SOURCE_DIR}/../include -I${ROCM_PATH}/include -I${HIP_PATH}/include")
     set (HCC_LDFLAGS "${HCC_LDFLAGS} -L${HIP_PATH}/lib -lhip_hcc")
   ENDIF()
 
@@ -103,7 +103,7 @@ ELSEIF (${PLATFORM} MATCHES "nvcc")
   MESSAGE(STATUS "Building hipsparse.cpp")
   SET(HIPSRCS ${CMAKE_CURRENT_SOURCE_DIR}/nvcc_detail/hipsparse.cpp)
 
-  set (CXXFLAGS "-I${CMAKE_CURRENT_SOURCE_DIR}/../include -I${HIP_PATH}/include -I/usr/local/cuda/include -D__HIP_PLATFORM_NVCC__=")
+  set (CXXFLAGS "-I${CMAKE_CURRENT_SOURCE_DIR}/../include -I${HIP_PATH}/include -I/usr/local/cuda/include")
   set (LDFLAGS "-L/usr/local/cuda/lib64 -L/usr/local/cuda/lib")
   FOREACH(src_file ${HIPSRCS})
 	  SET_PROPERTY(SOURCE ${src_file} APPEND_STRING PROPERTY COMPILE_FLAGS " ${CXXFLAGS} ")
