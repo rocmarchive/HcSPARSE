@@ -134,7 +134,7 @@ if [ "$platform" = "hcc" ]; then
   echo "${green}hcSPARSE Build Completed!${reset}"
 
 # Test=ON (Build and test the library)
-  if ( [ "$testing" = "on" ] ); then
+  if ( [ "$testing" = "on" ] ) || ( [ "$testing" = "basic" ] ); then
 # Build Tests
      set +e
      mkdir -p $current_work_dir/build/test
