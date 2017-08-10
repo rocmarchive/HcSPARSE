@@ -40,7 +40,7 @@ enum hipsparseStatus_t {
   HIPSPARSE_STATUS_MAPPING_ERROR,    // access to GPU memory space failed
   HIPSPARSE_STATUS_EXECUTION_FAILED, // GPU program failed to execute
   HIPSPARSE_STATUS_INTERNAL_ERROR,    // an internal HIPSPARSE operation failed
-  HIPSPARSE_STATUS_NOT_SUPPORTED     // cuSPARSE supports this, but not hcSPARSE
+  HIPSPARSE_STATUS_MATRIX_TYPE_NOT_SUPPORTED     // cuSPARSE supports this, but not hcSPARSE
 };
 
 enum hipsparseIndexBase_t {

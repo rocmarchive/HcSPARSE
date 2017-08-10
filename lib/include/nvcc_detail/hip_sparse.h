@@ -26,16 +26,22 @@ THE SOFTWARE.
 
 //HGSOS for Kalmar leave it as C++, only cuSPARSE needs C linkage.
 
-#ifdef cplusplus
+#ifdef __cplusplus
 extern "C" {
 #endif
 
 typedef cusparseHandle_t hipsparseHandle_t ;
 typedef cusparseMatDescr_t hipsparseMatDescr_t ;
-typedef cusparseIndexBase_t hipsparseIndexBase_t;
-typedef cusparseOperation_t hipsparseOperation_t;
 
-hipsparseStatus_t hipCUSPARSEStatusToHIPStatus(cusparseStatus_t cuStatus); 
+hipsparseStatus_t hipCudaStatusToHIPStatus(cusparseStatus_t cuStatus); 
+
+cusparseOperation_t hipHIPOperationToCudaOperation(hipsparseOperation_t op);
+
+cusparseIndexBase_t hipHIPIndexBaseToCudaIndexBase(hipsparseIndexBase_t idBase);
+
+cusparseMatrixType_t hipHIPMatrixTypeToCudaMatrixType(hipsparseMatrixType_t matType);
+
+cusparseDirection_t hipHIPDirectionToCudaDirection(hipsparseDirection_t dir);
 
 hipsparseStatus_t hipsparseCreate(hipsparseHandle_t* handle);
 
@@ -44,6 +50,7 @@ hipsparseStatus_t hipsparseDestroy(hipsparseHandle_t handle);
 hipsparseStatus_t hipsparseCreateMatDescr(hipsparseMatDescr_t *descrA);
 
 hipsparseStatus_t hipsparseDestroyMatDescr(hipsparseMatDescr_t descrA);
+
 
 //Sparse L2 BLAS operations
 
