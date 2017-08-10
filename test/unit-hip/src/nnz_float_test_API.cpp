@@ -1,24 +1,16 @@
 #include "hip/hip_runtime.h"
 #include "hipsparse.h"
-#include "hcsparse.h"
 #include <iostream>
-#include "hc_am.hpp"
 #include "gtest/gtest.h"
 
 TEST(nnz_float_test, func_check)
 {
-    hcsparseScalar gR;
-    hcdenseVector gX;
-
-    std::vector<accelerator>acc = accelerator::get_all();
-    accelerator_view accl_view = (acc[1].create_view()); 
-
-    hcsparseControl control(accl_view);
-
      /* Test New APIs */
     hipsparseHandle_t handle;
     hipsparseStatus_t status1;
     hipsparseMatDescr_t descrA;
+    hc::accelerator accl;
+    hc::accelerator_view av = accl.get_default_view();
 
     status1 = hipsparseCreate(&handle);
     if (status1 != HIPSPARSE_STATUS_SUCCESS) {
@@ -30,6 +22,7 @@ TEST(nnz_float_test, func_check)
 
     int m = 64;
     int n = 259;
+    int lda = m;
 
     status1 = hipsparseCreateMatDescr(&descrA);
     if (status1 != HIPSPARSE_STATUS_SUCCESS) {
@@ -37,16 +30,19 @@ TEST(nnz_float_test, func_check)
       exit(1);
     }
 
-    float *devA = am_alloc(sizeof(float)*m*n, acc[1], 0);
-    int lda = m;
-    int *nnzPerRowColumn = am_alloc(sizeof(float)*m, acc[1], 0);
-    int *nnz = (int *)am_alloc(sizeof(int) * 1, acc[1], 0);
+    float *devA = NULL;
+    int *nnzPerRowColumn = NULL;
+    int *nnz = NULL;
+    hipError_t err;
+
+    err = hipMalloc(&devA, sizeof(float)*m*n);
+    err = hipMalloc(&nnzPerRowColumn, sizeof(float)*m);
+    err = hipMalloc(&nnz, sizeof(int) * 1);
 
     float *hostA = (float*)calloc (m*n, sizeof(float));
     int *nnzPerRowColumn_h = (int *)calloc(m, sizeof(int));
-    int nnz_h;
     int *nnzPerRowColumn_res = (int *)calloc(m, sizeof(int));
-    int nnz_res;
+    int nnz_res, nnz_h;
 
     srand (time(NULL));
     for (int i = 0; i < m*n; i++)
@@ -54,15 +50,14 @@ TEST(nnz_float_test, func_check)
         hostA[i] = rand()%100;
     }    
 
-    control.accl_view.copy(hostA, devA, m*n*sizeof(float));
+    hipMemcpy(devA, hostA, m*n*sizeof(float));
 
-    hipsparseStatus_t stat = hipsparseSnnz(handle, dir, m, n, descrA, devA, lda,
+    hipsparseStatus_t stat = hipsparseDnnz(handle, dir, m, n, descrA, devA, lda,
                                          nnzPerRowColumn, nnz);
     hipDeviceSynchronize();
 
-    control.accl_view.copy(nnzPerRowColumn, nnzPerRowColumn_res, m*sizeof(int));
-    control.accl_view.copy(&nnz, &nnz_res, 1*sizeof(int));
-
+    hipMemcpy(nnzPerRowColumn_res, nnzPerRowColumn, m*sizeof(int));
+    hipMemcpy(&nnz_res, &nnz, 1*sizeof(int));
 
     for (int i = 0; i < m; i++) {
       int rowCount = 0;
@@ -91,4 +86,12 @@ TEST(nnz_float_test, func_check)
       std::cout << "Error DeInitializing the sparse library."<<std::endl;
       exit(1);
     }
+   
+    hipFree(devA);
+    hipFree(nnzPerRowColumn);
+    hipFree(nnz);
+    free(hostA);
+    free(nnzPerRowColumn_h);
+    free(nnzPerRowColumn_res);
+
 }

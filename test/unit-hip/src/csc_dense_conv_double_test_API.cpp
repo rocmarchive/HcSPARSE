@@ -1,8 +1,6 @@
 #include "hip/hip_runtime.h"
 #include "hipsparse.h"
-#include "hcsparse.h"
 #include <iostream>
-#include "hc_am.hpp"
 #include "gtest/gtest.h"
 
 TEST(csc_dense_conv_double_test, func_check)
