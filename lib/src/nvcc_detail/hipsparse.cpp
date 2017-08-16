@@ -107,6 +107,29 @@ hipsparseStatus_t hipsparseDestroyMatDescr(hipsparseMatDescr_t descrA)
    return hipCudaStatusToHIPStatus(cusparseDestroyMatDescr(descrA));
 }
 
+// Sparse L1 BLAS operations
+
+hipsparseStatus_t hipsparseSdoti(hipsparseHandle_t handle, int nnz,
+                              const float           *xVal,
+                              const int *xInd, const float           *y,
+                              float           *resultDevHostPtr,
+                              hipsparseIndexBase_t idxBase){
+
+  return hipCudaStatusToHIPStatus(cusparseSdoti(handle, nnz, xVal, xInd, y, resultDevHostPtr,
+                                                hipHIPIndexBaseToCudaIndexBase(idxBase)));
+}
+
+hipsparseStatus_t hipsparseDdoti(hipsparseHandle_t handle, int nnz,
+                              const double           *xVal,
+                              const int *xInd, const double  *y,
+                              double           *resultDevHostPtr,
+                              hipsparseIndexBase_t idxBase){
+
+  return hipCudaStatusToHIPStatus(cusparseDdoti(handle, nnz, xVal, xInd, y, resultDevHostPtr,
+                                                hipHIPIndexBaseToCudaIndexBase(idxBase)));
+}
+
+
 //Sparse L2 BLAS operations
 
 hipsparseStatus_t hipsparseScsrmv(hipsparseHandle_t handle, hipsparseOperation_t transA, 
@@ -284,48 +307,50 @@ hipsparseStatus_t hipsparseDnnz(hipsparseHandle_t handle, hipsparseDirection_t d
                                                nnzPerRowColumn, nnzTotalDevHostPtr));
 }
 
-hipsparseStatus_t hipsparseSdoti(hipsparseHandle_t handle, int nnz,
-                              const float           *xVal,
-                              const int *xInd, const float           *y,
-                              float           *resultDevHostPtr,
-                              hipsparseIndexBase_t idxBase){
-
-  return hipCudaStatusToHIPStatus(cusparseSdoti(handle, nnz, xVal, xInd, y, resultDevHostPtr,
-                                                hipHIPIndexBaseToCudaIndexBase(idxBase)));
-}
-
-hipsparseStatus_t hipsparseDdoti(hipsparseHandle_t handle, int nnz,
-                              const double           *xVal,
-                              const int *xInd, const double  *y,
-                              double           *resultDevHostPtr,
-                              hipsparseIndexBase_t idxBase){
-
-  return hipCudaStatusToHIPStatus(cusparseDdoti(handle, nnz, xVal, xInd, y, resultDevHostPtr,
-                                                hipHIPIndexBaseToCudaIndexBase(idxBase)));
-}
-
-
 hipsparseStatus_t hipsparseScsc2dense(hipsparseHandle_t handle, int m, int n,
-                              const hipsparseMatDescr_t descrA,
-                              const float           *cscValA,
-                              const int *cscRowIndA, const int *cscColPtrA,
-                              float           *A, int lda){
+                                      const hipsparseMatDescr_t descrA,
+                                      const float           *cscValA,
+                                      const int *cscRowIndA, const int *cscColPtrA,
+                                      float           *A, int lda){
 
   return hipCudaStatusToHIPStatus(cusparseScsc2dense(handle, m, n, descrA,
-                                                         cscValA, cscRowIndA, 
-                                                         cscColPtrA, A, lda));
+                                                     cscValA, cscRowIndA, 
+                                                     cscColPtrA, A, lda));
+}
+
+hipsparseStatus_t hipsparseDcsc2dense(hipsparseHandle_t handle, int m, int n,
+                                      const hipsparseMatDescr_t descrA,
+                                      const double  *cscValA,
+                                      const int *cscRowIndA, const int *cscColPtrA,
+                                      double           *A, int lda){
+
+  return hipCudaStatusToHIPStatus(cusparseDcsc2dense(handle, m, n, descrA,
+                                                     cscValA, cscRowIndA, 
+                                                     cscColPtrA, A, lda));
 }
 
 hipsparseStatus_t hipsparseSdense2csc(hipsparseHandle_t handle, int m, int n,
-                              const hipsparseMatDescr_t descrA,
-                              const float           *A,
-                              int lda, const int *nnzPerCol,
-                              float           *cscValA,
-                              int *cscRowIndA, int *cscColPtrA){
+                                      const hipsparseMatDescr_t descrA,
+                                      const float           *A,
+                                      int lda, const int *nnzPerCol,
+                                      float           *cscValA,
+                                      int *cscRowIndA, int *cscColPtrA){
 
   return hipCudaStatusToHIPStatus(cusparseSdense2csc(handle, m, n, descrA,
-                                                         A, lda, nnzPerCol, cscValA,
-                                                         cscRowIndA, cscColPtrA));
+                                                     A, lda, nnzPerCol, cscValA,
+                                                     cscRowIndA, cscColPtrA));
+}
+
+hipsparseStatus_t hipsparseDdense2csc(hipsparseHandle_t handle, int m, int n,
+                                      const hipsparseMatDescr_t descrA,
+                                      const double           *A,
+                                      int lda, const int *nnzPerCol,
+                                      double          *cscValA,
+                                      int *cscRowIndA, int *cscColPtrA){
+
+  return hipCudaStatusToHIPStatus(cusparseDdense2csc(handle, m, n, descrA,
+                                                     A, lda, nnzPerCol, cscValA,
+                                                     cscRowIndA, cscColPtrA));
 }
 
 #ifdef __cplusplus
