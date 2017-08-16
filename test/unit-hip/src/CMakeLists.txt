@@ -16,7 +16,7 @@ IF(${PLATFORM} MATCHES "hcc")
 
   SET(HIPBLAS_INCLUDE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../../lib/include")
   string(STRIP "${HCC_CXXFLAGS}" HCC_CXXFLAGS)
-  set (HCC_CXXFLAGS "${HCC_CXXFLAGS} -I${HIPBLAS_INCLUDE_PATH}")
+  set (HCC_CXXFLAGS "${HCC_CXXFLAGS} -I${HIPBLAS_INCLUDE_PATH} -std=c++11")
 
   SET(HIPBLAS_LIBRARY_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../../build/lib/src")
   string(STRIP "${HCC_LDFLAGS}" HCC_LDFLAGS)
@@ -38,7 +38,7 @@ IF(${PLATFORM} MATCHES "hcc")
 ELSEIF(${PLATFORM} MATCHES "nvcc")
  
   SET(HIPBLAS_INCLUDE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../../lib/include")
-  set (HIP_CXXFLAGS "${HIP_CXXFLAGS} -I${HIPBLAS_INCLUDE_PATH} -I/usr/local/cuda/include/ -I${HIP_PATH}/include")
+  set (HIP_CXXFLAGS "${HIP_CXXFLAGS} -I${HIPBLAS_INCLUDE_PATH} -I/usr/local/cuda/include/ -I${HIP_PATH}/include -std=c++11")
   
   SET(HIPBLAS_LIBRARY_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../../build/lib/src")
   set (HIP_LDFLAGS "${HIP_LDFLAGS} -L${HIPBLAS_LIBRARY_PATH} -L/usr/local/cuda/lib64")
@@ -53,7 +53,7 @@ ELSEIF(${PLATFORM} MATCHES "nvcc")
   
   SET_PROPERTY(TARGET unit-hip-test APPEND_STRING PROPERTY LINK_FLAGS " ${HIP_LDFLAGS} ${LINK}")
    
-  TARGET_LINK_LIBRARIES(unit-hip-test hipblas_nvcc blas cudart)
+  TARGET_LINK_LIBRARIES(unit-hip-test hipsparse_nvcc cusparse cudart)
 
   add_test(NAME unit-hip-test COMMAND ./bin/unit-hip-test)  
 

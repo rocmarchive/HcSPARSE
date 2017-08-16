@@ -116,6 +116,7 @@ build_dir=$current_work_dir/build
 cd $build_dir
 
 if [ "$platform" = "hcc" ]; then
+
     #default case: Of course there are Compulsory waits on certain kernels 
     cmake -DCMAKE_C_COMPILER=$cmake_c_compiler  -DCMAKE_CXX_COMPILER=$cmake_cxx_compiler -DCMAKE_CXX_FLAGS="$copt -fPIC" -DCMAKE_INSTALL_PREFIX=/opt/rocm/hcsparse $current_work_dir
 
@@ -161,6 +162,9 @@ if [ "$platform" = "hcc" ]; then
     ./build.sh
   fi
 elif [ "$platform" = "nvcc" ]; then
+
+  export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cuda/lib64
+
   cmake -DCMAKE_C_COMPILER=$cmake_c_compiler -DCMAKE_CXX_COMPILER=$cmake_cxx_compiler -DCMAKE_CXX_FLAGS=-fPIC -DCMAKE_INSTALL_PREFIX=/opt/rocm/hcsparse $current_work_dir
 
   make -j$working_threads package $verbose
@@ -179,6 +183,6 @@ elif [ "$platform" = "nvcc" ]; then
     make -j$working_threads
     printf "* UNIT HIP TESTS *\n"
     printf "******************\n"
-    ${current_work_dir}/build/test/unit-hip/bin/unit-hip-test
+    ${current_work_dir}/build/test/unit-hip/src/bin/unit-hip-test
   fi
 fi
