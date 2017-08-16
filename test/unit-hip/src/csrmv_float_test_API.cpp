@@ -1,38 +1,28 @@
+#include <iostream>
+#include <cmath>
 #include "hip/hip_runtime.h"
 #include "hipsparse.h"
-#include "hcsparse.h"
-#include <iostream>
-#include "hc_am.hpp"
+#include "mmio_wrapper.h"
 #include "gtest/gtest.h"
 
 TEST(csrmv_float_test, func_check)
 {
-    hcsparseCsrMatrix gCsrMat;
-
-    std::vector<accelerator>acc = accelerator::get_all();
-    accelerator_view accl_view = (acc[1].create_view()); 
-
-    hcsparseControl control(accl_view);
-
     const char* filename = "./../../../../../test/gtest/src/input.mtx";
 
     int num_nonzero, num_row, num_col;
+    float *values = NULL;
+    int *rowOffsets = NULL;
+    int *colIndices = NULL;
 
-    hcsparseStatus status;
-
-    status = hcsparseHeaderfromFile(&num_nonzero, &num_row, &num_col, filename);
-
-    if (status != hcsparseSuccess)
-    {
-        std::cout<<"The input file should be in mtx format"<<std::endl;
-        exit(-1);
-    } 
+    if (!(hcsparseCsrMatrixfromFile<float>(filename, false, &values, &rowOffsets, &colIndices,
+                                            &num_row, &num_col, &num_nonzero))) {
+      std::cout << "Error reading the matrix file" << std::endl;
+      exit(1);
+    }
 
      /* Test New APIs */
     hipsparseHandle_t handle;
     hipsparseStatus_t status1;
-    hc::accelerator accl;
-    hc::accelerator_view av = accl.get_default_view();
 
     status1 = hipsparseCreate(&handle);
     if (status1 != HIPSPARSE_STATUS_SUCCESS) {
@@ -49,20 +39,11 @@ TEST(csrmv_float_test, func_check)
       exit(1);
     }
 
-
     float *host_res = (float*) calloc(num_row, sizeof(float));
     float *host_X = (float*) calloc(num_col, sizeof(float));
     float *host_Y = (float*) calloc(num_row, sizeof(float));
     float *host_alpha = (float*) calloc(1, sizeof(float));
     float *host_beta = (float*) calloc(1, sizeof(float));
-
-    hcsparseSetup();
-    hcsparseInitCsrMatrix(&gCsrMat);
-
-    float *gX = am_alloc(sizeof(float) * num_col, acc[1], 0);
-    float *gY = am_alloc(sizeof(float) * num_row, acc[1], 0);
-    float *gAlpha = am_alloc(sizeof(float) * 1, acc[1], 0);
-    float *gBeta = am_alloc(sizeof(float) * 1, acc[1], 0);
 
     srand (time(NULL));
     for (int i = 0; i < num_col; i++)
@@ -78,44 +59,38 @@ TEST(csrmv_float_test, func_check)
     host_alpha[0] = rand()%100;
     host_beta[0] = rand()%100;
 
-    control.accl_view.copy(host_X, gX, sizeof(float) * num_col);
-    control.accl_view.copy(host_Y, gY, sizeof(float) * num_row);
-    control.accl_view.copy(host_alpha, gAlpha, sizeof(float) * 1);
-    control.accl_view.copy(host_beta, gBeta, sizeof(float) * 1);
+    float *gX;
+    float *gY;
+    float *gAlpha;
+    float *gBeta;
+    float *valA = NULL;
+    int  *rowPtrA = NULL;
+    int *colIndA = NULL;
+    hipError_t err;
 
-    gCsrMat.offValues = 0;
-    gCsrMat.offColInd = 0;
-    gCsrMat.offRowOff = 0;
+    err = hipMalloc(&gX, sizeof(float) * num_col);
+    err = hipMalloc(&gY, sizeof(float) * num_row);
+    err = hipMalloc(&gAlpha, sizeof(float) * 1);
+    err = hipMalloc(&gBeta, sizeof(float) * 1);
+    err = hipMalloc(&valA, sizeof(float) * num_nonzero);
+    err = hipMalloc(&rowPtrA, sizeof(int) * (num_row+1));
+    err = hipMalloc(&colIndA, sizeof(int) * num_nonzero);
 
-    float *values = (float*)calloc(num_nonzero, sizeof(float));
-    int *rowOffsets = (int*)calloc(num_row+1, sizeof(int));
-    int *colIndices = (int*)calloc(num_nonzero, sizeof(int));
-
-    gCsrMat.values = am_alloc(sizeof(float) * num_nonzero, acc[1], 0);
-    gCsrMat.rowOffsets = am_alloc(sizeof(int) * (num_row+1), acc[1], 0);
-    gCsrMat.colIndices = am_alloc(sizeof(int) * num_nonzero, acc[1], 0);
-
-    status = hcsparseSCsrMatrixfromFile(&gCsrMat, filename, &control, false);
-   
-    control.accl_view.copy(gCsrMat.values, values, sizeof(float) * num_nonzero);
-    control.accl_view.copy(gCsrMat.rowOffsets, rowOffsets, sizeof(int) * (num_row+1));
-    control.accl_view.copy(gCsrMat.colIndices, colIndices, sizeof(int) * num_nonzero);
-
-    if (status != hcsparseSuccess)
-    {
-        std::cout<<"The input file should be in mtx format"<<std::endl;
-        exit(1);
-    }
+    hipMemcpy(gX, host_X, sizeof(float) * num_col, hipMemcpyHostToDevice);
+    hipMemcpy(gY, host_Y, sizeof(float) * num_row, hipMemcpyHostToDevice);
+    hipMemcpy(gAlpha, host_alpha, sizeof(float) * 1, hipMemcpyHostToDevice);
+    hipMemcpy(gBeta, host_beta, sizeof(float) * 1, hipMemcpyHostToDevice);
+    hipMemcpy(valA, values, sizeof(float) * num_nonzero, hipMemcpyHostToDevice);
+    hipMemcpy(rowPtrA, rowOffsets, sizeof(int) * (num_row+1), hipMemcpyHostToDevice);
+    hipMemcpy(colIndA, colIndices, sizeof(int) * num_nonzero, hipMemcpyHostToDevice);
 
     hipsparseOperation_t transA = HIPSPARSE_OPERATION_NON_TRANSPOSE;
     int nnz = 0;
 
     status1 = hipsparseScsrmv(handle, transA, num_row, num_col,
                               nnz, static_cast<const float*>(gAlpha), descrA,
-                              static_cast<const float*>(gCsrMat.values),
-                              (int *) gCsrMat.rowOffsets,
-                              (int *)gCsrMat.colIndices, (float*)gX,
-                              static_cast<const float*>(gBeta), (float *)gY);
+                              values, rowOffsets, colIndices, gX,
+                              static_cast<const float*>(gBeta), gY);
     hipDeviceSynchronize();
 
      
@@ -129,7 +104,7 @@ TEST(csrmv_float_test, func_check)
         }
     }
 
-    control.accl_view.copy(gY, host_Y, sizeof(float) * num_row);
+    hipMemcpy(host_Y, gY, sizeof(float) * num_row, hipMemcpyDeviceToHost);
 
     bool isPassed = 1;  
  
@@ -139,8 +114,6 @@ TEST(csrmv_float_test, func_check)
         EXPECT_LT(diff, 0.01);
     }
 
-    hcsparseTeardown();
-
     free(host_res);
     free(host_X);
     free(host_Y);
@@ -149,11 +122,11 @@ TEST(csrmv_float_test, func_check)
     free(values);
     free(rowOffsets);
     free(colIndices);
-    am_free(gX);
-    am_free(gY);
-    am_free(gAlpha);
-    am_free(gBeta);
-    am_free(gCsrMat.values);
-    am_free(gCsrMat.rowOffsets);
-    am_free(gCsrMat.colIndices);
+    hipFree(gX);
+    hipFree(gY);
+    hipFree(gAlpha);
+    hipFree(gBeta);
+    hipFree(values);
+    hipFree(rowOffsets);
+    hipFree(colIndices);
 }

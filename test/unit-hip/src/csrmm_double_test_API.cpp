@@ -1,30 +1,24 @@
+#include <iostream>
+#include <cmath>
 #include "hip/hip_runtime.h"
 #include "hipsparse.h"
-#include "hcsparse.h"
-#include <iostream>
-#include "hc_am.hpp"
+#include "mmio_wrapper.h"
 #include "gtest/gtest.h"
 
 TEST(csrmm_double_test, func_check)
 {
 
-    std::vector<accelerator>acc = accelerator::get_all();
-    accelerator_view accl_view = (acc[1].create_view()); 
-
-    hcsparseControl control(accl_view);
-
     const char* filename = "./../../../../../test/gtest/src/input.mtx";
-
     int num_nonzero, num_row_A, num_col_A;
+    double *values = NULL;
+    int *rowOffsets = NULL;
+    int *colIndices = NULL;
 
-    hcsparseStatus status;
-
-    status = hcsparseHeaderfromFile(&num_nonzero, &num_row_A, &num_col_A, filename);
-    if (status != hcsparseSuccess)
-    {
-        std::cout<<"The input file should be in mtx format"<<std::endl;
-        exit(1);
-    } 
+     if (!(hcsparseCsrMatrixfromFile<double>(filename, false, &values, &rowOffsets, &colIndices,
+                                            &num_row_A, &num_col_A, &num_nonzero))) {
+      std::cout << "Error reading the matrix file" << std::endl;
+      exit(1);
+    }
 
      /* Test New APIs */
     hipsparseHandle_t handle;
@@ -57,20 +51,6 @@ TEST(csrmm_double_test, func_check)
     double *host_alpha = (double*) calloc(1, sizeof(double));
     double *host_beta = (double*) calloc(1, sizeof(double));
 
-    hcsparseCsrMatrix gCsrMat;
-    double *gX;
-    double *gY;
-    double *gAlpha;
-    double *gBeta;
-
-    hcsparseSetup();
-    hcsparseInitCsrMatrix(&gCsrMat);
-
-    gX = am_alloc(sizeof(double) * num_col_X * num_row_X, acc[1], 0);
-    gY = am_alloc(sizeof(double) * num_row_Y * num_col_Y, acc[1], 0);
-    gAlpha = am_alloc(sizeof(double) * 1, acc[1], 0);
-    gBeta = am_alloc(sizeof(double) * 1, acc[1], 0);
-
     srand (time(NULL));
     for (int i = 0; i < num_col_X * num_row_X; i++)
     {
@@ -85,39 +65,38 @@ TEST(csrmm_double_test, func_check)
     host_alpha[0] = rand()%100;
     host_beta[0] = rand()%100;
 
-    control.accl_view.copy(host_X, gX, sizeof(double) * num_col_X * num_row_X);
-    control.accl_view.copy(host_Y, gY, sizeof(double) * num_row_Y * num_col_Y);
-    control.accl_view.copy(host_alpha, gAlpha, sizeof(double) * 1);
-    control.accl_view.copy(host_beta, gBeta, sizeof(double) * 1);
+    double *gX;
+    double *gY;
+    double *gAlpha;
+    double *gBeta;
+    double *valA = NULL;
+    int  *rowPtrA = NULL;
+    int *colIndA = NULL;
+    hipError_t err;
 
-    double *values = (double*)calloc(num_nonzero, sizeof(double));
-    int *rowOffsets = (int*)calloc(num_row_A+1, sizeof(int));
-    int *colIndices = (int*)calloc(num_nonzero, sizeof(int));
+    err = hipMalloc(&gX, sizeof(double) * num_col_X * num_row_X);
+    err = hipMalloc(&gY, sizeof(double) * num_row_Y * num_col_Y);
+    err = hipMalloc(&gAlpha, sizeof(double) * 1);
+    err = hipMalloc(&gBeta, sizeof(double) * 1);
+    err = hipMalloc(&valA, sizeof(double) * num_nonzero);
+    err = hipMalloc(&rowPtrA, sizeof(int) * (num_row_A+1));
+    err = hipMalloc(&colIndA, sizeof(int) * num_nonzero);
 
-    gCsrMat.values = am_alloc(sizeof(double) * num_nonzero, acc[1], 0);
-    gCsrMat.rowOffsets = am_alloc(sizeof(int) * (num_row_A+1), acc[1], 0);
-    gCsrMat.colIndices = am_alloc(sizeof(int) * num_nonzero, acc[1], 0);
-
-    status = hcsparseDCsrMatrixfromFile(&gCsrMat, filename, &control, false);
-    if (status != hcsparseSuccess)
-    {
-        std::cout<<"The input file should be in mtx format"<<std::endl;
-        exit(1);
-    }
-
-    control.accl_view.copy(gCsrMat.values, values, sizeof(double) * num_nonzero);
-    control.accl_view.copy(gCsrMat.rowOffsets, rowOffsets, sizeof(int) * (num_row_A+1));
-    control.accl_view.copy(gCsrMat.colIndices, colIndices, sizeof(int) * num_nonzero);
+    hipMemcpy(gX, host_X, sizeof(double) * num_col_X * num_row_X, hipMemcpyHostToDevice);
+    hipMemcpy(gY, host_Y, sizeof(double) * num_row_Y * num_col_Y, hipMemcpyHostToDevice);
+    hipMemcpy(gAlpha, host_alpha, sizeof(double) * 1, hipMemcpyHostToDevice);
+    hipMemcpy(gBeta, host_beta, sizeof(double) * 1, hipMemcpyHostToDevice);
+    hipMemcpy(valA, values, sizeof(double) * num_nonzero, hipMemcpyHostToDevice);
+    hipMemcpy(rowPtrA, rowOffsets, sizeof(int) * (num_row_A+1), hipMemcpyHostToDevice);
+    hipMemcpy(colIndA, colIndices, sizeof(int) * num_nonzero, hipMemcpyHostToDevice);
 
     hipsparseOperation_t transA = HIPSPARSE_OPERATION_NON_TRANSPOSE;
     int nnz = 0;
 
     status1 = hipsparseDcsrmm(handle, transA, num_row_A, num_col_Y,
                             num_col_A, nnz, static_cast<const double*>(gAlpha), descrA,
-                            static_cast<const double*>(gCsrMat.values),
-                            (int *) gCsrMat.rowOffsets,
-                            (int *)gCsrMat.colIndices, (double*)gX, num_col_X,
-                            static_cast<const double*>(gBeta), (double *)gY, num_col_Y);
+                            valA, rowPtrA, colIndA, gX, num_col_X, 
+                            static_cast<const double*>(gBeta), gY, num_col_Y);
     hipDeviceSynchronize();
 
     for (int col = 0; col < num_col_X; col++)
@@ -134,7 +113,7 @@ TEST(csrmm_double_test, func_check)
         }
     }
 
-    control.accl_view.copy(gY, host_Y, sizeof(double) * num_row_Y * num_col_Y);
+    hipMemcpy(host_Y, gY, sizeof(double) * num_row_Y * num_col_Y, hipMemcpyDeviceToHost);
 
     bool isPassed = 1;
 
@@ -164,12 +143,12 @@ TEST(csrmm_double_test, func_check)
     free(values);
     free(rowOffsets);
     free(colIndices);
-    am_free(gX);
-    am_free(gY);
-    am_free(gAlpha);
-    am_free(gBeta);
-    am_free(gCsrMat.values);
-    am_free(gCsrMat.rowOffsets);
-    am_free(gCsrMat.colIndices);
+    hipFree(gX);
+    hipFree(gY);
+    hipFree(gAlpha);
+    hipFree(gBeta);
+    hipFree(valA);
+    hipFree(rowPtrA);
+    hipFree(colIndA);
 
 }

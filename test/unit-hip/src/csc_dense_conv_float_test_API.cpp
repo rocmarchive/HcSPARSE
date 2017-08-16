@@ -1,6 +1,7 @@
 #include "hip/hip_runtime.h"
 #include "hipsparse.h"
 #include <iostream>
+#include <cmath>
 #include "gtest/gtest.h"
 
 TEST(csc_dense_conv_float_test, func_check)

@@ -9,8 +9,6 @@ TEST(nnz_double_test, func_check)
     hipsparseHandle_t handle;
     hipsparseStatus_t status1;
     hipsparseMatDescr_t descrA;
-    hc::accelerator accl;
-    hc::accelerator_view av = accl.get_default_view();
 
     status1 = hipsparseCreate(&handle);
     if (status1 != HIPSPARSE_STATUS_SUCCESS) {
@@ -50,14 +48,14 @@ TEST(nnz_double_test, func_check)
         hostA[i] = rand()%100;
     }    
 
-    hipMemcpy(devA, hostA, m*n*sizeof(double));
+    hipMemcpy(devA, hostA, m*n*sizeof(double), hipMemcpyHostToDevice);
 
     hipsparseStatus_t stat = hipsparseDnnz(handle, dir, m, n, descrA, devA, lda,
                                          nnzPerRowColumn, nnz);
     hipDeviceSynchronize();
 
-    hipMemcpy(nnzPerRowColumn_res, nnzPerRowColumn, m*sizeof(int));
-    hipMemcpy(&nnz_res, &nnz, 1*sizeof(int));
+    hipMemcpy(nnzPerRowColumn_res, nnzPerRowColumn, m*sizeof(int), hipMemcpyDeviceToHost);
+    hipMemcpy(&nnz_res, &nnz, 1*sizeof(int), hipMemcpyDeviceToHost);
 
     for (int i = 0; i < m; i++) {
       int rowCount = 0;
