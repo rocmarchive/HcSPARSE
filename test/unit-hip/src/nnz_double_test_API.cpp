@@ -18,8 +18,8 @@ TEST(nnz_double_test, func_check)
 
     hipsparseDirection_t dir = HIPSPARSE_DIRECTION_ROW;
 
-    int m = 10;
-    int n = 15;
+    int m = 64;
+    int n = 7;
     int lda = m;
 
     status1 = hipsparseCreateMatDescr(&descrA);
@@ -40,14 +40,26 @@ TEST(nnz_double_test, func_check)
     double *hostA = (double*)calloc (m*n, sizeof(double));
     int *nnzPerRowColumn_h = (int *)calloc(m, sizeof(int));
     int *nnzPerRowColumn_res = (int *)calloc(m, sizeof(int));
-    int nnz_res, nnz_h;
+    int nnz_res, nnz_h = 0;
 
     srand (time(NULL));
     for (int i = 0; i < m*n; i++)
     {
+//        if (i%2 == 0)
         hostA[i] = rand()%100;
     }    
 
+#if 0
+    for (int i = 0; i < m; i++) {
+      std::cout << i << ": \t";
+      for (int j = 0; j < n; j++) {
+        std::cout << hostA[i*n+j] << "\t";
+      }
+      std::cout << std::endl;
+    }
+#endif
+
+    std::cout << std::endl;
     hipMemcpy(devA, hostA, m*n*sizeof(double), hipMemcpyHostToDevice);
 
     hipsparseStatus_t stat = hipsparseDnnz(handle, dir, m, n, descrA, devA, lda,
@@ -55,27 +67,30 @@ TEST(nnz_double_test, func_check)
     hipDeviceSynchronize();
 
     hipMemcpy(nnzPerRowColumn_res, nnzPerRowColumn, m*sizeof(int), hipMemcpyDeviceToHost);
-    hipMemcpy(&nnz_res, &nnz, 1*sizeof(int), hipMemcpyDeviceToHost);
+    hipMemcpy(&nnz_res, nnz, 1*sizeof(int), hipMemcpyDeviceToHost);
 
     for (int i = 0;i < m; i++) {
       int rowCount = 0;
       for (int j = 0; j < n; j++) {
          if ( hostA[i*n+j] != 0) {
            rowCount++;
-           nnz_h++;
          }
       }
       nnzPerRowColumn_h[i] = rowCount;
+      nnz_h += rowCount;
     }
 
     bool ispassed = 1;
     for (int i = 0; i < m; i++) {
       double diff = std::abs(nnzPerRowColumn_h[i] - nnzPerRowColumn_res[i]);
-      std::cout << "i : " << i << " nnz_h : " << nnzPerRowColumn_h[i] << " nnz_d: " << nnzPerRowColumn_res[i] <<std::endl;
+      // TODO : Cuda returns wrong output. Yet to verify
+//      std::cout << "i : " << i << " nnz_h : " << nnzPerRowColumn_h[i] << " nnz_d: " << nnzPerRowColumn_res[i] <<std::endl;
 //      EXPECT_LT(diff, 0.01);
     }
-   
-    std::cout << "nnz_h" << nnz_res << "nnz_d : " << nnz_h <<std::endl;
+
+    double diff = std::abs(nnz_res - nnz_h);
+    EXPECT_LT(diff, 0.01); 
+//    std::cout << "nnz_d : " << nnz_res << "nnz_h : " << nnz_h <<std::endl;
  
     status1 = hipsparseDestroyMatDescr(descrA);
     if (status1 != HIPSPARSE_STATUS_SUCCESS) {

@@ -16,7 +16,7 @@ TEST(nnz_float_test, func_check)
       exit(1);
     }
 
-    hipsparseDirection_t dir = HIPSPARSE_DIRECTION_COLUMN;
+    hipsparseDirection_t dir = HIPSPARSE_DIRECTION_ROW;
 
     int m = 64;
     int n = 259;
@@ -40,7 +40,7 @@ TEST(nnz_float_test, func_check)
     float *hostA = (float*)calloc (m*n, sizeof(float));
     int *nnzPerRowColumn_h = (int *)calloc(m, sizeof(int));
     int *nnzPerRowColumn_res = (int *)calloc(m, sizeof(int));
-    int nnz_res, nnz_h;
+    int nnz_res, nnz_h = 0;
 
     srand (time(NULL));
     for (int i = 0; i < m*n; i++)
@@ -62,19 +62,22 @@ TEST(nnz_float_test, func_check)
       for (int j = 0; j < n; j++) {
          if ( hostA[i*n+j] != 0) {
            rowCount++;
-           nnz_h++;
          }
       }
       nnzPerRowColumn_h[i] = rowCount;
+      nnz_h += rowCount;
     }
 
     bool ispassed = 1;
     for (int i = 0; i < m; i++) {
       float diff = std::abs(nnzPerRowColumn_h[i] - nnzPerRowColumn_res[i]);
-      std::cout << "i : " << i << "nnz_h : " << nnzPerRowColumn_h[i] << " nnz_d : " << nnzPerRowColumn_res[i] << std::endl;
+//      std::cout << "i : " << i << "nnz_h : " << nnzPerRowColumn_h[i] << " nnz_d : " << nnzPerRowColumn_res[i] << std::endl;
 //      EXPECT_LT(diff, 0.01);
     }
     
+    float diff = std::abs(nnz_res - nnz_h);
+    EXPECT_LT(diff, 0.01);
+ 
     status1 = hipsparseDestroyMatDescr(descrA);
     if (status1 != HIPSPARSE_STATUS_SUCCESS) {
       exit(1);
