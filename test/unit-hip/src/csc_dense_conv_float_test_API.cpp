@@ -95,11 +95,15 @@ TEST(csc_dense_conv_float_test, func_check)
     hipMemcpy(csc_colPtr, cscColPtrA, (num_col+1) * sizeof(int), hipMemcpyDeviceToHost);
     hipMemcpy(csc_rowInd, cscRowIndA, num_nonzero * sizeof(int), hipMemcpyDeviceToHost);
 
-    int nnzperrow = 0;
+    hipMemset(cscValA, 0, num_nonzero * sizeof(float));
+    hipMemset(cscColPtrA, 0, (num_col+1) * sizeof(int));
+    hipMemset(cscRowIndA, 0, num_nonzero * sizeof(int));
+
+    int nnzperrow = 8644/900;
     status1 = hipsparseSdense2csc(handle, num_row, num_col,
                                  descrA, A, num_row, &nnzperrow, cscValA, cscColPtrA, cscRowIndA);
     if (status1 != HIPSPARSE_STATUS_SUCCESS) {
-      std::cout << "Error dense2csc conversion "<<std::endl;
+      std::cout << "Error dense2csc conversion " << status1 <<std::endl;
       exit(1);
     }
     hipDeviceSynchronize();

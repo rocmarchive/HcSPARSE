@@ -7,13 +7,13 @@
 
 TEST(csr_dense_conv_float_test, func_check)
 {
-    const char* filename = "./../../../../../test/gtest/src/input.mtx";
+    const char* filename = "./../../test/gtest/src/input.mtx";
     int num_nonzero, num_row, num_col;
     float *values = NULL;
     int *rowOffsets = NULL;
     int *colIndices = NULL;
 
-    if (!(hcsparseCsrMatrixfromFile<float>(filename, false, &values, &rowOffsets, &colIndices,
+    if ((hcsparseCsrMatrixfromFile<float>(filename, false, &values, &rowOffsets, &colIndices,
                                             &num_row, &num_col, &num_nonzero))) {
       std::cout << "Error reading the matrix file" << std::endl;
       exit(1);
