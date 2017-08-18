@@ -1991,15 +1991,6 @@ hcsparseHeaderfromFile (int* nnz, int* row, int* col, const char* filePath)
     return hcsparseSuccess;
 }
 
-template<typename T>
-bool CoordinateCompare (const Coordinate<T> &c1, const Coordinate<T> &c2)
-{
-    if( c1.x != c2.x )
-        return ( c1.x < c2.x );
-    else
-        return ( c1.y < c2.y );
-}
-
 // This function reads the file at the given filepath, and returns the sparse
 // matrix in the COO struct.  All matrix data is written to device memory
 // Pre-condition: This function assumes that the device memory buffers have been

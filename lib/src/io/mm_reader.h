@@ -1,7 +1,8 @@
 #ifndef MM_IO_H
 #define MM_IO_H
 
-#include "hcsparse.h"
+#include <typeinfo>
+
 /********************* MM_typecode query fucntions ***************************/
 
 #define mm_is_matrix(typecode)	((typecode)[0]=='M')
@@ -74,6 +75,23 @@
 #define MatrixMarketBanner "%%MatrixMarket"
 #define MAX_RAND_VAL 5.0
 
+template<typename T>
+struct Coordinate
+{
+    int x;
+    int y;
+    T val;
+};
+
+template<typename T>
+bool CoordinateCompare (const Coordinate<T> &c1, const Coordinate<T> &c2)
+{
+    if( c1.x != c2.x )
+        return ( c1.x < c2.x );
+    else
+        return ( c1.y < c2.y );
+}
+
 template <typename FloatType>
 class MatrixMarketReader
 {
@@ -88,8 +106,7 @@ class MatrixMarketReader
 public:
     MatrixMarketReader( ): nNZ( 0 ), nRows( 0 ), nCols( 0 ), isSymmetric( 0 ), isDoubleMem( 0 )
     {
-        for( auto c : Typecode )
-            c = '\0';
+        char c = '\0';
 
         unsym_coords = NULL;
     }
@@ -176,11 +193,14 @@ bool MatrixMarketReader<FloatType>::MMReadHeader( FILE* mm_file )
 template<typename FloatType>
 bool MatrixMarketReader<FloatType>::MMReadHeader( const std::string &filename )
 {
-    FILE *mm_file = ::fopen( filename.c_str( ), "r" );
+    FILE *mm_file = fopen( filename.c_str( ), "r" );
     if( mm_file == NULL )
     {
+        std::cout << "file n MMReadheader: " << filename.c_str() <<std::endl;
         printf( "Cannot Open Matrix-Market File !\n" );
+        std::cout << "wait "<< std::endl;
         return 1;
+        std::cout << "wait "<< std::endl;
     }
 
     if ( MMReadHeader( mm_file ) )
@@ -393,10 +413,11 @@ void MatrixMarketReader<FloatType>::MMGenerateCOOFromFile( FILE *infile, bool re
 template<typename FloatType>
 bool MatrixMarketReader<FloatType>::MMReadFormat( const std::string &filename, bool read_explicit_zeroes )
 {
-    FILE *mm_file = ::fopen( filename.c_str( ), "r" );
+    // TODO : Remove in future
+    FILE *mm_file = fopen( filename.c_str(), "r");
     if( mm_file == NULL )
     {
-        printf( "Cannot Open Matrix-Market File !\n" );
+        perror( "Cannot Open Matrix-Market File !\n" );
         return 1;
     }
 
