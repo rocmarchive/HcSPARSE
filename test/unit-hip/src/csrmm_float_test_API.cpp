@@ -2,10 +2,8 @@
 #include <cmath>
 #include "hip/hip_runtime.h"
 #include "hipsparse.h"
-#include "mmio_wrapper.c"
+#include "mmio_wrapper.h"
 #include "gtest/gtest.h"
-    #include <unistd.h>
-#include <stdio.h>
 
 TEST(csrmm_float_test, func_check)
 {

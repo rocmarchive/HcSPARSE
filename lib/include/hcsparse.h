@@ -1,7 +1,7 @@
 #ifndef _HC_SPARSE_H_
 #define _HC_SPARSE_H_
 
-//#include "hcsparse_struct.h"
+#include "hcsparse_struct.h"
 
 //2.2.1. hcsparseHandle_t
 
