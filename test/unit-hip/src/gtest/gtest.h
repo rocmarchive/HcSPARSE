@@ -53,6 +53,7 @@
 
 #include <limits>
 #include <vector>
+#include <cstdlib>
 
 // Copyright 2005, Google Inc.
 // All rights reserved.
