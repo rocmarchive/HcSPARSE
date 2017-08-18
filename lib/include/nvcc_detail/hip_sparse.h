@@ -139,6 +139,43 @@ hipsparseStatus_t hipsparseDcsrgemm(hipsparseHandle_t handle,
                                                   double *csrValC, const int *csrRowPtrC, 
                                                   int *csrColIndC );
 
+hipsparseStatus_t hipsparseScsrgeam(hipsparseHandle_t handle, 
+                                    int m, int n, const float *alpha,
+                                    const hipsparseMatDescr_t descrA, 
+                                    int nnzA,
+                                    const float *csrValA, 
+                                    const int *csrRowPtrA, 
+                                    const int *csrColIndA,
+                                    const float *beta,
+                                    const hipsparseMatDescr_t descrB, 
+                                    int nnzB,
+                                    const float *csrValB, 
+                                    const int *csrRowPtrB, 
+                                    const int *csrColIndB,
+                                    const hipsparseMatDescr_t descrC,
+                                    float *csrValC, 
+                                    int *csrRowPtrC, 
+                                    int *csrColIndC);
+
+hipsparseStatus_t hipsparseDcsrgeam(hipsparseHandle_t handle, 
+                                    int m, int n, const double *alpha,
+                                    const hipsparseMatDescr_t descrA, 
+                                    int nnzA,
+                                    const double *csrValA, 
+                                    const int *csrRowPtrA, 
+                                    const int *csrColIndA,
+                                    const double *beta,
+                                    const hipsparseMatDescr_t descrB, 
+                                    int nnzB,
+                                    const double *csrValB, 
+                                    const int *csrRowPtrB, 
+                                    const int *csrColIndB,
+                                    const hipsparseMatDescr_t descrC,
+                                    double *csrValC, 
+                                    int *csrRowPtrC, 
+                                    int *csrColIndC);
+
+
 //Matrix conversion routines
 
 hipsparseStatus_t hipsparseSdense2csr(hipsparseHandle_t handle, int m, int n, 
