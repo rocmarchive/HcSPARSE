@@ -37,6 +37,7 @@ enum hipsparseStatus_t {
   HIPSPARSE_STATUS_NOT_INITIALIZED,  // HIPSPARSE library not initialized
   HIPSPARSE_STATUS_ALLOC_FAILED,     // resource allocation failed
   HIPSPARSE_STATUS_INVALID_VALUE,    // unsupported numerical value was passed to function
+  HIPSPARSE_STATUS_ARCH_MISMATCH,    // Architecure mismatch 
   HIPSPARSE_STATUS_MAPPING_ERROR,    // access to GPU memory space failed
   HIPSPARSE_STATUS_EXECUTION_FAILED, // GPU program failed to execute
   HIPSPARSE_STATUS_INTERNAL_ERROR,    // an internal HIPSPARSE operation failed
