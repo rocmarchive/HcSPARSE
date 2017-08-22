@@ -26,7 +26,6 @@ int hcsparseCsrMatrixfromFile (const char* filePath,
                                 int *num_nonzeros)
 {
 
-    std::cout << "file : " << filePath <<std::endl;
     // Check that the file format is matrix market; the only format we can read right now
     // This is not a complete solution, and fails for directories with file names etc...
     // TODO: Should we use boost filesystem?
@@ -56,8 +55,6 @@ int hcsparseCsrMatrixfromFile (const char* filePath,
     *num_cols = mm_reader.GetNumCols( );
     *num_nonzeros = mm_reader.GetNumNonZeroes( );
 
-    std::cout<<"nRow" << *num_rows << "nCols/: " << *num_cols << "nnz : " << *num_nonzeros << std::endl; 
-
     T *tempValues;
     int *tempRowOffsets, *tempColIndices;
 
@@ -77,8 +74,6 @@ int hcsparseCsrMatrixfromFile (const char* filePath,
     int actual_rows = mm_reader.GetNumRows( );
     int actual_cols = mm_reader.GetNumCols( );
     int actual_num_nonzeros = mm_reader.GetNumNonZeroes( );
-
-    std::cout<<"nRow" << actual_rows << "nCols/: " << actual_cols << "nnz: " << actual_num_nonzeros << std::endl; 
 
     Coordinate<T>* coords = mm_reader.GetUnsymCoordinates( );
 
@@ -105,7 +100,6 @@ int hcsparseCsrMatrixfromFile (const char* filePath,
     memcpy(*rowOffsets, tempRowOffsets, sizeof(int) * (*num_rows+1));
     memcpy(*colIndices, tempColIndices, sizeof(int) * (*num_nonzeros));
 
-    std::cout << "dest_values : 5 " << (*values)[5] << " temp : " << tempValues[5] << std::endl;
     free(tempValues);
     free(tempRowOffsets);
     free(tempColIndices);
@@ -113,7 +107,4 @@ int hcsparseCsrMatrixfromFile (const char* filePath,
     return 0;
 
 }
-
-
-
 #endif
