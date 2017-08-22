@@ -16,10 +16,10 @@ TEST(nnz_float_test, func_check)
       exit(1);
     }
 
-    hipsparseDirection_t dir = HIPSPARSE_DIRECTION_ROW;
+    hipsparseDirection_t dir = HIPSPARSE_DIRECTION_COLUMN;
 
     int m = 64;
-    int n = 259;
+    int n = 64;
     int lda = m;
 
     status1 = hipsparseCreateMatDescr(&descrA);
@@ -55,13 +55,13 @@ TEST(nnz_float_test, func_check)
     hipDeviceSynchronize();
 
     hipMemcpy(nnzPerRowColumn_res, nnzPerRowColumn, m*sizeof(int), hipMemcpyDeviceToHost);
-    hipMemcpy(&nnz_res, &nnz, 1*sizeof(int), hipMemcpyDeviceToHost);
+    hipMemcpy(&nnz_res, nnz, 1*sizeof(int), hipMemcpyDeviceToHost);
 
     for (int i = 0; i < m; i++) {
       int rowCount = 0;
       for (int j = 0; j < n; j++) {
          if ( hostA[i*n+j] != 0) {
-           rowCount++;
+           ++rowCount;
          }
       }
       nnzPerRowColumn_h[i] = rowCount;
@@ -71,12 +71,11 @@ TEST(nnz_float_test, func_check)
     bool ispassed = 1;
     for (int i = 0; i < m; i++) {
       float diff = std::abs(nnzPerRowColumn_h[i] - nnzPerRowColumn_res[i]);
-//      std::cout << "i : " << i << "nnz_h : " << nnzPerRowColumn_h[i] << " nnz_d : " << nnzPerRowColumn_res[i] << std::endl;
-//      EXPECT_LT(diff, 0.01);
+      EXPECT_LT(diff, 0.01);
     }
     
     float diff = std::abs(nnz_res - nnz_h);
-//    EXPECT_LT(diff, 0.01);
+    EXPECT_LT(diff, 0.01);
  
     status1 = hipsparseDestroyMatDescr(descrA);
     if (status1 != HIPSPARSE_STATUS_SUCCESS) {

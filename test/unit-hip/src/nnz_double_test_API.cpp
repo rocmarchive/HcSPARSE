@@ -16,11 +16,11 @@ TEST(nnz_double_test, func_check)
       exit(1);
     }
 
-    hipsparseDirection_t dir = HIPSPARSE_DIRECTION_ROW;
+    hipsparseDirection_t dir = HIPSPARSE_DIRECTION_COLUMN;
 
     int m = 64;
-    int n = 7;
-    int lda = m;
+    int n = 259;
+    int lda = n;
 
     status1 = hipsparseCreateMatDescr(&descrA);
     if (status1 != HIPSPARSE_STATUS_SUCCESS) {
@@ -45,7 +45,6 @@ TEST(nnz_double_test, func_check)
     srand (time(NULL));
     for (int i = 0; i < m*n; i++)
     {
-//        if (i%2 == 0)
         hostA[i] = rand()%100;
     }    
 
@@ -62,7 +61,7 @@ TEST(nnz_double_test, func_check)
     std::cout << std::endl;
     hipMemcpy(devA, hostA, m*n*sizeof(double), hipMemcpyHostToDevice);
 
-    hipsparseStatus_t stat = hipsparseDnnz(handle, dir, m, n, descrA, devA, lda,
+    hipsparseStatus_t stat = hipsparseDnnz(handle, dir, n, m, descrA, devA, lda,
                                          nnzPerRowColumn, nnz);
     hipDeviceSynchronize();
 
@@ -72,7 +71,7 @@ TEST(nnz_double_test, func_check)
     for (int i = 0;i < m; i++) {
       int rowCount = 0;
       for (int j = 0; j < n; j++) {
-         if ( hostA[i*n+j] != 0) {
+         if ( hostA[i * n + j] != 0) {
            rowCount++;
          }
       }
@@ -83,14 +82,11 @@ TEST(nnz_double_test, func_check)
     bool ispassed = 1;
     for (int i = 0; i < m; i++) {
       double diff = std::abs(nnzPerRowColumn_h[i] - nnzPerRowColumn_res[i]);
-      // TODO : Cuda returns wrong output. Yet to verify
-//      std::cout << "i : " << i << " nnz_h : " << nnzPerRowColumn_h[i] << " nnz_d: " << nnzPerRowColumn_res[i] <<std::endl;
-//      EXPECT_LT(diff, 0.01);
+      EXPECT_LT(diff, 0.01);
     }
 
     double diff = std::abs(nnz_res - nnz_h);
     EXPECT_LT(diff, 0.01); 
-//    std::cout << "nnz_d : " << nnz_res << "nnz_h : " << nnz_h <<std::endl;
  
     status1 = hipsparseDestroyMatDescr(descrA);
     if (status1 != HIPSPARSE_STATUS_SUCCESS) {
