@@ -61,7 +61,7 @@ TEST(nnz_double_test, func_check)
     std::cout << std::endl;
     hipMemcpy(devA, hostA, m*n*sizeof(double), hipMemcpyHostToDevice);
 
-    hipsparseStatus_t stat = hipsparseDnnz(handle, dir, n, m, descrA, devA, lda,
+    hipsparseStatus_t stat = hipsparseDnnz(handle, dir, m, n, descrA, devA, lda,
                                          nnzPerRowColumn, nnz);
     hipDeviceSynchronize();
 
