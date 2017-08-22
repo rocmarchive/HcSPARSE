@@ -19,7 +19,7 @@ TEST(nnz_double_test, func_check)
     hipsparseDirection_t dir = HIPSPARSE_DIRECTION_COLUMN;
 
     int m = 64;
-    int n = 259;
+    int n = 64;
     int lda = n;
 
     status1 = hipsparseCreateMatDescr(&descrA);
