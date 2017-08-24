@@ -7,6 +7,7 @@
 
 TEST(csrmv_float_test, func_check)
 {
+#if 0
     const char* filename = "./../../test/gtest/src/input.mtx";
 
     int num_nonzero, num_row, num_col;
@@ -19,6 +20,43 @@ TEST(csrmv_float_test, func_check)
       std::cout << "Error reading the matrix file" << std::endl;
       exit(1);
     }
+#else
+
+   int num_nonzero =9;
+   int num_row = 4;
+   int num_col = 5;
+
+    float* values = (float*)calloc(num_nonzero, sizeof(float));
+    int* rowOffsets = (int*)calloc(num_row+1, sizeof(int));
+    int* colIndices = (int*)calloc(num_nonzero, sizeof(int));
+
+    values[0] = 1;
+    values[1] = 4;
+    values[2] = 2;
+    values[3] = 3;
+    values[4] = 5;
+    values[5] = 7;
+    values[6] = 8;
+    values[7] = 9;
+    values[8] = 6;
+
+    rowOffsets[0] = 0;
+    rowOffsets[1] = 2;
+    rowOffsets[2] = 4;
+    rowOffsets[3] = 7;
+    rowOffsets[4] = 9;
+
+    colIndices[0] = 0;
+    colIndices[1] = 1;
+    colIndices[2] = 1;
+    colIndices[3] = 2;
+    colIndices[4] = 0;
+    colIndices[5] = 3;
+    colIndices[6] = 4;
+    colIndices[7] = 2;
+    colIndices[8] = 4;
+
+#endif
 
      /* Test New APIs */
     hipsparseHandle_t handle;
@@ -47,22 +85,25 @@ TEST(csrmv_float_test, func_check)
     srand (time(NULL));
     for (int i = 0; i < num_col; i++)
     {
-       host_X[i] = rand()%100;
+       host_X[i] = 1; //rand()%100;
     } 
 
     for (int i = 0; i < num_row; i++)
     {
-        host_res[i] = host_Y[i] = rand()%100;
+        host_res[i] = host_Y[i] = 1; //rand()%100;
     }
 
-    host_alpha[0] = rand()%100;
-    host_beta[0] = rand()%100;
+    host_alpha[0] = 1; //rand()%100;
+    host_beta[0] = 1; //rand()%100;
 
     float *gX;
     float *gY;
     float *valA = NULL;
     int  *rowPtrA = NULL;
     int *colIndA = NULL;
+    float *tvalA = NULL;
+    int  *trowIndA = NULL;
+    int *tcolPtrA = NULL;
     float *A = NULL;
     hipError_t err;
 
@@ -71,12 +112,25 @@ TEST(csrmv_float_test, func_check)
     err = hipMalloc(&valA, sizeof(float) * num_nonzero);
     err = hipMalloc(&rowPtrA, sizeof(int) * (num_row+1));
     err = hipMalloc(&colIndA, sizeof(int) * num_nonzero);
+    err = hipMalloc(&tvalA, sizeof(float) * num_nonzero);
+    err = hipMalloc(&trowIndA, sizeof(int) * (num_col+1));
+    err = hipMalloc(&tcolPtrA, sizeof(int) * num_nonzero);
     err = hipMalloc(&A, sizeof(float) * (num_row*num_col));
 
     hipMemcpy(gX, host_X, sizeof(float) * num_col, hipMemcpyHostToDevice);
     hipMemcpy(valA, values, sizeof(float) * num_nonzero, hipMemcpyHostToDevice);
     hipMemcpy(rowPtrA, rowOffsets, sizeof(int) * (num_row+1), hipMemcpyHostToDevice);
     hipMemcpy(colIndA, colIndices, sizeof(int) * num_nonzero, hipMemcpyHostToDevice);
+
+#if 0
+    cusparseStatus_t stat = cusparseScsr2csc(handle, num_row, num_col, num_nonzero,
+                                             valA, rowPtrA, colIndA, tvalA, trowIndA, tcolPtrA,
+                                             CUSPARSE_ACTION_NUMERIC, CUSPARSE_INDEX_BASE_ZERO);
+    if (stat != CUSPARSE_STATUS_SUCCESS) {
+             std::cout << "csr2csc error" << stat << std::endl;
+             exit(1);
+    }
+#endif
 
     hipsparseOperation_t transA = HIPSPARSE_OPERATION_NON_TRANSPOSE;
     status1 = hipsparseScsrmv(handle, transA, num_row, num_col,
@@ -108,7 +162,8 @@ TEST(csrmv_float_test, func_check)
     for (int i = 0; i < num_row; i++)
     {
         float diff = std::abs(host_res[i] - host_Y[i]);
- //       EXPECT_LT(diff, 0.01);
+        std::cout << "i : " << i << " y_h : " << host_res[i] << " y_d : " << host_Y[i] <<std::endl;
+//       EXPECT_LT(diff, 0.01);
     }
 
     free(host_res);

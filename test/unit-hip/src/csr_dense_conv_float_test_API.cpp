@@ -101,19 +101,19 @@ TEST(csr_dense_conv_float_test, func_check)
     for (int i = 0; i < num_nonzero; i++)
     {
         float diff = std::fabs(csr_val[i] - csr_res_val[i]);
-//        EXPECT_LT(diff, 0.01);
+        EXPECT_LT(diff, 0.01);
     }
 
     for (int i = 0; i < num_nonzero; i++)
     {
         float diff = std::fabs(csr_colInd[i] - csr_res_colInd[i]);
-//        EXPECT_LT(diff, 0.01);
+        EXPECT_LT(diff, 0.01);
     }
 
     for (int i = 0; i < num_row+1; i++)
     {
         float diff = std::fabs(csr_rowPtr[i] - csr_res_rowPtr[i]);
-//        EXPECT_LT(diff, 0.01);
+        EXPECT_LT(diff, 0.01);
     }
 
     free(values);
