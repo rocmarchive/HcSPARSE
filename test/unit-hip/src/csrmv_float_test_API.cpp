@@ -24,37 +24,37 @@ TEST(csrmv_float_test, func_check)
 
    int num_nonzero =9;
    int num_row = 4;
-   int num_col = 5;
+   int num_col = 4;
 
     float* values = (float*)calloc(num_nonzero, sizeof(float));
     int* rowOffsets = (int*)calloc(num_row+1, sizeof(int));
     int* colIndices = (int*)calloc(num_nonzero, sizeof(int));
 
     values[0] = 1;
-    values[1] = 4;
-    values[2] = 2;
-    values[3] = 3;
+    values[1] = 2;
+    values[2] = 3;
+    values[3] = 4;
     values[4] = 5;
-    values[5] = 7;
-    values[6] = 8;
-    values[7] = 9;
-    values[8] = 6;
+    values[5] = 6;
+    values[6] = 7;
+    values[7] = 8;
+    values[8] = 9;
 
     rowOffsets[0] = 0;
-    rowOffsets[1] = 2;
+    rowOffsets[1] = 3;
     rowOffsets[2] = 4;
     rowOffsets[3] = 7;
     rowOffsets[4] = 9;
 
     colIndices[0] = 0;
-    colIndices[1] = 1;
-    colIndices[2] = 1;
-    colIndices[3] = 2;
+    colIndices[1] = 2;
+    colIndices[2] = 3;
+    colIndices[3] = 1;
     colIndices[4] = 0;
-    colIndices[5] = 3;
-    colIndices[6] = 4;
-    colIndices[7] = 2;
-    colIndices[8] = 4;
+    colIndices[5] = 2;
+    colIndices[6] = 3;
+    colIndices[7] = 1;
+    colIndices[8] = 3;
 
 #endif
 
@@ -83,6 +83,7 @@ TEST(csrmv_float_test, func_check)
     float *host_beta = (float*) calloc(1, sizeof(float));
 
     srand (time(NULL));
+#if 0
     for (int i = 0; i < num_col; i++)
     {
        host_X[i] = 1; //rand()%100;
@@ -95,6 +96,21 @@ TEST(csrmv_float_test, func_check)
 
     host_alpha[0] = 1; //rand()%100;
     host_beta[0] = 1; //rand()%100;
+#else
+
+    host_X[0] = 10;
+    host_X[1] = 20;
+    host_X[2] = 30;
+    host_X[3] = 40;
+
+    host_res[0] = host_Y[0] = 50;
+    host_res[1] = host_Y[1] = 60;
+    host_res[2] = host_Y[2] = 70;
+    host_res[3] = host_Y[3] = 80;
+
+    host_alpha[0] = 2;
+    host_beta[0] = 3;
+#endif
 
     float *gX;
     float *gY;
@@ -132,13 +148,16 @@ TEST(csrmv_float_test, func_check)
     }
 #endif
 
-    hipsparseOperation_t transA = HIPSPARSE_OPERATION_NON_TRANSPOSE;
-    status1 = hipsparseScsrmv(handle, transA, num_row, num_col,
-                              num_nonzero, (const float *)host_alpha,
+    cusparseSetMatType(descrA,CUSPARSE_MATRIX_TYPE_GENERAL);
+    cusparseSetMatIndexBase(descrA,CUSPARSE_INDEX_BASE_ZERO);
+
+    hipsparseOperation_t transA = HIPSPARSE_OPERATION_TRANSPOSE;
+    status1 = hipsparseScsrmv(handle, transA, 4, 4, 9,
+                              (const float *)&host_alpha[0],
                               (const hipsparseMatDescr_t)descrA, 
                               (const float*)valA, (const int*)rowPtrA,
                               (const int*)colIndA, (const float*)gX,
-                              (const float*)host_beta, gY);
+                              (const float*)&host_beta[0], gY);
     if (status1 != HIPSPARSE_STATUS_SUCCESS) {
        std::cout << "Error in csrmv operation " << status1 << std::endl;
        exit(1);
