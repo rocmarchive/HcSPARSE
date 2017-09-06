@@ -21,7 +21,7 @@ IF (${PLATFORM} MATCHES "hcc")
 
     IF(${HIP_SUPPORT} MATCHES "on")
       SET( lib_so_link ${CMAKE_INSTALL_PREFIX}/../lib/libhipsparse.so)
-      SET( hip_so_target ${CMAKE_INSTALL_PREFIX}/lib/libhipsparse_hcc.so)
+      SET( hip_so_target ${CMAKE_INSTALL_PREFIX}/lib/libhipsparse.so)
       execute_process(COMMAND ln -s ${hip_so_target} ${lib_so_link})
       SET( lib_so_link ${CMAKE_INSTALL_PREFIX}/lib/libhipsparse.so)
       execute_process(COMMAND ln -s ${hip_so_target} ${lib_so_link})

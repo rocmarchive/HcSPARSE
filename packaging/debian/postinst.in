@@ -1,13 +1,26 @@
 #/bin/bash
 
 set -e
+ROCM_PATH="/opt/rocm"
+INSTALL_PATH="${ROCM_PATH}/hcsparse"
+LIBRARY_DIR="${INSTALL_PATH}/lib"
+COMMON_LIB="${ROCM_PATH}/lib"
+SYMLINK_DIR="${ROCM_PATH}/hipsparse"
+
+do_symlink() {
+    ln -sfn ${LIBRARY_DIR}/libhipsparse.so ${COMMON_LIB}/libhipsparse.so
+    ln -sfn ${LIBRARY_DIR}/libhcsparse.so ${COMMON_LIB}/libhcsparse.so
+    ln -sfn  ${INSTALL_PATH} ${SYMLINK_DIR}
+}
 
 do_ldconfig() {
-    echo /opt/rocm/hcsparse/lib > /etc/ld.so.conf.d/hcsparse-rocm-dev.conf && ldconfig
+    echo ${LIBRARY_DIR} > /etc/ld.so.conf.d/hcsparse-rocm-dev.conf && ldconfig
+    echo ${COMMON_LIB} >> /etc/ld.so.conf.d/hcsparse-rocm-dev.conf && ldconfig
 }
 
 case "$1" in
    configure)
+       do_symlink
        do_ldconfig
    ;;
    abort-upgrade|abort-remove|abort-deconfigure)
