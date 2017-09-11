@@ -31,7 +31,7 @@ IF(${PLATFORM} MATCHES "hcc")
   SET(LINK "-lhc_am -lhcsparse -lhip_hcc")
   SET_PROPERTY(TARGET unit-hip-test APPEND_STRING PROPERTY LINK_FLAGS " ${HCC_LDFLAGS} ${LINK}")
 
-  TARGET_LINK_LIBRARIES(unit-hip-test hipsparse_hcc)
+  TARGET_LINK_LIBRARIES(unit-hip-test hipsparse)
 
   add_test(NAME unit-hip-test COMMAND ./bin/unit-hip-test)
 
