@@ -7,7 +7,7 @@
 
 TEST(csr_dense_conv_double_test, func_check)
 {
-    const char* filename = "./../../test/gtest/src/input.mtx";
+    const char* filename = "./../../../../../test/gtest/src/input.mtx";
     int num_nonzero, num_row, num_col;
     double *values = NULL;
     int *rowOffsets = NULL;

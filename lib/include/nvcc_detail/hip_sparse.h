@@ -51,6 +51,12 @@ hipsparseStatus_t hipsparseCreateMatDescr(hipsparseMatDescr_t *descrA);
 
 hipsparseStatus_t hipsparseDestroyMatDescr(hipsparseMatDescr_t descrA);
 
+hipsparseStatus_t hipsparseSetMatType(hipsparseMatDescr_t descrA,
+                                      hipsparseMatrixType_t type);
+
+hipsparseStatus_t hipsparseSetMatIndexBase(hipsparseMatDescr_t descrA,
+                                           hipsparseIndexBase_t base);
+
 // Sparse L1 BLAS operations
 
 hipsparseStatus_t hipsparseSdoti(hipsparseHandle_t handle, int nnz,

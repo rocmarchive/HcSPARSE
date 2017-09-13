@@ -109,6 +109,21 @@ hipsparseStatus_t hipsparseDestroyMatDescr(hipsparseMatDescr_t descrA)
    return hipCudaStatusToHIPStatus(cusparseDestroyMatDescr(descrA));
 }
 
+
+hipsparseStatus_t hipsparseSetMatType(hipsparseMatDescr_t descrA,
+                                      hipsparseMatrixType_t type)
+{
+  return hipCudaStatusToHIPStatus(cusparseSetMatType(descrA,
+                                      hipHIPMatrixTypeToCudaMatrixType(type)));
+}
+
+hipsparseStatus_t hipsparseSetMatIndexBase(hipsparseMatDescr_t descrA,
+                                           hipsparseIndexBase_t base)
+{
+  return hipCudaStatusToHIPStatus(cusparseSetMatIndexBase(descrA,
+                                      hipHIPIndexBaseToCudaIndexBase(base)));
+}
+
 // Sparse L1 BLAS operations
 
 hipsparseStatus_t hipsparseSdoti(hipsparseHandle_t handle, int nnz,
