@@ -1,8 +1,6 @@
 #include "hip/hip_runtime.h"
 #include "hipsparse.h"
-#include "hcsparse.h"
 #include <iostream>
-#include "hc_am.hpp"
 #include "gtest/gtest.h"
 
 TEST(csr_coo_conv_float_test, func_check)
@@ -11,9 +9,6 @@ TEST(csr_coo_conv_float_test, func_check)
      /* Test New APIs */
     hipsparseHandle_t handle;
     hipsparseStatus_t status1;
-    hc::accelerator accl;
-    hc::accelerator_view av = accl.get_default_view();
-    hcsparseControl control(av);
 
     status1 = hipsparseCreate(&handle);
     if (status1 != HIPSPARSE_STATUS_SUCCESS) {
@@ -52,7 +47,6 @@ TEST(csr_coo_conv_float_test, func_check)
     int *cooRowIndA = NULL;
     hipError_t err;
 
-   
     err = hipMalloc(&csrRowPtrA, (num_row+1) * sizeof(int));
     err = hipMalloc(&cooRowIndA, (num_nonzero) * sizeof(int));
 

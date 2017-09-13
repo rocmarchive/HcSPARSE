@@ -25,6 +25,7 @@ enum hcsparseStatus_t : uint32_t {
   HCSPARSE_STATUS_NOT_INITIALIZED,  // HCSPARSE library not initialized
   HCSPARSE_STATUS_ALLOC_FAILED,     // resource allocation failed
   HCSPARSE_STATUS_INVALID_VALUE,    // unsupported numerical value was passed to function
+  HCSPARSE_STATUS_ARCH_MISMATCH,    // Unsupported Architecture
   HCSPARSE_STATUS_MAPPING_ERROR,    // access to GPU memory space failed
   HCSPARSE_STATUS_EXECUTION_FAILED, // GPU program failed to execute
   HCSPARSE_STATUS_INTERNAL_ERROR    // an internal HCSPARSE operation failed
@@ -105,6 +106,15 @@ enum hcsparseOperation_t : uint32_t {
 enum hcsparseDirection_t : uint32_t{
   HCSPARSE_DIRECTION_ROW,
   HCSPARSE_DIRECTION_COLUMN
+};
+
+// 2.2.10 hcsparseAction_t
+
+// This type indicates whether the operation is performed only on indices or on data and indices.
+
+enum hcsparseAction_t : uint32_t{
+  HCSPARSE_ACTION_SYMBOLIC = 0,
+  HCSPARSE_ACTION_NUMERIC = 1
 };
 
 // hcsparse Helper functions 
@@ -317,7 +327,37 @@ hcsparseDdense2csr(hcsparseHandle_t handle,
                    int *csrRowPtrA,
                    int *csrColIndA);
 
-// 10. hcsparseXcsrgemm()
+// 10. hcsparseXcsr2csc()
+
+// This function converts a sparse matrix in CSR format (that is defined by the three arrays csrVal, csrRowPtr, and csrColInd)
+// into a sparse matrix in CSC format (that is defined by arrays cscVal, cscRowInd, and cscColPtr).
+
+// Return Values
+// ---------------------------------------------------------------------------------
+// HCSPARSE_STATUS_SUCCESS              the operation completed successfully.
+// HCSPARSE_STATUS_NOT_INITIALIZED      the library was not initialized.
+// HCSPARSE_STATUS_ALLOC_FAILED         the resources could not be allocated.
+// HCSPARSE_STATUS_INVALID_VALUE        invalid parameters were passed (m, n, k, nnz<0 or ldb and ldc are incorrect).
+// HCSPARSE_STATUS_EXECUTION_FAILED     the function failed to launch on the GPU.
+
+hcsparseStatus_t 
+hcsparseScsr2csc(hcsparseHandle_t handle, int m, int n, int nnz,
+                 const float *csrVal, const int *csrRowPtr, 
+                 const int *csrColInd, float           *cscVal,
+                 int *cscRowInd, int *cscColPtr, 
+                 hcsparseAction_t copyValues, 
+                 hcsparseIndexBase_t idxBase);
+
+hcsparseStatus_t 
+hcsparseDcsr2csc(hcsparseHandle_t handle, int m, int n, int nnz,
+                 const double *csrVal, const int *csrRowPtr, 
+                 const int *csrColInd, double          *cscVal,
+                 int *cscRowInd, int *cscColPtr, 
+                 hcsparseAction_t copyValues, 
+                 hcsparseIndexBase_t idxBase);
+
+
+// 11. hcsparseXcsrgemm()
 
 // This function performs following matrix-matrix operation:
 // C = op ( A ) ∗ op ( B )

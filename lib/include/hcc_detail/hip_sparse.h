@@ -37,6 +37,7 @@ enum hcsparseStatus_t:uint32_t;
 enum hcsparseFillMode_t:uint32_t;
 enum hcsparseDiagType_t:uint32_t;
 enum hcsparseMatrixType_t:uint32_t;
+enum hcsparseAction_t:uint32_t;
 
 typedef struct hcsparseMatDescr* hipsparseMatDescr_t;
 typedef struct hcsparseLibrary* hipsparseHandle_t ;
@@ -262,6 +263,23 @@ hipsparseStatus_t hipsparseDnnz(hipsparseHandle_t handle, hipsparseDirection_t d
                               int n, const hipsparseMatDescr_t descrA, 
                               const double           *A, int lda, 
                               int *nnzPerRowColumn, int *nnzTotalDevHostPtr);
+
+hipsparseStatus_t 
+hipsparseScsr2csc(hipsparseHandle_t handle, int m, int n, int nnz,
+                 const float *csrVal, const int *csrRowPtr, 
+                 const int *csrColInd, float           *cscVal,
+                 int *cscRowInd, int *cscColPtr, 
+                 hipsparseAction_t copyValues, 
+                 hipsparseIndexBase_t idxBase);
+
+hcsparseStatus_t 
+hcsparseDcsr2csc(hipsparseHandle_t handle, int m, int n, int nnz,
+                 const double *csrVal, const int *csrRowPtr, 
+                 const int *csrColInd, double          *cscVal,
+                 int *cscRowInd, int *cscColPtr, 
+                 hipsparseAction_t copyValues, 
+                 hipsparseIndexBase_t idxBase);
+
 
 #ifdef __cplusplus
 }

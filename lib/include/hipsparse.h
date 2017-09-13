@@ -37,10 +37,11 @@ enum hipsparseStatus_t {
   HIPSPARSE_STATUS_NOT_INITIALIZED,  // HIPSPARSE library not initialized
   HIPSPARSE_STATUS_ALLOC_FAILED,     // resource allocation failed
   HIPSPARSE_STATUS_INVALID_VALUE,    // unsupported numerical value was passed to function
+  HIPSPARSE_STATUS_ARCH_MISMATCH,    // Architecure mismatch 
   HIPSPARSE_STATUS_MAPPING_ERROR,    // access to GPU memory space failed
   HIPSPARSE_STATUS_EXECUTION_FAILED, // GPU program failed to execute
   HIPSPARSE_STATUS_INTERNAL_ERROR,    // an internal HIPSPARSE operation failed
-  HIPSPARSE_STATUS_NOT_SUPPORTED     // cuSPARSE supports this, but not hcSPARSE
+  HIPSPARSE_STATUS_MATRIX_TYPE_NOT_SUPPORTED     // cuSPARSE supports this, but not hcSPARSE
 };
 
 enum hipsparseIndexBase_t {
@@ -64,6 +65,11 @@ enum hipsparseOperation_t {
 enum hipsparseDirection_t {
   HIPSPARSE_DIRECTION_ROW,
   HIPSPARSE_DIRECTION_COLUMN
+};
+
+enum hipsparseAction_t {
+  HIPSPARSE_ACTION_SYMBOLIC = 0,
+  HIPSPARSE_ACTION_NUMERIC = 1
 };
 
 // Some standard header files, these are included by hc.hpp and so want to make them avail on both

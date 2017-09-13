@@ -484,6 +484,77 @@ hcsparseDdense2csr(hcsparseHandle_t handle,
   return HCSPARSE_STATUS_SUCCESS;
 }
 
+// 10. hcspaarseXcsr2csc()
+
+// This function converts a sparse matrix in CSR format (that is defined by the three arrays csrVal, csrRowPtr, and csrColInd)
+// into a sparse matrix in CSC format (that is defined by arrays cscVal, cscRowInd, and cscColPtr).
+
+// Return Values
+// ---------------------------------------------------------------------------------
+// HCSPARSE_STATUS_SUCCESS              the operation completed successfully.
+// HCSPARSE_STATUS_NOT_INITIALIZED      the library was not initialized.
+// HCSPARSE_STATUS_ALLOC_FAILED         the resources could not be allocated.
+// HCSPARSE_STATUS_INVALID_VALUE        invalid parameters were passed (m, n, k, nnz<0 or ldb and ldc are incorrect).
+// HCSPARSE_STATUS_EXECUTION_FAILED     the function failed to launch on the GPU.
+
+hcsparseStatus_t 
+hcsparseScsr2csc(hcsparseHandle_t handle, int m, int n, int nnz,
+                 const float *csrVal, const int *csrRowPtr, 
+                 const int *csrColInd, float           *cscVal,
+                 int *cscRowInd, int *cscColPtr, 
+                 hcsparseAction_t copyValues, 
+                 hcsparseIndexBase_t idxBase)
+{
+   if (handle == nullptr) 
+    return HCSPARSE_STATUS_NOT_INITIALIZED;
+
+  if (!csrVal || !csrRowPtr || !csrColInd || !cscVal || !cscRowInd || !cscColPtr)
+    return HCSPARSE_STATUS_ALLOC_FAILED;
+
+  if (idxBase != HCSPARSE_INDEX_BASE_ZERO)
+    return HCSPARSE_STATUS_INVALID_VALUE;
+
+  if (copyValues != HCSPARSE_ACTION_NUMERIC)
+    return HCSPARSE_STATUS_INVALID_VALUE;
+
+  // temp code 
+  // TODO : Remove this in the future
+  hcsparseControl control(handle->currentAcclView);
+  hcsparseStatus stat = hcsparseSuccess;
+
+  return HCSPARSE_STATUS_EXECUTION_FAILED;
+ 
+}
+
+hcsparseStatus_t 
+hcsparseDcsr2csc(hcsparseHandle_t handle, int m, int n, int nnz,
+                 const double *csrVal, const int *csrRowPtr, 
+                 const int *csrColInd, double          *cscVal,
+                 int *cscRowInd, int *cscColPtr, 
+                 hcsparseAction_t copyValues, 
+                 hcsparseIndexBase_t idxBase)
+{
+   if (handle == nullptr) 
+    return HCSPARSE_STATUS_NOT_INITIALIZED;
+
+  if (!csrVal || !csrRowPtr || !csrColInd || !cscVal || !cscRowInd || !cscColPtr)
+    return HCSPARSE_STATUS_ALLOC_FAILED;
+
+  if (idxBase != HCSPARSE_INDEX_BASE_ZERO)
+    return HCSPARSE_STATUS_INVALID_VALUE;
+
+  if (copyValues != HCSPARSE_ACTION_NUMERIC)
+    return HCSPARSE_STATUS_INVALID_VALUE;
+
+  // temp code 
+  // TODO : Remove this in the future
+  hcsparseControl control(handle->currentAcclView);
+  hcsparseStatus stat = hcsparseSuccess;
+
+  return HCSPARSE_STATUS_EXECUTION_FAILED;
+ 
+}
+
 // 10. hcsparseXcsrgemm()
 
 // This function performs following matrix-matrix operation:
@@ -1989,15 +2060,6 @@ hcsparseHeaderfromFile (int* nnz, int* row, int* col, const char* filePath)
     *nnz = mm_reader.GetNumNonZeroes( );
 
     return hcsparseSuccess;
-}
-
-template<typename T>
-bool CoordinateCompare (const Coordinate<T> &c1, const Coordinate<T> &c2)
-{
-    if( c1.x != c2.x )
-        return ( c1.x < c2.x );
-    else
-        return ( c1.y < c2.y );
 }
 
 // This function reads the file at the given filepath, and returns the sparse

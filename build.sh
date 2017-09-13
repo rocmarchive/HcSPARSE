@@ -46,6 +46,8 @@ else
   export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/rocm/hip/lib
 fi
 
+  export LD_LIBRARY_PATH=$current_work_dir/build/lib/src
+
 red=`tput setaf 1`
 green=`tput setaf 2`
 reset=`tput sgr0`
@@ -87,9 +89,6 @@ while [ $# -gt 0 ]; do
     --examples=*)
       examples="${1#*=}"
       ;;
-    --install)
-      install="1"
-      ;;
     --help) print_help;;
     *)
       printf "************************************************************\n"
@@ -101,7 +100,7 @@ while [ $# -gt 0 ]; do
 done
 
 if [ "$install" = "1" ]; then
-    export INSTALL_OPT=on
+  export INSTALL_OPT=on
 fi
 
 set +e
@@ -117,18 +116,18 @@ build_dir=$current_work_dir/build
 cd $build_dir
 
 if [ "$platform" = "hcc" ]; then
+
+    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$current_work_dir/build/lib/src/:/opt/rocm/hip/lib
+
     #default case: Of course there are Compulsory waits on certain kernels 
     cmake -DCMAKE_C_COMPILER=$cmake_c_compiler  -DCMAKE_CXX_COMPILER=$cmake_cxx_compiler -DCMAKE_CXX_FLAGS="$copt -fPIC" -DCMAKE_INSTALL_PREFIX=/opt/rocm/hcsparse $current_work_dir
 
   make -j$working_threads package $verbose
   make -j$working_threads $verbose
 
-  export HCSPARSE_LIBRARY_PATH=$current_work_dir/build/lib/src
-  export LD_LIBRARY_PATH=$HCSPARSE_LIBRARY_PATH:$LD_LIBRARY_PATH
-
-   if [ "$install" = "1" ]; then
-     sudo make -j$working_threads install
-   fi
+  if [ "$install" = "1" ]; then
+    sudo make -j$working_threads install
+  fi
    cd $build_dir/packaging/ && cmake -DCMAKE_C_COMPILER=$cmake_c_compiler -DCMAKE_CXX_COMPILER=$cmake_cxx_compiler -DCMAKE_CXX_FLAGS=-fPIC -DCMAKE_INSTALL_PREFIX=/opt/rocm/hcsparse $current_work_dir/packaging/
    
   echo "${green}hcSPARSE Build Completed!${reset}"
@@ -136,18 +135,11 @@ if [ "$platform" = "hcc" ]; then
 # Test=ON (Build and test the library)
   if ( [ "$testing" = "on" ] ) || ( [ "$testing" = "basic" ] ); then
 # Build Tests
-     set +e
-     mkdir -p $current_work_dir/build/test
-     mkdir -p $current_work_dir/build/test/unit_test/bin/
-     mkdir -p $current_work_dir/build/test/gtest/bin/
-     mkdir -p $current_work_dir/build/test/unit-hip/bin/
-     mkdir -p $current_work_dir/build/test/unit-API/bin/
-     set -e
-     
-     cd $build_dir/test/ && cmake -DCMAKE_C_COMPILER=$cmake_c_compiler -DCMAKE_CXX_COMPILER=$cmake_cxx_compiler -DCMAKE_CXX_FLAGS=-fPIC $current_work_dir/test/
-     make -j$working_threads
-
-# Invoke hc unit test script
+    mkdir -p $current_work_dir/build/test
+    cd $build_dir/test/ && cmake -DCMAKE_C_COMPILER=$cmake_c_compiler -DCMAKE_CXX_COMPILER=$cmake_cxx_compiler -DCMAKE_CXX_FLAGS=-fPIC $current_work_dir/test/
+    set +e
+    make -j$working_threads
+#Invoke hc unit test script
      printf "* UNIT API TESTS *\n"
      printf "******************\n"
      cd $current_work_dir/build/test/gtest/bin/
@@ -161,7 +153,6 @@ if [ "$platform" = "hcc" ]; then
        ./unit-hip-test
      fi 
   fi
-fi
 
 #EXAMPLES
 #Invoke examples script if --examples=on
@@ -172,36 +163,29 @@ fi
     cd $current_work_dir/examples/
     ./build.sh
   fi
+elif [ "$platform" = "nvcc" ]; then
 
-if [ "$platform" = "nvcc" ]; then
-  
-  export HIPSPARSE_LIBRARY_PATH=$current_work_dir/build/lib/src
-  export LD_LIBRARY_PATH=$HIPSPARSE_LIBRARY_PATH:$LD_LIBRARY_PATH
-  
+  export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cuda/lib64
+
   cmake -DCMAKE_C_COMPILER=$cmake_c_compiler -DCMAKE_CXX_COMPILER=$cmake_cxx_compiler -DCMAKE_CXX_FLAGS=-fPIC -DCMAKE_INSTALL_PREFIX=/opt/rocm/hcsparse $current_work_dir
 
   make -j$working_threads package $verbose
   make -j$working_threads $verbose
 
   if [ "$install" = "1" ]; then
-    sudo -j$working_threads make install
+    sudo make -j$working_threads install
   fi
   cd $build_dir/packaging/ && cmake -DCMAKE_C_COMPILER=$cmake_c_compiler -DCMAKE_CXX_COMPILER=$cmake_cxx_compiler -DCMAKE_CXX_FLAGS=-fPIC -DCMAKE_INSTALL_PREFIX=/opt/rocm/hcsparse $current_work_dir/packaging/ 
-
   echo "${green}hipSPARSE Build Completed!${reset}"
 
   if  [ "$testing" = "on" ]; then
-       cd $build_dir/test/ && cmake -DCMAKE_C_COMPILER=$cmake_c_compiler  -DCMAKE_CXX_COMPILER=$cmake_cxx_compiler -DCMAKE_CXX_FLAGS=-fPIC $current_work_dir/test/
-     set +e
-     make -j$working_threads
-     ${current_work_dir}/build/test/unit-hip/bin/unit-hip-test
+    mkdir -p $current_work_dir/build/test
+    cd $build_dir/test/ && cmake -DCMAKE_C_COMPILER=$cmake_c_compiler  -DCMAKE_CXX_COMPILER=$cmake_cxx_compiler -DCMAKE_CXX_FLAGS=-fPIC $current_work_dir/test/
+    set +e
+    make -j$working_threads
+    printf "* UNIT HIP TESTS *\n"
+    printf "******************\n"
+    cd ${current_work_dir}/build/test/unit-hip/src/bin/
+    ./unit-hip-test
   fi
 fi
-#if grep --quiet hcsparse ~/.bashrc; then
-#  echo 
-#else
-#  eval "echo 'export LD_LIBRARY_PATH=$LD_LIBRARY_PATH' >> ~/.bashrc"
-#fi
-
-#cd $current_work_dir
-#exec bash  
