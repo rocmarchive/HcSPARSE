@@ -8,7 +8,7 @@
 TEST(csrmm_float_test, func_check)
 {
 
-    const char* filename = "./../../test/gtest/src/input.mtx";
+    const char* filename = "./../../../../../test/gtest/src/input.mtx";
     int num_nonzero, num_row_A, num_col_A;
     float *values = NULL;
     int *rowOffsets = NULL;
@@ -95,7 +95,7 @@ TEST(csrmm_float_test, func_check)
 
     status1 = hipsparseScsrmm(handle, transA, num_row_A, num_col_Y,
                             num_col_A, num_nonzero, static_cast<const float*>(gAlpha), descrA,
-                            valA, rowPtrA, colIndA, gX, num_row_X, 
+                            valA, rowPtrA, colIndA, gX, num_col_X, 
                             static_cast<const float*>(gBeta), gY, num_col_Y);
     hipDeviceSynchronize();
 
@@ -120,7 +120,7 @@ TEST(csrmm_float_test, func_check)
     for (int i = 0; i < num_row_Y * num_col_Y; i++)
     {
         float diff = std::abs(host_res[i] - host_Y[i]);
-        std::cout << i << ": " << "h = " << host_res[i] << " d: " << host_Y[i] << std::endl;
+//        std::cout << i << ": " << "h = " << host_res[i] << " d: " << host_Y[i] << std::endl;
         EXPECT_LT(diff, 0.01);
     }
 

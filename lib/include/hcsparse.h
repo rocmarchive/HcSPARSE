@@ -25,6 +25,7 @@ enum hcsparseStatus_t : uint32_t {
   HCSPARSE_STATUS_NOT_INITIALIZED,  // HCSPARSE library not initialized
   HCSPARSE_STATUS_ALLOC_FAILED,     // resource allocation failed
   HCSPARSE_STATUS_INVALID_VALUE,    // unsupported numerical value was passed to function
+  HCSPARSE_STATUS_ARCH_MISMATCH,    // Unsupported Architecture
   HCSPARSE_STATUS_MAPPING_ERROR,    // access to GPU memory space failed
   HCSPARSE_STATUS_EXECUTION_FAILED, // GPU program failed to execute
   HCSPARSE_STATUS_INTERNAL_ERROR    // an internal HCSPARSE operation failed

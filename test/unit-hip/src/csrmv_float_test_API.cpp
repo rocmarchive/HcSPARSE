@@ -8,7 +8,7 @@
 TEST(csrmv_float_test, func_check)
 {
 #if 0
-    const char* filename = "./../../test/gtest/src/input.mtx";
+    const char* filename = "./../../../../../test/gtest/src/input.mtx";
 
     int num_nonzero, num_row, num_col;
     float *values = NULL;
@@ -134,22 +134,13 @@ TEST(csrmv_float_test, func_check)
     err = hipMalloc(&A, sizeof(float) * (num_row*num_col));
 
     hipMemcpy(gX, host_X, sizeof(float) * num_col, hipMemcpyHostToDevice);
+    hipMemcpy(gY, host_Y, sizeof(float) * num_row, hipMemcpyHostToDevice);
     hipMemcpy(valA, values, sizeof(float) * num_nonzero, hipMemcpyHostToDevice);
     hipMemcpy(rowPtrA, rowOffsets, sizeof(int) * (num_row+1), hipMemcpyHostToDevice);
     hipMemcpy(colIndA, colIndices, sizeof(int) * num_nonzero, hipMemcpyHostToDevice);
 
-#if 0
-    cusparseStatus_t stat = cusparseScsr2csc(handle, num_row, num_col, num_nonzero,
-                                             valA, rowPtrA, colIndA, tvalA, trowIndA, tcolPtrA,
-                                             CUSPARSE_ACTION_NUMERIC, CUSPARSE_INDEX_BASE_ZERO);
-    if (stat != CUSPARSE_STATUS_SUCCESS) {
-             std::cout << "csr2csc error" << stat << std::endl;
-             exit(1);
-    }
-#endif
-
-    cusparseSetMatType(descrA,CUSPARSE_MATRIX_TYPE_GENERAL);
-    cusparseSetMatIndexBase(descrA,CUSPARSE_INDEX_BASE_ZERO);
+    hipsparseSetMatType(descrA, HIPSPARSE_MATRIX_TYPE_GENERAL);
+    hipsparseSetMatIndexBase(descrA, HIPSPARSE_INDEX_BASE_ZERO);
 
     hipsparseOperation_t transA = HIPSPARSE_OPERATION_TRANSPOSE;
     status1 = hipsparseScsrmv(handle, transA, 4, 4, 9,

@@ -117,6 +117,8 @@ cd $build_dir
 
 if [ "$platform" = "hcc" ]; then
 
+    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$current_work_dir/build/lib/src/:/opt/rocm/hip/lib
+
     #default case: Of course there are Compulsory waits on certain kernels 
     cmake -DCMAKE_C_COMPILER=$cmake_c_compiler  -DCMAKE_CXX_COMPILER=$cmake_cxx_compiler -DCMAKE_CXX_FLAGS="$copt -fPIC" -DCMAKE_INSTALL_PREFIX=/opt/rocm/hcsparse $current_work_dir
 
@@ -183,6 +185,7 @@ elif [ "$platform" = "nvcc" ]; then
     make -j$working_threads
     printf "* UNIT HIP TESTS *\n"
     printf "******************\n"
-    ${current_work_dir}/build/test/unit-hip/src/bin/unit-hip-test
+    cd ${current_work_dir}/build/test/unit-hip/src/bin/
+    ./unit-hip-test
   fi
 fi
