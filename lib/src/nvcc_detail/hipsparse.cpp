@@ -89,6 +89,19 @@ cusparseDirection_t hipHIPDirectionToCudaDirection(hipsparseDirection_t dir)
    }
 }
 
+cusparseAction_t hipHIPActionToCudaAction(hipsparseAction_t act)
+{
+   switch(act)
+   { 
+     case HIPSPARSE_ACTION_SYMBOLIC:
+        return CUSPARSE_ACTION_SYMBOLIC;
+     case HIPSPARSE_ACTION_NUMERIC:
+        return CUSPARSE_ACTION_NUMERIC;
+     default:
+        throw "Invalid Action Specified";
+   }
+}
+
 hipsparseStatus_t hipsparseCreate(hipsparseHandle_t *handle)
 {
    return hipCudaStatusToHIPStatus(cusparseCreate(handle));
@@ -451,6 +464,41 @@ hipsparseStatus_t hipsparseDdense2csc(hipsparseHandle_t handle, int m, int n,
                                                      cscRowIndA, cscColPtrA));
 }
 
+hipsparseStatus_t 
+hipsparseScsr2csc(hipsparseHandle_t handle, int m, int n, int nnz,
+                 const float *csrVal, const int *csrRowPtr, 
+                 const int *csrColInd, float           *cscVal,
+                 int *cscRowInd, int *cscColPtr, 
+                 hipsparseAction_t copyValues, 
+                 hipsparseIndexBase_t idxBase)
+
+{
+
+  return hipCudaStatusToHIPStatus(cusparseScsr2csc(handle, m, n, nnz, csrVal,
+                                                   csrRowPtr, csrColInd, cscVal,
+                                                   cscRowInd, cscColPtr,
+                                                   hipHIPActionToCudaAction(copyValues),
+                                                   hipHIPIndexBaseToCudaIndexBase(idxBase)));
+
+}
+
+hipsparseStatus_t 
+hipsparseDcsr2csc(hipsparseHandle_t handle, int m, int n, int nnz,
+                 const double *csrVal, const int *csrRowPtr, 
+                 const int *csrColInd, double           *cscVal,
+                 int *cscRowInd, int *cscColPtr, 
+                 hipsparseAction_t copyValues, 
+                 hipsparseIndexBase_t idxBase)
+
+{
+
+  return hipCudaStatusToHIPStatus(cusparseDcsr2csc(handle, m, n, nnz, csrVal,
+                                                   csrRowPtr, csrColInd, cscVal,
+                                                   cscRowInd, cscColPtr, 
+                                                   hipHIPActionToCudaAction(copyValues),
+                                                   hipHIPIndexBaseToCudaIndexBase(idxBase)));
+
+}
 #ifdef __cplusplus
 }
 #endif

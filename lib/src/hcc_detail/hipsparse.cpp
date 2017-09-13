@@ -88,6 +88,19 @@ hcsparseDirection_t hipHIPDirectionToHCSPARSEDirection(hipsparseDirection_t dir)
    }
 }
 
+hcsparseAction_t hipHIPActionToHCSPARSEAction(hipsparseAction_t act)
+{
+   switch(act)
+   { 
+     case HIPSPARSE_ACTION_SYMBOLIC:
+        return HCSPARSE_ACTION_SYMBOLIC;
+     case HIPSPARSE_ACTION_NUMERIC:
+        return HCSPARSE_ACTION_NUMERIC;
+     default:
+        throw "Invalid Action Specified";
+   }
+}
+
 hipsparseStatus_t hipsparseCreate(hipsparseHandle_t *handle)
 {
    int deviceId;
@@ -499,6 +512,42 @@ hipsparseStatus_t hipsparseDdense2csc(hipsparseHandle_t handle, int m, int n,
   return hipHCSPARSEStatusToHIPStatus(hcsparseDdense2csc(handle, m, n, descrA, A, 
                                                          lda, nnzPerCol, cscValA, 
                                                          cscRowIndA, cscColPtrA));
+}
+
+hipsparseStatus_t 
+hipsparseScsr2csc(hipsparseHandle_t handle, int m, int n, int nnz,
+                 const float *csrVal, const int *csrRowPtr, 
+                 const int *csrColInd, float           *cscVal,
+                 int *cscRowInd, int *cscColPtr, 
+                 hipsparseAction_t copyValues, 
+                 hipsparseIndexBase_t idxBase)
+
+{
+
+  return hipHCSPARSEStatusToHIPStatus(hcsparseScsr2csc(handle, m, n, nnz, csrVal,
+                                                       csrRowPtr, csrColInd, cscVal,
+                                                       cscRowInd, cscColPtr, 
+                                                       hipHIPActionToHCSPARSEAction(copyValues),
+                                                       hipHIPIndexBaseToHCSPARSEIndexBase(idxBase)));
+
+}
+
+hipsparseStatus_t 
+hipsparseDcsr2csc(hipsparseHandle_t handle, int m, int n, int nnz,
+                 const double *csrVal, const int *csrRowPtr, 
+                 const int *csrColInd, double           *cscVal,
+                 int *cscRowInd, int *cscColPtr, 
+                 hipsparseAction_t copyValues, 
+                 hipsparseIndexBase_t idxBase)
+
+{
+
+  return hipHCSPARSEStatusToHIPStatus(hcsparseDcsr2csc(handle, m, n, nnz, csrVal,
+                                                       csrRowPtr, csrColInd, cscVal,
+                                                       cscRowInd, cscColPtr, 
+                                                       hipHIPActionToHCSPARSEAction(copyValues),
+                                                       hipHIPIndexBaseToHCSPARSEIndexBase(idxBase)));
+
 }
 
 #ifdef __cplusplus

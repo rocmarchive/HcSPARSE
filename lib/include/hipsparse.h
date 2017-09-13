@@ -67,6 +67,11 @@ enum hipsparseDirection_t {
   HIPSPARSE_DIRECTION_COLUMN
 };
 
+enum hipsparseAction_t {
+  HIPSPARSE_ACTION_SYMBOLIC = 0,
+  HIPSPARSE_ACTION_NUMERIC = 1
+};
+
 // Some standard header files, these are included by hc.hpp and so want to make them avail on both
 // paths to provide a consistent include env and avoid "missing symbol" errors that only appears
 // on NVCC path:
