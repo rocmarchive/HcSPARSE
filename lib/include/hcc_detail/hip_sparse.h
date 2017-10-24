@@ -124,6 +124,22 @@ hipsparseStatus_t hipsparseDcsrmm(hipsparseHandle_t handle,
 
 // Sparse Extra BLAS operations
 
+hipsparseStatus_t hipsparseXcsrgemmNnz(hipsparseHandle_t handle,
+                                       hipsparseOperation_t transA,
+                                       hipsparseOperation_t transB,
+                                       int m, int n, int k,
+                                       const hipsparseMatDescr_t descrA,
+                                       const int nnzA,
+                                       const int *csrRowPtrA,
+                                       const int *csrColIndA,
+                                       const hipsparseMatDescr_t descrB,
+                                       const int nnzB,
+                                       const int *csrRowPtrB,
+                                       const int *csrColIndB,
+                                       const hipsparseMatDescr_t descrC,
+                                       int *csrRowPtrC,
+                                       int *nnzTotalDevHostPtr);
+
 hipsparseStatus_t hipsparseScsrgemm(hipsparseHandle_t handle,
                                     hipsparseOperation_t transA, 
                                     hipsparseOperation_t transB,

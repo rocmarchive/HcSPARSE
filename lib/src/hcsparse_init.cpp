@@ -555,6 +555,58 @@ hcsparseDcsr2csc(hcsparseHandle_t handle, int m, int n, int nnz,
  
 }
 
+hcsparseStatus_t
+hcsparseXcsrgemmNnz(hcsparseHandle_t handle,
+                    hcsparseOperation_t transA,
+                    hcsparseOperation_t transB,
+                    int m,
+                    int n,
+                    int k,
+                    const hcsparseMatDescr_t descrA,
+                    const int nnzA,
+                    const int *csrRowPtrA,
+                    const int *csrColIndA,
+                    const hcsparseMatDescr_t descrB,
+                    const int nnzB,
+                    const int *csrRowPtrB,
+                    const int *csrColIndB,
+                    const hcsparseMatDescr_t descrC,
+                    int *csrRowPtrC,
+                    int *nnzTotalDevHostPtr)
+{
+  if (handle == nullptr)
+    return HCSPARSE_STATUS_NOT_INITIALIZED;
+
+  if (!csrRowPtrA || !csrColIndA ||
+      !csrRowPtrB || !csrColIndB )
+    return HCSPARSE_STATUS_ALLOC_FAILED;
+
+  if (descrA->MatrixType != HCSPARSE_MATRIX_TYPE_GENERAL ||
+      descrB->MatrixType != HCSPARSE_MATRIX_TYPE_GENERAL ||
+      descrC->MatrixType != HCSPARSE_MATRIX_TYPE_GENERAL )
+    return HCSPARSE_STATUS_INVALID_VALUE;
+
+  // Currently supports only NN version
+  // TODO : Extend for other version (NT, TN, TT)
+  if (transA != HCSPARSE_OPERATION_NON_TRANSPOSE ||
+      transB != HCSPARSE_OPERATION_NON_TRANSPOSE )
+     return HCSPARSE_STATUS_INVALID_VALUE;
+
+  // temp code
+  // TODO : Remove this in the future
+  hcsparseControl control(handle->currentAcclView);
+  hcsparseStatus stat = hcsparseSuccess;
+
+  stat = compute_gemmNnz(&control, m, n, k, nnzA, csrRowPtrA, csrColIndA,
+                         nnzB, csrRowPtrB, csrColIndB,
+                         csrRowPtrC, nnzTotalDevHostPtr);
+
+  if (stat != hcsparseSuccess)
+   return HCSPARSE_STATUS_EXECUTION_FAILED;
+
+  return HCSPARSE_STATUS_SUCCESS;
+}
+
 // 10. hcsparseXcsrgemm()
 
 // This function performs following matrix-matrix operation:

@@ -374,6 +374,25 @@ hcsparseDcsr2csc(hcsparseHandle_t handle, int m, int n, int nnz,
 // TODO: nnz is unused, as it is calculated in the existing API
 
 hcsparseStatus_t
+hcsparseXcsrgemmNnz(hcsparseHandle_t handle,
+                    hcsparseOperation_t transA,
+                    hcsparseOperation_t transB,
+                    int m,
+                    int n,
+                    int k,
+                    const hcsparseMatDescr_t descrA,
+                    const int nnzA,
+                    const int *csrRowPtrA,
+                    const int *csrColIndA,
+                    const hcsparseMatDescr_t descrB,
+                    const int nnzB,
+                    const int *csrRowPtrB,
+                    const int *csrColIndB,
+                    const hcsparseMatDescr_t descrC,
+                    int *csrRowPtrC,
+                    int *nnzTotalDevHostPtr);
+
+hcsparseStatus_t
 hcsparseScsrgemm(hcsparseHandle_t handle,
                  hcsparseOperation_t transA,
                  hcsparseOperation_t transB,
