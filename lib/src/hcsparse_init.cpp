@@ -1037,7 +1037,7 @@ hcsparseScsc2dense(hcsparseHandle_t handle, int m, int n,
 
   fill_zero<float>((ulong)m*n, A, &control);
 
-  stat = transform_csc_2_dense<float> ((ulong)m*n, cscRowIndA, cscColPtrA, cscValA,\
+  stat = transform_csc_2_dense<float> ((ulong)m*n, cscColPtrA, cscRowIndA, cscValA,\
                                        m, n, A, &control);
 
   if (stat != hcsparseSuccess)
@@ -1070,7 +1070,7 @@ hcsparseDcsc2dense(hcsparseHandle_t handle, int m, int n,
 
   fill_zero<double>((ulong)m*n, A, &control);
 
-  stat = transform_csc_2_dense<double> ((ulong)m*n, cscRowIndA, cscColPtrA, cscValA,\
+  stat = transform_csc_2_dense<double> ((ulong)m*n, cscColPtrA, cscRowIndA, cscValA,\
                                        m, n, A, &control);
   if (stat != hcsparseSuccess)
     return HCSPARSE_STATUS_EXECUTION_FAILED;

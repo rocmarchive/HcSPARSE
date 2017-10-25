@@ -42,7 +42,7 @@ dense2csc (hcsparseControl* control,
   transpose_kernel<T>(control, m, n, A, transA);
 
   // Perform dense2csr conversion
-  dense2csr(control, m, n, transA, cscValA, cscColPtrA, cscRowIndA);
+  dense2csr(control, n, m, transA, cscValA, cscColPtrA, cscRowIndA);
 
   am_free(transA);
 
