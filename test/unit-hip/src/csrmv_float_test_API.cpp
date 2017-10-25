@@ -121,6 +121,8 @@ TEST(csrmv_float_test, func_check)
     int  *trowIndA = NULL;
     int *tcolPtrA = NULL;
     float *A = NULL;
+    float *alpha = NULL;
+    float *beta = NULL;
     hipError_t err;
 
     err = hipMalloc(&gX, sizeof(float) * num_col);
@@ -132,27 +134,32 @@ TEST(csrmv_float_test, func_check)
     err = hipMalloc(&trowIndA, sizeof(int) * (num_col+1));
     err = hipMalloc(&tcolPtrA, sizeof(int) * num_nonzero);
     err = hipMalloc(&A, sizeof(float) * (num_row*num_col));
+    err = hipMalloc(&alpha, sizeof(float) * 1);
+    err = hipMalloc(&beta, sizeof(float) * 1);
 
     hipMemcpy(gX, host_X, sizeof(float) * num_col, hipMemcpyHostToDevice);
     hipMemcpy(gY, host_Y, sizeof(float) * num_row, hipMemcpyHostToDevice);
     hipMemcpy(valA, values, sizeof(float) * num_nonzero, hipMemcpyHostToDevice);
     hipMemcpy(rowPtrA, rowOffsets, sizeof(int) * (num_row+1), hipMemcpyHostToDevice);
     hipMemcpy(colIndA, colIndices, sizeof(int) * num_nonzero, hipMemcpyHostToDevice);
+    hipMemcpy(alpha, host_alpha, sizeof(float) * 1, hipMemcpyHostToDevice);
+    hipMemcpy(beta, host_beta, sizeof(float) * 1, hipMemcpyHostToDevice);
 
     hipsparseSetMatType(descrA, HIPSPARSE_MATRIX_TYPE_GENERAL);
     hipsparseSetMatIndexBase(descrA, HIPSPARSE_INDEX_BASE_ZERO);
 
     hipsparseOperation_t transA = HIPSPARSE_OPERATION_TRANSPOSE;
     status1 = hipsparseScsrmv(handle, transA, 4, 4, 9,
-                              (const float *)&host_alpha[0],
+                              (const float *)alpha,
                               (const hipsparseMatDescr_t)descrA, 
                               (const float*)valA, (const int*)rowPtrA,
                               (const int*)colIndA, (const float*)gX,
-                              (const float*)&host_beta[0], gY);
+                              (const float*)beta, gY);
     if (status1 != HIPSPARSE_STATUS_SUCCESS) {
        std::cout << "Error in csrmv operation " << status1 << std::endl;
        exit(1);
     }
+    hipMemcpy(host_Y, gY, sizeof(float) * num_row, hipMemcpyDeviceToHost);
     hipDeviceSynchronize();
      
     int col = 0;
@@ -165,15 +172,12 @@ TEST(csrmv_float_test, func_check)
         }
     }
 
-    hipMemcpy(host_Y, gY, sizeof(float) * num_row, hipMemcpyDeviceToHost);
-
     bool isPassed = 1;  
  
     for (int i = 0; i < num_row; i++)
     {
         float diff = std::abs(host_res[i] - host_Y[i]);
-        std::cout << "i : " << i << " y_h : " << host_res[i] << " y_d : " << host_Y[i] <<std::endl;
-//       EXPECT_LT(diff, 0.01);
+        EXPECT_LT(diff, 0.01);
     }
 
     free(host_res);
