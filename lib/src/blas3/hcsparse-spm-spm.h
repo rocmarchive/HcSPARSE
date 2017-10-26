@@ -1897,14 +1897,14 @@ compute_gemmNnz(hcsparseControl* control,
                 const int *csrRowPtrB,
                 const int *csrColIndB,
                 int *csrRowPtrC,
-                int *nnzTotalDevHostPtr)
+                int *nnzTotalDevHostPtr,
+                int *tmpBuf)
 {
     hc::extent<1> grdExt(1);
     hc::tiled_extent<1> t_ext = grdExt.tile(1);
     hc::parallel_for_each(control->accl_view, t_ext, [=] (hc::tiled_index<1> &tidx) [[hc]]
     {
     int nnz = 0;
-    tile_static int arr[64];
     csrRowPtrC[0] = 0;
 
     for (int rowA_id = 0; rowA_id < m; rowA_id++)
@@ -1912,23 +1912,18 @@ compute_gemmNnz(hcsparseControl* control,
         int start = csrRowPtrA[rowA_id];
         int stop = csrRowPtrA[rowA_id + 1];
 
-        for (int i = 0; i < n; i++)
-        {
-            arr[i] = 0;
-        }
-
         for (int i = start; i < stop; i++)
         {
             int index = csrColIndA[i];
             for (int j = csrRowPtrB[index]; j < csrRowPtrB[index+1]; j++)
             {
-                arr[csrColIndB[j]] = 1;
+                tmpBuf[csrColIndB[j]] = 1;
             }
         }
 
         for (int i = 0; i < n; i++)
         {
-            nnz += arr[i];
+            nnz += tmpBuf[i];
         }
         csrRowPtrC[rowA_id+1] = nnz;
     }

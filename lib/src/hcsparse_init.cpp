@@ -597,9 +597,16 @@ hcsparseXcsrgemmNnz(hcsparseHandle_t handle,
   hcsparseControl control(handle->currentAcclView);
   hcsparseStatus stat = hcsparseSuccess;
 
+  int* tmpBuf_h = (int*) calloc(n, sizeof(int));
+  int* tmpBuf_d = am_alloc(sizeof(int)*n, handle->currentAccl, 0);
+  handle->currentAcclView.copy(tmpBuf_h, tmpBuf_d, sizeof(int)*n);
+
   stat = compute_gemmNnz(&control, m, n, k, nnzA, csrRowPtrA, csrColIndA,
                          nnzB, csrRowPtrB, csrColIndB,
-                         csrRowPtrC, nnzTotalDevHostPtr);
+                         csrRowPtrC, nnzTotalDevHostPtr, tmpBuf_d);
+
+  free(tmpBuf_h);
+  am_free(tmpBuf_d);
 
   if (stat != hcsparseSuccess)
    return HCSPARSE_STATUS_EXECUTION_FAILED;
@@ -1359,19 +1366,22 @@ hcsparseXcsrgeamNnz(hcsparseHandle_t handle,
   hcsparseControl control(handle->currentAcclView);
   hcsparseStatus stat = hcsparseSuccess;
 
+  int* tmpBuf_h = (int*) calloc(n, sizeof(int));
+  int* tmpBuf_d = am_alloc(sizeof(int)*n, handle->currentAccl, 0);
+  handle->currentAcclView.copy(tmpBuf_h, tmpBuf_d, sizeof(int)*n);
+
   hc::extent<1> grdExt(1);
   hc::tiled_extent<1> t_ext = grdExt.tile(1);
   hc::parallel_for_each(control.accl_view, t_ext, [=] (hc::tiled_index<1> &tidx) [[hc]]
   {
     int nnz = 0;
-    tile_static int arr[64];
     csrRowPtrC[0] = 0;
 
     for (int rowA_id = 0; rowA_id < m; rowA_id++)
     {
         for (int i = 0; i < n; i++)
         {
-            arr[i] = 0;
+            tmpBuf_d[i] = 0;
         }
 
         int startA = csrRowPtrA[rowA_id];
@@ -1381,22 +1391,25 @@ hcsparseXcsrgeamNnz(hcsparseHandle_t handle,
 
         for (int i = startA; i < stopA; i++)
         {
-            arr[csrColIndA[i]] = 1;
+            tmpBuf_d[csrColIndA[i]] = 1;
         }
         for (int i = startB; i < stopB; i++)
         {
-            arr[csrColIndB[i]] = 1;
+            tmpBuf_d[csrColIndB[i]] = 1;
         }
 
         for (int i = 0; i < n; i++)
         {
-            nnz += arr[i];
+            nnz += tmpBuf_d[i];
         }
         csrRowPtrC[rowA_id+1] = nnz;
     }
 
     *nnzTotalDevHostPtr = nnz;
   });
+
+  free(tmpBuf_h);
+  am_free(tmpBuf_d);
 
   return HCSPARSE_STATUS_SUCCESS;
 
