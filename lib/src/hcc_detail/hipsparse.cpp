@@ -353,6 +353,29 @@ hipsparseStatus_t hipsparseDcsrgemm(hipsparseHandle_t handle,
                                                         csrColIndC));
 }
 
+hipsparseStatus_t hipsparseXcsrgeamNnz(hipsparseHandle_t handle, 
+                                       int m, int n,
+                                       const hipsparseMatDescr_t descrA, 
+                                       int nnzA,
+                                       const int *csrRowPtrA, 
+                                       const int *csrColIndA,
+                                       const hipsparseMatDescr_t descrB, 
+                                       int nnzB,
+                                       const int *csrRowPtrB, 
+                                       const int *csrColIndB,
+                                       const hipsparseMatDescr_t descrC,
+                                       int *csrRowPtrC, 
+                                       int *nnzTotalDevHostPtr) {
+
+   return hipHCSPARSEStatusToHIPStatus(hcsparseXcsrgeamNnz(handle, m, n, descrA,
+                                                           nnzA, csrRowPtrA,
+                                                           csrColIndA, descrB, nnzB,
+                                                           csrRowPtrB, csrColIndB,
+                                                           descrC, csrRowPtrC,
+                                                           nnzTotalDevHostPtr));
+
+}
+
 hipsparseStatus_t hipsparseScsrgeam(hipsparseHandle_t handle, 
                                     int m, int n, const float *alpha,
                                     const hipsparseMatDescr_t descrA, 

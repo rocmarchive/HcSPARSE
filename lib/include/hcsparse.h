@@ -634,6 +634,22 @@ hcsparseDcsrmv(hcsparseHandle_t handle, hcsparseOperation_t transA,
                double          *y);
 
 
+hcsparseStatus_t
+hcsparseXcsrgeamNnz(hcsparseHandle_t handle, 
+                    int m, 
+                    int n,
+                    const hcsparseMatDescr_t descrA, 
+                    int nnzA,
+                    const int *csrRowPtrA, 
+                    const int *csrColIndA,
+                    const hcsparseMatDescr_t descrB, 
+                    int nnzB,
+                    const int *csrRowPtrB, 
+                    const int *csrColIndB,
+                    const hcsparseMatDescr_t descrC,
+                    int *csrRowPtrC, 
+                    int *nnzTotalDevHostPtr);
+
 // 18. hcsparseXcsrgeam()
 
 // This function performs following matrix-matrix operation

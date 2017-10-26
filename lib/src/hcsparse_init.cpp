@@ -1324,6 +1324,84 @@ hcsparseDcsrmv(hcsparseHandle_t handle, hcsparseOperation_t transA,
 
 }
 
+hcsparseStatus_t
+hcsparseXcsrgeamNnz(hcsparseHandle_t handle, 
+                    int m, 
+                    int n,
+                    const hcsparseMatDescr_t descrA, 
+                    int nnzA,
+                    const int *csrRowPtrA, 
+                    const int *csrColIndA,
+                    const hcsparseMatDescr_t descrB, 
+                    int nnzB,
+                    const int *csrRowPtrB, 
+                    const int *csrColIndB,
+                    const hcsparseMatDescr_t descrC,
+                    int *csrRowPtrC, 
+                    int *nnzTotalDevHostPtr)
+{
+  if (handle == nullptr) 
+    return HCSPARSE_STATUS_NOT_INITIALIZED;
+
+  if (!csrRowPtrA || !csrColIndA ||
+      !csrRowPtrB || !csrColIndB ||
+      !csrRowPtrC)
+    return HCSPARSE_STATUS_ALLOC_FAILED;
+
+  if (descrA->MatrixType != HCSPARSE_MATRIX_TYPE_GENERAL)
+    return HCSPARSE_STATUS_INVALID_VALUE;
+
+  if (m < 0 || n < 0 || nnzA < 0 || nnzB < 0)
+    return HCSPARSE_STATUS_INVALID_VALUE;
+
+  // temp code 
+  // TODO : Remove this in the future
+  hcsparseControl control(handle->currentAcclView);
+  hcsparseStatus stat = hcsparseSuccess;
+
+  hc::extent<1> grdExt(1);
+  hc::tiled_extent<1> t_ext = grdExt.tile(1);
+  hc::parallel_for_each(control.accl_view, t_ext, [=] (hc::tiled_index<1> &tidx) [[hc]]
+  {
+    int nnz = 0;
+    tile_static int arr[64];
+    csrRowPtrC[0] = 0;
+
+    for (int rowA_id = 0; rowA_id < m; rowA_id++)
+    {
+        for (int i = 0; i < n; i++)
+        {
+            arr[i] = 0;
+        }
+
+        int startA = csrRowPtrA[rowA_id];
+        int stopA = csrRowPtrA[rowA_id + 1];
+        int startB = csrRowPtrB[rowA_id];
+        int stopB = csrRowPtrB[rowA_id + 1];
+
+        for (int i = startA; i < stopA; i++)
+        {
+            arr[csrColIndA[i]] = 1;
+        }
+        for (int i = startB; i < stopB; i++)
+        {
+            arr[csrColIndB[i]] = 1;
+        }
+
+        for (int i = 0; i < n; i++)
+        {
+            nnz += arr[i];
+        }
+        csrRowPtrC[rowA_id+1] = nnz;
+    }
+
+    *nnzTotalDevHostPtr = nnz;
+  });
+
+  return HCSPARSE_STATUS_SUCCESS;
+
+}
+
 // 18. hcsparseXcsrgeam()
 
 // This function performs following matrix-matrix operation
