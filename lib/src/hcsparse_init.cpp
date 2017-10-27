@@ -597,19 +597,49 @@ hcsparseXcsrgemmNnz(hcsparseHandle_t handle,
   hcsparseControl control(handle->currentAcclView);
   hcsparseStatus stat = hcsparseSuccess;
 
-  int* tmpBuf_h = (int*) calloc(n, sizeof(int));
-  int* tmpBuf_d = am_alloc(sizeof(int)*n, handle->currentAccl, 0);
-  handle->currentAcclView.copy(tmpBuf_h, tmpBuf_d, sizeof(int)*n);
+  int* tmpBuf_h = (int*) calloc(m*n, sizeof(int));
+  int* tmpBuf_d = am_alloc(sizeof(int)*m*n, handle->currentAccl, 0);
+  handle->currentAcclView.copy(tmpBuf_h, tmpBuf_d, sizeof(int)*m*n);
+  int* rowPtr_d = am_alloc(sizeof(int)*(m+1), handle->currentAccl, 0);
 
-  stat = compute_gemmNnz(&control, m, n, k, nnzA, csrRowPtrA, csrColIndA,
-                         nnzB, csrRowPtrB, csrColIndB,
-                         csrRowPtrC, nnzTotalDevHostPtr, tmpBuf_d);
+  int size = (m-1)/256 + 1;
+  hc::extent<1> grdExt(size*256);
+  hc::tiled_extent<1> t_ext = grdExt.tile(256);
+  hc::parallel_for_each(control.accl_view, t_ext, [=] (hc::tiled_index<1> &tidx) [[hc]]
+  {
+      int nnz = 0;
+      rowPtr_d[0] = 0;
+
+      int rowA_id = tidx.global[0];
+      if (rowA_id < m)
+      {
+          int start = csrRowPtrA[rowA_id];
+          int stop = csrRowPtrA[rowA_id + 1];
+
+          for (int i = start; i < stop; i++)
+          {
+              int index = csrColIndA[i];
+              for (int j = csrRowPtrB[index]; j < csrRowPtrB[index+1]; j++)
+              {
+                  tmpBuf_d[rowA_id*n + csrColIndB[j]] = 1;
+              }
+          }
+
+          for (int i = 0; i < n; i++)
+          {
+              nnz += tmpBuf_d[rowA_id*n + i];
+          }
+          rowPtr_d[rowA_id+1] = nnz;
+      }
+  });
+
+  inclusive_scan<int, EW_PLUS>(m+1, csrRowPtrC, rowPtr_d, &control);
+
+  handle->currentAcclView.copy(&csrRowPtrC[m], nnzTotalDevHostPtr, sizeof(int)*1);
 
   free(tmpBuf_h);
   am_free(tmpBuf_d);
-
-  if (stat != hcsparseSuccess)
-   return HCSPARSE_STATUS_EXECUTION_FAILED;
+  am_free(rowPtr_d);
 
   return HCSPARSE_STATUS_SUCCESS;
 }
@@ -1366,24 +1396,22 @@ hcsparseXcsrgeamNnz(hcsparseHandle_t handle,
   hcsparseControl control(handle->currentAcclView);
   hcsparseStatus stat = hcsparseSuccess;
 
-  int* tmpBuf_h = (int*) calloc(n, sizeof(int));
-  int* tmpBuf_d = am_alloc(sizeof(int)*n, handle->currentAccl, 0);
-  handle->currentAcclView.copy(tmpBuf_h, tmpBuf_d, sizeof(int)*n);
+  int* tmpBuf_h = (int*) calloc(m*n, sizeof(int));
+  int* tmpBuf_d = am_alloc(sizeof(int)*m*n, handle->currentAccl, 0);
+  handle->currentAcclView.copy(tmpBuf_h, tmpBuf_d, sizeof(int)*m*n);
+  int* rowPtr_d = am_alloc(sizeof(int)*(m+1), handle->currentAccl, 0);
 
-  hc::extent<1> grdExt(1);
-  hc::tiled_extent<1> t_ext = grdExt.tile(1);
+  int size = (m-1)/256 + 1;
+  hc::extent<1> grdExt(size*256);
+  hc::tiled_extent<1> t_ext = grdExt.tile(256);
   hc::parallel_for_each(control.accl_view, t_ext, [=] (hc::tiled_index<1> &tidx) [[hc]]
   {
     int nnz = 0;
-    csrRowPtrC[0] = 0;
+    rowPtr_d[0] = 0;
 
-    for (int rowA_id = 0; rowA_id < m; rowA_id++)
+    int rowA_id = tidx.global[0];
+    if (rowA_id < m)
     {
-        for (int i = 0; i < n; i++)
-        {
-            tmpBuf_d[i] = 0;
-        }
-
         int startA = csrRowPtrA[rowA_id];
         int stopA = csrRowPtrA[rowA_id + 1];
         int startB = csrRowPtrB[rowA_id];
@@ -1391,25 +1419,28 @@ hcsparseXcsrgeamNnz(hcsparseHandle_t handle,
 
         for (int i = startA; i < stopA; i++)
         {
-            tmpBuf_d[csrColIndA[i]] = 1;
+            tmpBuf_d[rowA_id*n + csrColIndA[i]] = 1;
         }
         for (int i = startB; i < stopB; i++)
         {
-            tmpBuf_d[csrColIndB[i]] = 1;
+            tmpBuf_d[rowA_id*n + csrColIndB[i]] = 1;
         }
 
         for (int i = 0; i < n; i++)
         {
-            nnz += tmpBuf_d[i];
+            nnz += tmpBuf_d[rowA_id*n + i];
         }
-        csrRowPtrC[rowA_id+1] = nnz;
+        rowPtr_d[rowA_id+1] = nnz;
     }
+  }).wait();
 
-    *nnzTotalDevHostPtr = nnz;
-  });
+  inclusive_scan<int, EW_PLUS>(m+1, csrRowPtrC, rowPtr_d, &control);
+
+  handle->currentAcclView.copy(&csrRowPtrC[m], nnzTotalDevHostPtr, sizeof(int)*1);
 
   free(tmpBuf_h);
   am_free(tmpBuf_d);
+  am_free(rowPtr_d);
 
   return HCSPARSE_STATUS_SUCCESS;
 
