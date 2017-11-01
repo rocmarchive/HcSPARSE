@@ -1256,8 +1256,11 @@ hcsparseXcoo2csr(hcsparseHandle_t handle, const int *cooRowInd,
   if (handle == nullptr) 
     return HCSPARSE_STATUS_NOT_INITIALIZED;
 
-  if (idxBase != HCSPARSE_INDEX_BASE_ZERO)
+  if (idxBase != HCSPARSE_INDEX_BASE_ZERO && idxBase != HCSPARSE_INDEX_BASE_ONE)
     return HCSPARSE_STATUS_INVALID_VALUE;
+
+  if (idxBase == HCSPARSE_INDEX_BASE_ONE)
+    m = m+1;
 
   // temp code 
   // TODO : Remove this in the future
