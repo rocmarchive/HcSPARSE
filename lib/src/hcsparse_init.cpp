@@ -240,23 +240,7 @@ hcsparseScsrmm(hcsparseHandle_t handle,
   hcsparseControl control(handle->currentAcclView);
   hcsparseStatus stat = hcsparseSuccess;
 
-  // Convert sparse to dense to find the nnz and nnzPerRow
-  float *A = am_alloc(sizeof(float)*m*k, handle->currentAccl, 0);
-  hcsparseStatus_t status = hcsparseScsr2dense(handle, m, k, descrA, csrValA, csrRowPtrA,
-                                               csrColIndA, A, m); 
-
-  int nnz1;
-  int *nnz_locations = am_alloc(sizeof(int)*m*k, handle->currentAccl, 0);
-
-  calculate_num_nonzeros<float>((ulong)m*k, A, nnz_locations, nnz1, &control);
-
-  control.accl_view.wait();
-
-  // Deallocate resource
-  hc::am_free(A);
-  hc::am_free(nnz_locations);
-
-  int nnzPerRow = nnz1/m;
+  int nnzPerRow = nnz/m;
   stat = csrmm<float>(&control, nnzPerRow, m, n, k, alpha, csrValA, csrRowPtrA,
                       csrColIndA, B, ldb, beta, C, ldc);
 
@@ -291,23 +275,7 @@ hcsparseDcsrmm(hcsparseHandle_t handle,
   hcsparseControl control(handle->currentAcclView);
   hcsparseStatus stat = hcsparseSuccess;
 
-  // Convert sparse to dense to find the nnz and nnzPerRow
-  double *A = am_alloc(sizeof(double)*m*k, handle->currentAccl, 0);
-  hcsparseStatus_t status = hcsparseDcsr2dense(handle, m, k, descrA, csrValA, csrRowPtrA,
-                                               csrColIndA, A, m); 
-
-  int nnz1 = 0;
-  int *nnz_locations = am_alloc(sizeof(int)*m*k, handle->currentAccl, 0);
-
-  calculate_num_nonzeros<double>((ulong)m*k, A, nnz_locations, nnz1, &control);
-
-  control.accl_view.wait();
-
-  // Deallocate resource
-  hc::am_free(A);
-  hc::am_free(nnz_locations);
-
-  int nnzPerRow = nnz1/m;
+  int nnzPerRow = nnz/m;
   stat = csrmm<double>(&control, nnzPerRow, m, n, k, alpha, csrValA, csrRowPtrA,
                       csrColIndA, B, ldb, beta, C, ldc);
 
