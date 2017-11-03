@@ -601,6 +601,23 @@ hipsparseDcsr2csc(hipsparseHandle_t handle, int m, int n, int nnz,
 
 }
 
+hipsparseStatus_t
+hipsparseSetStream(hipsparseHandle_t handle, hipStream_t streamId)
+{
+  if (handle == nullptr) {
+    return HIPSPARSE_STATUS_NOT_INITIALIZED;
+  }
+
+  hc::accelerator_view *pAcclView;
+  hipError_t err = hipHccGetAcceleratorView(streamId, &pAcclView);
+
+  if (err != hipSuccess) {
+    return HIPSPARSE_STATUS_NOT_INITIALIZED;
+  }
+
+  return hipHCSPARSEStatusToHIPStatus(
+      hcsparseSetAcclView(handle, *pAcclView, static_cast<void *>(streamId)));
+}
 #ifdef __cplusplus
 }
 #endif

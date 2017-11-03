@@ -284,6 +284,22 @@ hipsparseStatus_t hipsparseDdense2csc(hipsparseHandle_t handle, int m, int n,
                               double   *cscValA,
                               int *cscRowIndA, int *cscColPtrA);
 
+hipsparseStatus_t hipsparseSetStream(hipsparseHandle_t handle, hipStream_t streamId);
+
+hipsparseStatus_t hipsparseDcsr2csc(hipsparseHandle_t handle, int m, int n, int nnz,
+                              const double *csrVal, const int *csrRowPtr,
+                              const int *csrColInd, double *cscVal,
+                              int *cscRowInd, int *cscColPtr,
+                              hipsparseAction_t copyValues,
+                              hipsparseIndexBase_t idxBase);
+
+hipsparseStatus_t hipsparseScsr2csc(hipsparseHandle_t handle, int m, int n, int nnz,
+                              const float *csrVal, const int *csrRowPtr,
+                              const int *csrColInd, float *cscVal,
+                              int *cscRowInd, int *cscColPtr,
+                              hipsparseAction_t copyValues,
+                              hipsparseIndexBase_t idxBase);
+
 #ifdef __cplusplus
 }
 #endif

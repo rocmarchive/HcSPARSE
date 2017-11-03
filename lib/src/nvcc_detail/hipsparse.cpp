@@ -112,6 +112,13 @@ hipsparseStatus_t hipsparseDestroy(hipsparseHandle_t handle)
    return hipCudaStatusToHIPStatus(cusparseDestroy(handle));
 }
 
+hipsparseStatus_t hipsparseSetStream(hipsparseHandle_t handle, hipStream_t streamId)
+{
+
+  return hipCudaStatusToHIPStatus(cusparseSetStream(handle, streamId));
+
+}
+
 hipsparseStatus_t hipsparseCreateMatDescr(hipsparseMatDescr_t *descrA)
 {
    return hipCudaStatusToHIPStatus(cusparseCreateMatDescr(descrA));

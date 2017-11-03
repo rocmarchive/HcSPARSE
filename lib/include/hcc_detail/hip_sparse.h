@@ -56,6 +56,8 @@ hipsparseStatus_t hipsparseCreate(hipsparseHandle_t* handle);
 
 hipsparseStatus_t hipsparseDestroy(hipsparseHandle_t handle);
 
+hipsparseStatus_t hipsparseSetStream(hipsparseHandle_t handle, hipStream_t streamId);
+
 hipsparseStatus_t hipsparseCreateMatDescr(hipsparseMatDescr_t *descrA);
 
 hipsparseStatus_t hipsparseDestroyMatDescr(hipsparseMatDescr_t descrA);
@@ -309,7 +311,6 @@ hcsparseDcsr2csc(hipsparseHandle_t handle, int m, int n, int nnz,
                  int *cscRowInd, int *cscColPtr, 
                  hipsparseAction_t copyValues, 
                  hipsparseIndexBase_t idxBase);
-
 
 #ifdef __cplusplus
 }
