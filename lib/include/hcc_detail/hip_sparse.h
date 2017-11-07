@@ -296,21 +296,19 @@ hipsparseStatus_t hipsparseDnnz(hipsparseHandle_t handle, hipsparseDirection_t d
                               const double           *A, int lda, 
                               int *nnzPerRowColumn, int *nnzTotalDevHostPtr);
 
-hipsparseStatus_t 
-hipsparseScsr2csc(hipsparseHandle_t handle, int m, int n, int nnz,
-                 const float *csrVal, const int *csrRowPtr, 
-                 const int *csrColInd, float           *cscVal,
-                 int *cscRowInd, int *cscColPtr, 
-                 hipsparseAction_t copyValues, 
-                 hipsparseIndexBase_t idxBase);
+hipsparseStatus_t hipsparseDcsr2csc(hipsparseHandle_t handle, int m, int n, int nnz,
+                              const double *csrVal, const int *csrRowPtr,
+                              const int *csrColInd, double *cscVal,
+                              int *cscRowInd, int *cscColPtr,
+                              hipsparseAction_t copyValues,
+                              hipsparseIndexBase_t idxBase);
 
-hcsparseStatus_t 
-hcsparseDcsr2csc(hipsparseHandle_t handle, int m, int n, int nnz,
-                 const double *csrVal, const int *csrRowPtr, 
-                 const int *csrColInd, double          *cscVal,
-                 int *cscRowInd, int *cscColPtr, 
-                 hipsparseAction_t copyValues, 
-                 hipsparseIndexBase_t idxBase);
+hipsparseStatus_t hipsparseScsr2csc(hipsparseHandle_t handle, int m, int n, int nnz,
+                              const float *csrVal, const int *csrRowPtr,
+                              const int *csrColInd, float *cscVal,
+                              int *cscRowInd, int *cscColPtr,
+                              hipsparseAction_t copyValues,
+                              hipsparseIndexBase_t idxBase);
 
 #ifdef __cplusplus
 }
