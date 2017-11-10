@@ -240,9 +240,50 @@ hcsparseScsrmm(hcsparseHandle_t handle,
   hcsparseControl control(handle->currentAcclView);
   hcsparseStatus stat = hcsparseSuccess;
 
-  int nnzPerRow = nnz/m;
-  stat = csrmm<float>(&control, nnzPerRow, m, n, k, alpha, csrValA, csrRowPtrA,
-                      csrColIndA, B, ldb, beta, C, ldc);
+  int nnzPerRow = ((nnz-1)/m)+1;
+
+  if (descrA->IndexBase == HCSPARSE_INDEX_BASE_ONE)
+  {
+    int* tmpCsrColInd = am_alloc(sizeof(int)*nnz, handle->currentAccl, 0);
+    handle->currentAcclView.copy((void*)csrColIndA, tmpCsrColInd, sizeof(int)*nnz);
+    int* tmpCsrRowPtr = am_alloc(sizeof(int)*(m+1), handle->currentAccl, 0);
+    handle->currentAcclView.copy((void*)csrRowPtrA, tmpCsrRowPtr, sizeof(int)*(m+1));
+
+    int size = (m)/256 + 1;
+    hc::extent<1> grdExt(size*256);
+    hc::tiled_extent<1> t_ext = grdExt.tile(256);
+    hc::parallel_for_each(control.accl_view, t_ext, [=] (hc::tiled_index<1> &tidx) [[hc]]
+    {
+        int id = tidx.global[0];
+        if (id < (m+1))
+        {
+            tmpCsrRowPtr[id]--;
+        }
+    }).wait();
+
+    size = (nnz-1)/256 + 1;
+    hc::extent<1> grdExt1(size*256);
+    hc::tiled_extent<1> t_ext1 = grdExt1.tile(256);
+    hc::parallel_for_each(control.accl_view, t_ext1, [=] (hc::tiled_index<1> &tidx) [[hc]]
+    {
+        int id = tidx.global[0];
+        if (id < nnz)
+        {
+            tmpCsrColInd[id]--;
+        }
+    }).wait();
+
+    stat = csrmm<float>(&control, nnzPerRow, m, n, k, alpha, csrValA, tmpCsrRowPtr,
+                        tmpCsrColInd, B, ldb, beta, C, ldc);
+
+    am_free(tmpCsrColInd);
+    am_free(tmpCsrRowPtr);
+  }
+  else
+  {
+    stat = csrmm<float>(&control, nnzPerRow, m, n, k, alpha, csrValA, csrRowPtrA,
+                        csrColIndA, B, ldb, beta, C, ldc);
+  }
 
   if (stat != hcsparseSuccess)
     return HCSPARSE_STATUS_EXECUTION_FAILED;
@@ -275,9 +316,50 @@ hcsparseDcsrmm(hcsparseHandle_t handle,
   hcsparseControl control(handle->currentAcclView);
   hcsparseStatus stat = hcsparseSuccess;
 
-  int nnzPerRow = nnz/m;
-  stat = csrmm<double>(&control, nnzPerRow, m, n, k, alpha, csrValA, csrRowPtrA,
-                      csrColIndA, B, ldb, beta, C, ldc);
+  int nnzPerRow = ((nnz-1)/m)+1;
+
+  if (descrA->IndexBase == HCSPARSE_INDEX_BASE_ONE)
+  {
+    int* tmpCsrColInd = am_alloc(sizeof(int)*nnz, handle->currentAccl, 0);
+    handle->currentAcclView.copy((void*)csrColIndA, tmpCsrColInd, sizeof(int)*nnz);
+    int* tmpCsrRowPtr = am_alloc(sizeof(int)*(m+1), handle->currentAccl, 0);
+    handle->currentAcclView.copy((void*)csrRowPtrA, tmpCsrRowPtr, sizeof(int)*(m+1));
+
+    int size = (m)/256 + 1;
+    hc::extent<1> grdExt(size*256);
+    hc::tiled_extent<1> t_ext = grdExt.tile(256);
+    hc::parallel_for_each(control.accl_view, t_ext, [=] (hc::tiled_index<1> &tidx) [[hc]]
+    {
+        int id = tidx.global[0];
+        if (id < (m+1))
+        {
+            tmpCsrRowPtr[id]--;
+        }
+    }).wait();
+
+    size = (nnz-1)/256 + 1;
+    hc::extent<1> grdExt1(size*256);
+    hc::tiled_extent<1> t_ext1 = grdExt1.tile(256);
+    hc::parallel_for_each(control.accl_view, t_ext1, [=] (hc::tiled_index<1> &tidx) [[hc]]
+    {
+        int id = tidx.global[0];
+        if (id < nnz)
+        {
+            tmpCsrColInd[id]--;
+        }
+    }).wait();
+
+    stat = csrmm<double>(&control, nnzPerRow, m, n, k, alpha, csrValA, tmpCsrRowPtr,
+                        tmpCsrColInd, B, ldb, beta, C, ldc);
+
+    am_free(tmpCsrColInd);
+    am_free(tmpCsrRowPtr);
+  }
+  else
+  {
+    stat = csrmm<double>(&control, nnzPerRow, m, n, k, alpha, csrValA, csrRowPtrA,
+                        csrColIndA, B, ldb, beta, C, ldc);
+  }
 
   if (stat != hcsparseSuccess)
     return HCSPARSE_STATUS_EXECUTION_FAILED;
@@ -1236,6 +1318,21 @@ hcsparseXcoo2csr(hcsparseHandle_t handle, const int *cooRowInd,
   hcsparseStatus stat = hcsparseSuccess;
 
   stat = indices_to_offsets<int> (m, nnz, csrRowPtr, cooRowInd, &control);
+
+  if (idxBase == HCSPARSE_INDEX_BASE_ONE)
+  {
+    int size = (m-1)/256 + 1;
+    hc::extent<1> grdExt(size*256);
+    hc::tiled_extent<1> t_ext = grdExt.tile(256);
+    hc::parallel_for_each(control.accl_view, t_ext, [=] (hc::tiled_index<1> &tidx) [[hc]]
+    {
+        int id = tidx.global[0];
+        if (id < m)
+        {
+            csrRowPtr[id]++;
+        }
+    });
+  }
 
   if (stat != hcsparseSuccess)
     return HCSPARSE_STATUS_EXECUTION_FAILED;
