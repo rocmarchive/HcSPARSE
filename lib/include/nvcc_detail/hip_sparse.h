@@ -113,6 +113,30 @@ hipsparseStatus_t hipsparseDcsrmm(hipsparseHandle_t handle,
                                                 const double *B,             int ldb,
                                                 const double *beta, double *C, int ldc);
 
+hipsparseStatus_t hipsparseScsrmm2(hipsparseHandle_t handle,
+                                                hipsparseOperation_t transA,
+                                                hipsparseOperation_t transB,
+                                                int m, int n, int k, int nnz,
+                                                const float           *alpha,
+                                                const hipsparseMatDescr_t descrA,
+                                                const float             *csrValA,
+                                                const int             *csrRowPtrA,
+                                                const int             *csrColIndA,
+                                                const float *B,             int ldb,
+                                                const float *beta, float *C, int ldc);
+
+hipsparseStatus_t hipsparseDcsrmm2(hipsparseHandle_t handle,
+                                                hipsparseOperation_t transA,
+                                                hipsparseOperation_t transB,
+                                                int m, int n, int k, int nnz,
+                                                const double           *alpha,
+                                                const hipsparseMatDescr_t descrA,
+                                                const double             *csrValA,
+                                                const int             *csrRowPtrA,
+                                                const int             *csrColIndA,
+                                                const double *B,             int ldb,
+                                                const double *beta, double *C, int ldc);
+
 hipsparseStatus_t hipsparseXcsrgemmNnz(hipsparseHandle_t handle,
                                        hipsparseOperation_t transA,
                                        hipsparseOperation_t transB,
