@@ -253,6 +253,27 @@ hcsparseDcsrmm(hcsparseHandle_t handle,
                const int *csrColIndA, const double *B,
                int ldb, const double *beta, double *C, int ldc);
 
+hcsparseStatus_t 
+hcsparseScsrmm2(hcsparseHandle_t handle, 
+                hcsparseOperation_t transA,
+                hcsparseOperation_t transB,
+                int m, int n, int k, int nnz, 
+                const float *alpha, 
+                const hcsparseMatDescr_t descrA, 
+                const float *csrValA, const int *csrRowPtrA, 
+                const int *csrColIndA, const float *B, 
+                int ldb, const float *beta, float *C, int ldc);
+
+hcsparseStatus_t
+hcsparseDcsrmm2(hcsparseHandle_t handle,
+                hcsparseOperation_t transA,
+                hcsparseOperation_t transB,
+                int m, int n, int k, int nnz,
+                const double *alpha,
+                const hcsparseMatDescr_t descrA,
+                const double *csrValA, const int *csrRowPtrA,
+                const int *csrColIndA, const double *B,
+                int ldb, const double *beta, double *C, int ldc);
 
 // 8. hcsparseXcsr2dense()
 

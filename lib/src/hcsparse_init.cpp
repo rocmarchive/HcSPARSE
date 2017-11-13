@@ -225,7 +225,7 @@ hcsparseScsrmm(hcsparseHandle_t handle,
                const int *csrColIndA, const float *B,
                int ldb, const float *beta, float *C, int ldc)
 {
-    if (handle == nullptr)
+  if (handle == nullptr)
     return HCSPARSE_STATUS_NOT_INITIALIZED;
 
   if (!csrValA || !csrRowPtrA || !csrColIndA || !B || !C ||
@@ -233,6 +233,9 @@ hcsparseScsrmm(hcsparseHandle_t handle,
     return HCSPARSE_STATUS_ALLOC_FAILED;
 
   if (descrA->MatrixType != HCSPARSE_MATRIX_TYPE_GENERAL)
+    return HCSPARSE_STATUS_INVALID_VALUE;
+
+  if (transA != HCSPARSE_OPERATION_NON_TRANSPOSE)
     return HCSPARSE_STATUS_INVALID_VALUE;
 
   // temp code 
@@ -274,7 +277,7 @@ hcsparseScsrmm(hcsparseHandle_t handle,
     }).wait();
 
     stat = csrmm<float>(&control, nnzPerRow, m, n, k, alpha, csrValA, tmpCsrRowPtr,
-                        tmpCsrColInd, B, ldb, beta, C, ldc);
+                        tmpCsrColInd, B, ldb, 1, beta, C, ldc);
 
     am_free(tmpCsrColInd);
     am_free(tmpCsrRowPtr);
@@ -282,7 +285,7 @@ hcsparseScsrmm(hcsparseHandle_t handle,
   else
   {
     stat = csrmm<float>(&control, nnzPerRow, m, n, k, alpha, csrValA, csrRowPtrA,
-                        csrColIndA, B, ldb, beta, C, ldc);
+                        csrColIndA, B, ldb, 1, beta, C, ldc);
   }
 
   if (stat != hcsparseSuccess)
@@ -301,7 +304,7 @@ hcsparseDcsrmm(hcsparseHandle_t handle,
                const int *csrColIndA, const double *B,
                int ldb, const double *beta, double *C, int ldc)
 {
-    if (handle == nullptr)
+  if (handle == nullptr)
     return HCSPARSE_STATUS_NOT_INITIALIZED;
 
   if (!csrValA || !csrRowPtrA || !csrColIndA || !B || !C ||
@@ -309,6 +312,9 @@ hcsparseDcsrmm(hcsparseHandle_t handle,
     return HCSPARSE_STATUS_ALLOC_FAILED;
 
   if (descrA->MatrixType != HCSPARSE_MATRIX_TYPE_GENERAL)
+    return HCSPARSE_STATUS_INVALID_VALUE;
+
+  if (transA != HCSPARSE_OPERATION_NON_TRANSPOSE)
     return HCSPARSE_STATUS_INVALID_VALUE;
 
   // temp code 
@@ -350,7 +356,7 @@ hcsparseDcsrmm(hcsparseHandle_t handle,
     }).wait();
 
     stat = csrmm<double>(&control, nnzPerRow, m, n, k, alpha, csrValA, tmpCsrRowPtr,
-                        tmpCsrColInd, B, ldb, beta, C, ldc);
+                        tmpCsrColInd, B, ldb, 1, beta, C, ldc);
 
     am_free(tmpCsrColInd);
     am_free(tmpCsrRowPtr);
@@ -358,7 +364,193 @@ hcsparseDcsrmm(hcsparseHandle_t handle,
   else
   {
     stat = csrmm<double>(&control, nnzPerRow, m, n, k, alpha, csrValA, csrRowPtrA,
-                        csrColIndA, B, ldb, beta, C, ldc);
+                        csrColIndA, B, ldb, 1, beta, C, ldc);
+  }
+
+  if (stat != hcsparseSuccess)
+    return HCSPARSE_STATUS_EXECUTION_FAILED;
+
+  return HCSPARSE_STATUS_SUCCESS;
+}
+
+hcsparseStatus_t
+hcsparseScsrmm2(hcsparseHandle_t handle,
+                hcsparseOperation_t transA,
+                hcsparseOperation_t transB,
+                int m, int n, int k, int nnz,
+                const float *alpha,
+                const hcsparseMatDescr_t descrA,
+                const float *csrValA, const int *csrRowPtrA,
+                const int *csrColIndA, const float *B,
+                int ldb, const float *beta, float *C, int ldc)
+{
+  if (handle == nullptr)
+    return HCSPARSE_STATUS_NOT_INITIALIZED;
+
+  if (!csrValA || !csrRowPtrA || !csrColIndA || !B || !C ||
+      !alpha || !beta)
+    return HCSPARSE_STATUS_ALLOC_FAILED;
+
+  if (descrA->MatrixType != HCSPARSE_MATRIX_TYPE_GENERAL)
+    return HCSPARSE_STATUS_INVALID_VALUE;
+
+  if (transA != HCSPARSE_OPERATION_NON_TRANSPOSE)
+    return HCSPARSE_STATUS_INVALID_VALUE;
+
+  int ldb_nt, ldb_t;
+
+  if (transB == HCSPARSE_OPERATION_NON_TRANSPOSE)
+  {
+    ldb_nt = ldb;
+    ldb_t = 1;
+  }
+  else if (transB == HCSPARSE_OPERATION_TRANSPOSE)
+  {
+    ldb_nt = 1;
+    ldb_t = ldb;
+  }
+
+  // temp code 
+  // TODO : Remove this in the future
+  hcsparseControl control(handle->currentAcclView);
+  hcsparseStatus stat = hcsparseSuccess;
+
+  int nnzPerRow = ((nnz-1)/m)+1;
+
+  if (descrA->IndexBase == HCSPARSE_INDEX_BASE_ONE)
+  {
+    int* tmpCsrColInd = am_alloc(sizeof(int)*nnz, handle->currentAccl, 0);
+    handle->currentAcclView.copy((void*)csrColIndA, tmpCsrColInd, sizeof(int)*nnz);
+    int* tmpCsrRowPtr = am_alloc(sizeof(int)*(m+1), handle->currentAccl, 0);
+    handle->currentAcclView.copy((void*)csrRowPtrA, tmpCsrRowPtr, sizeof(int)*(m+1));
+
+    int size = (m)/256 + 1;
+    hc::extent<1> grdExt(size*256);
+    hc::tiled_extent<1> t_ext = grdExt.tile(256);
+    hc::parallel_for_each(control.accl_view, t_ext, [=] (hc::tiled_index<1> &tidx) [[hc]]
+    {
+        int id = tidx.global[0];
+        if (id < (m+1))
+        {
+            tmpCsrRowPtr[id]--;
+        }
+    }).wait();
+
+    size = (nnz-1)/256 + 1;
+    hc::extent<1> grdExt1(size*256);
+    hc::tiled_extent<1> t_ext1 = grdExt1.tile(256);
+    hc::parallel_for_each(control.accl_view, t_ext1, [=] (hc::tiled_index<1> &tidx) [[hc]]
+    {
+        int id = tidx.global[0];
+        if (id < nnz)
+        {
+            tmpCsrColInd[id]--;
+        }
+    }).wait();
+
+    stat = csrmm<float>(&control, nnzPerRow, m, n, k, alpha, csrValA, tmpCsrRowPtr,
+                        tmpCsrColInd, B, ldb_nt, ldb_t, beta, C, ldc);
+
+    am_free(tmpCsrColInd);
+    am_free(tmpCsrRowPtr);
+  }
+  else
+  {
+    stat = csrmm<float>(&control, nnzPerRow, m, n, k, alpha, csrValA, csrRowPtrA,
+                        csrColIndA, B, ldb_nt, ldb_t, beta, C, ldc);
+  }
+
+  if (stat != hcsparseSuccess)
+    return HCSPARSE_STATUS_EXECUTION_FAILED;
+
+  return HCSPARSE_STATUS_SUCCESS;
+}
+
+hcsparseStatus_t
+hcsparseDcsrmm2(hcsparseHandle_t handle,
+                hcsparseOperation_t transA,
+                hcsparseOperation_t transB,
+                int m, int n, int k, int nnz,
+                const double *alpha,
+                const hcsparseMatDescr_t descrA,
+                const double *csrValA, const int *csrRowPtrA,
+                const int *csrColIndA, const double *B,
+                int ldb, const double *beta, double *C, int ldc)
+{
+  if (handle == nullptr)
+    return HCSPARSE_STATUS_NOT_INITIALIZED;
+
+  if (!csrValA || !csrRowPtrA || !csrColIndA || !B || !C ||
+      !alpha || !beta)
+    return HCSPARSE_STATUS_ALLOC_FAILED;
+
+  if (descrA->MatrixType != HCSPARSE_MATRIX_TYPE_GENERAL)
+    return HCSPARSE_STATUS_INVALID_VALUE;
+
+  if (transA != HCSPARSE_OPERATION_NON_TRANSPOSE)
+    return HCSPARSE_STATUS_INVALID_VALUE;
+
+  int ldb_nt, ldb_t;
+
+  if (transB == HCSPARSE_OPERATION_NON_TRANSPOSE)
+  {
+    ldb_nt = ldb;
+    ldb_t = 1;
+  }
+  else if (transB == HCSPARSE_OPERATION_TRANSPOSE)
+  {
+    ldb_nt = 1;
+    ldb_t = ldb;
+  }
+
+  // temp code 
+  // TODO : Remove this in the future
+  hcsparseControl control(handle->currentAcclView);
+  hcsparseStatus stat = hcsparseSuccess;
+
+  int nnzPerRow = ((nnz-1)/m)+1;
+
+  if (descrA->IndexBase == HCSPARSE_INDEX_BASE_ONE)
+  {
+    int* tmpCsrColInd = am_alloc(sizeof(int)*nnz, handle->currentAccl, 0);
+    handle->currentAcclView.copy((void*)csrColIndA, tmpCsrColInd, sizeof(int)*nnz);
+    int* tmpCsrRowPtr = am_alloc(sizeof(int)*(m+1), handle->currentAccl, 0);
+    handle->currentAcclView.copy((void*)csrRowPtrA, tmpCsrRowPtr, sizeof(int)*(m+1));
+
+    int size = (m)/256 + 1;
+    hc::extent<1> grdExt(size*256);
+    hc::tiled_extent<1> t_ext = grdExt.tile(256);
+    hc::parallel_for_each(control.accl_view, t_ext, [=] (hc::tiled_index<1> &tidx) [[hc]]
+    {
+        int id = tidx.global[0];
+        if (id < (m+1))
+        {
+            tmpCsrRowPtr[id]--;
+        }
+    }).wait();
+
+    size = (nnz-1)/256 + 1;
+    hc::extent<1> grdExt1(size*256);
+    hc::tiled_extent<1> t_ext1 = grdExt1.tile(256);
+    hc::parallel_for_each(control.accl_view, t_ext1, [=] (hc::tiled_index<1> &tidx) [[hc]]
+    {
+        int id = tidx.global[0];
+        if (id < nnz)
+        {
+            tmpCsrColInd[id]--;
+        }
+    }).wait();
+
+    stat = csrmm<double>(&control, nnzPerRow, m, n, k, alpha, csrValA, tmpCsrRowPtr,
+                        tmpCsrColInd, B, ldb_nt, ldb_t, beta, C, ldc);
+
+    am_free(tmpCsrColInd);
+    am_free(tmpCsrRowPtr);
+  }
+  else
+  {
+    stat = csrmm<double>(&control, nnzPerRow, m, n, k, alpha, csrValA, csrRowPtrA,
+                        csrColIndA, B, ldb_nt, ldb_t, beta, C, ldc);
   }
 
   if (stat != hcsparseSuccess)
