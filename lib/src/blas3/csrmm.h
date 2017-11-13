@@ -14,6 +14,7 @@ csrmv_kernel( const int num_rows,
               const T *val,
               const T *x,
               const size_t ldx,
+              const size_t ldx_t,
               const long off_x,
               const T *beta,
               const long off_beta,
@@ -47,11 +48,11 @@ csrmv_kernel( const int num_rows,
             for( int j = row_start + thread_lane; j < row_end; j += subwave_size )
             {
                 if( _alpha == 1 )
-                    sum = val[ j ] * x[ off_x + ( col[ j ] * ldx ) + curr_col ] + sum;
+                    sum = val[ j ] * x[ off_x + ( col[ j ] * ldx ) + curr_col * ldx_t ] + sum;
                 else if( _alpha == 0 )
                     sum = 0;
                 else
-                    sum = _alpha * val[ j ] * x[ off_x + ( col[ j ] * ldx ) + curr_col ] + sum;
+                    sum = _alpha * val[ j ] * x[ off_x + ( col[ j ] * ldx ) + curr_col * ldx_t ] + sum;
             }
 
             sdata[ local_id ] = sum;
@@ -91,7 +92,8 @@ void csrmv_batched( const int num_rows,
                     const int *colInd,
                     const T *values,
                     const T *denseB,
-                    const size_t ldB,
+                    const size_t ldb,
+                    const size_t ldb_t,
                     const long off_B,
                     const T *beta,
                     const long off_beta,
@@ -121,17 +123,17 @@ void csrmv_batched( const int num_rows,
     //  the global pointers to the dense B and C matrices a column for each iteration.
     for( int curr_col = 0; curr_col < num_cols_C; ++curr_col )
     {
-        csrmv_kernel<T> (num_rows, subwave_size, alpha, off_alpha, rowOffsets, colInd, values, denseB, ldB, off_B, beta, off_beta, denseC, ldC, off_C, curr_col, control);
+        csrmv_kernel<T> (num_rows, subwave_size, alpha, off_alpha, rowOffsets, colInd, values, denseB, ldb, ldb_t, off_B, beta, off_beta, denseC, ldC, off_C, curr_col, control);
     }
 }
 
 template<typename T>
 hcsparseStatus 
 csrmm (hcsparseControl *control, const int nnzPerRow,
-       const int m, const int n, const int k, 
-       const T *alpha, const T *csrValA, 
-       const int *csrRowPtrA, const int *csrColIndA, 
-       const T *B, const int ldb, 
+       const int m, const int n, const int k,
+       const T *alpha, const T *csrValA,
+       const int *csrRowPtrA, const int *csrColIndA,
+       const T *B, const int ldb, const int ldb_t,
        const T *beta, T *C, const int ldc)
 {
   int ARows = m;
@@ -144,7 +146,7 @@ csrmm (hcsparseControl *control, const int nnzPerRow,
 
   csrmv_batched<T>(ARows, nnzPerRow, alpha, alphaOffValue, 
                    csrRowPtrA, csrColIndA, csrValA, B, 
-                   ldb, BOffValue, beta, betaOffValue, 
+                   ldb, ldb_t, BOffValue, beta, betaOffValue, 
                    C, CRows, CCols, ldc, COffValue, control);
 
   return hcsparseSuccess;
@@ -172,7 +174,7 @@ csrmm( const hcsparseScalar *pAlpha,
     T *avBeta_value = static_cast<T*>(pBeta->value);
 
     csrmv_batched<T> (pSparseCsrA->num_rows, nnz_per_row, avAlpha_value, pAlpha->offValue, avCsrA_rowOffsets, avCsrA_colIndices, 
-                      avCsrA_values, avDenseB_values, pDenseB->lead_dim, pDenseB->offValues, avBeta_value, pBeta->offValue, 
+                      avCsrA_values, avDenseB_values, pDenseB->lead_dim, 1, pDenseB->offValues, avBeta_value, pBeta->offValue, 
                       avDenseC_values, pDenseC->num_rows, pDenseC->num_cols, pDenseC->lead_dim, pDenseC->offValues, control);
 
     return hcsparseSuccess;
