@@ -24,7 +24,7 @@ execute_process(COMMAND ${HIP_PATH}/bin/hipconfig --platform OUTPUT_VARIABLE HIP
 MESSAGE (STATUS "HIP_PATH : ${HIP_PATH}")
 
 # Build hcsparse and hipsparse from source on AMD platform
-IF (${PLATFORM} MATCHES "hcc")
+IF (${HIP_PLATFORM} MATCHES "hcc")
 
   # Find HCC compiler
   FIND_PACKAGE(HC++ 1.0 REQUIRED)
@@ -89,7 +89,7 @@ IF (${PLATFORM} MATCHES "hcc")
     INSTALL(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/../include/" DESTINATION include) 
   ENDIF()
 
-ELSEIF (${PLATFORM} MATCHES "nvcc")
+ELSEIF (${HIP_PLATFORM} MATCHES "nvcc")
 
   MESSAGE(STATUS "Building hipsparse.cpp")
 
