@@ -13,25 +13,32 @@ indices_to_offsets (const int num_rows,
 {
     hc::accelerator acc = (control->accl_view).get_accelerator();
 
-    T *values = (T*) calloc (size, sizeof(T));
+    T *values = (T*) calloc (num_rows, sizeof(T));
 
-    for (int i = 0; i < size; i++)
-        values[i] = 1;
+    for (int i = 0; i < num_rows; i++)
+        values[i] = 0;
 
-    T *av_values = (T*) am_alloc(size * sizeof(T), acc, 0);
-    T *av_keys_output = (T*) am_alloc(size * sizeof(T), acc, 0);
+    T *av_values = (T*) am_alloc(num_rows * sizeof(T), acc, 0);
 
-    control->accl_view.copy(values, av_values, size * sizeof(T));
+    control->accl_view.copy(values, av_values, num_rows * sizeof(T));
 
-    reduce_by_key<T> (size, av_keys_output, av_csrOffsets, av_cooIndices, av_values, control);
+    hc::extent<1> grdExt(1);
+    hc::tiled_extent<1> t_ext = grdExt.tile(1);
 
-    exclusive_scan<T, EW_PLUS> (num_rows, av_csrOffsets, av_csrOffsets, control);
+    hc::parallel_for_each(control->accl_view, t_ext, [=] (hc::tiled_index<1> &tidx) [[hc]]
+    {
+        for(int i = 0; i < size; i++)
+        {
+            av_values[av_cooIndices[i]-1]++;
+        }
+    });
+
+    exclusive_scan<T, EW_PLUS> (num_rows, av_csrOffsets, av_values, control);
 
     control->accl_view.wait();
 
     free(values);
     am_free(av_values);
-    am_free(av_keys_output);
 
     return hcsparseSuccess;
 }
