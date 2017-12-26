@@ -18,10 +18,10 @@ vector_add (int size, T *A, T *B, const T *alpha,
      int global_id = tidx.global[0];
      if (global_id < size)
      {
-       C[global_id] += alpha[0] * A[global_id] + beta[0] * B[global_id];
+       C[global_id] = alpha[0] * A[global_id] + beta[0] * B[global_id];
      }
 
-   });
+   }).wait();
 
    return hcsparseSuccess;
 } 
