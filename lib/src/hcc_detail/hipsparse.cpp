@@ -228,9 +228,35 @@ hipsparseStatus_t hipsparseScsrmm(hipsparseHandle_t handle,
 
    hipsparseStatus_t status;
 
-   status = hipHCSPARSEStatusToHIPStatus(hcsparseScsrmm(handle,hipHIPOperationToHCSPARSEOperation(transA), m, n, k, nnz,
+   if(transA == HIPSPARSE_OPERATION_TRANSPOSE)
+   {
+	float* cscVal = NULL;
+	int *cscRowInd = NULL;
+	int *cscColPtr = NULL;
+	hipMalloc(&cscVal, nnz * sizeof(float));
+	hipMalloc(&cscRowInd, nnz * sizeof(int));
+	hipMalloc(&cscColPtr, (n+1) * sizeof(int));
+
+	status = hipsparseScsr2csc(handle, m, n, nnz, csrValA, csrRowPtrA, csrColIndA, cscVal, cscRowInd, cscColPtr, HIPSPARSE_ACTION_NUMERIC, HIPSPARSE_INDEX_BASE_ZERO);
+
+	if(status == HIPSPARSE_STATUS_SUCCESS)
+	{
+		transA = HIPSPARSE_OPERATION_NON_TRANSPOSE;
+		status = hipHCSPARSEStatusToHIPStatus(hcsparseScsrmm(handle,hipHIPOperationToHCSPARSEOperation(transA), m, n, k, nnz,
+                                                      alpha_d, descrA, cscVal, cscRowInd, cscColPtr,
+						      B, ldb, beta_d, C, ldc));
+
+		hipFree(&cscVal);
+		hipFree(&cscRowInd);
+		hipFree(&cscColPtr);
+	}
+   }
+   else
+   {
+   	status = hipHCSPARSEStatusToHIPStatus(hcsparseScsrmm(handle,hipHIPOperationToHCSPARSEOperation(transA), m, n, k, nnz,
                                                       alpha_d, descrA, csrValA, csrRowPtrA,
                                                       csrColIndA, B, ldb, beta_d, C, ldc));
+   }
 
    hipFree(&alpha_d);
    hipFree(&beta_d);
@@ -636,13 +662,56 @@ hipsparseScsr2csc(hipsparseHandle_t handle, int m, int n, int nnz,
                  hipsparseIndexBase_t idxBase)
 
 {
+  hipsparseStatus_t status = HIPSPARSE_STATUS_EXECUTION_FAILED;
 
-  return hipHCSPARSEStatusToHIPStatus(hcsparseScsr2csc(handle, m, n, nnz, csrVal,
-                                                       csrRowPtr, csrColInd, cscVal,
-                                                       cscRowInd, cscColPtr, 
-                                                       hipHIPActionToHCSPARSEAction(copyValues),
-                                                       hipHIPIndexBaseToHCSPARSEIndexBase(idxBase)));
+  if(copyValues == HIPSPARSE_ACTION_NUMERIC && idxBase == HIPSPARSE_INDEX_BASE_ZERO)
+  {
+	hipsparseMatDescr_t descrA;
+    	status = hipsparseCreateMatDescr(&descrA);
+    	if (status != HIPSPARSE_STATUS_SUCCESS) {
+      		std::cout << "error creating mat descrptr"<<std::endl;
+      		exit(1);
+    	}
 
+	float *denseValdevice = NULL;
+	hipMalloc(&denseValdevice, m * n * sizeof(float));
+	hipsparseStatus_t status;
+
+        status = hipsparseScsr2dense(handle, m, n, descrA, csrVal, csrRowPtr, csrColInd, denseValdevice, m);
+	if(status != HIPSPARSE_STATUS_SUCCESS )
+  	{
+        	std::cout<< " csr 2 dense conversion";
+        	return status;
+  	}
+
+	int *nnz_per_column = NULL;
+  	int *nnz_ptr = NULL;
+
+  	hipMalloc(&nnz_per_column, n * sizeof(int));
+  	hipMalloc(&nnz_ptr, 1 * sizeof(int));
+
+  	status = hipsparseSnnz(handle, HIPSPARSE_DIRECTION_COLUMN, m, n, descrA, denseValdevice, m, nnz_per_column, nnz_ptr);
+  	if(status != HIPSPARSE_STATUS_SUCCESS )
+  	{
+        	std::cout<< " nnz calculation error";
+        	return status;
+  	}
+
+	status = hipsparseSdense2csc(handle, m, n, descrA, denseValdevice, m, nnz_per_column,
+                                cscVal, cscRowInd, cscColPtr);
+
+  	if(status != HIPSPARSE_STATUS_SUCCESS )
+  	{
+        	std::cout<< " dense 2 csc conversion error";
+		std::cout<< status;
+        	return status;
+  	}
+
+	hipFree(&denseValdevice);
+	hipFree(&nnz_per_column);
+	hipFree(&nnz_ptr);
+ }
+ 	return status;
 }
 
 hipsparseStatus_t 
