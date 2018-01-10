@@ -143,7 +143,7 @@ transform_csr_2_dense (ulong size,
             const int row_start = row_offsets[row];
             const int row_end   = row_offsets[row+1];
             for(int j = row_start + thread_lane; j < row_end; j += subwave_size)
-                A[row * num_cols + col_indices[j]] = values[j];
+                A[row + num_rows * col_indices[j]] = values[j];
         }
     });
 

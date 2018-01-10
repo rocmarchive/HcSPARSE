@@ -17,9 +17,9 @@ dense2csr (hcsparseControl* control, int m, int n,
       {
           for (int j = 0; j < n; j++)
           {
-              if (A[i*n + j] != 0)
+              if (A[j*m + i] != 0)
               {
-                  csrValA[count] = A[i*n+j];
+                  csrValA[count] = A[j*m+i];
                   csrColIndA[count] = j;
                   row_off++;
                   count++;

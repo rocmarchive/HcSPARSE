@@ -17,7 +17,7 @@ void transpose_kernel (hcsparseControl* control,
        unsigned int index_in = gidy * cols + gidx;
        unsigned int index_out = gidx * rows + gidy;
 
-       transA[index_out] = A[index_in];
+       transA[index_in] = A[index_out];
      } 
      
    });  

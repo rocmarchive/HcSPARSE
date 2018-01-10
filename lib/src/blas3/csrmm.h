@@ -48,11 +48,11 @@ csrmv_kernel( const int num_rows,
             for( int j = row_start + thread_lane; j < row_end; j += subwave_size )
             {
                 if( _alpha == 1 )
-                    sum = val[ j ] * x[ off_x + ( col[ j ] * ldx ) + curr_col * ldx_t ] + sum;
+                    sum = val[ j ] * x[ off_x + ( col[ j ] * ldx )  + curr_col * ldx_t ] + sum;
                 else if( _alpha == 0 )
                     sum = 0;
                 else
-                    sum = _alpha * val[ j ] * x[ off_x + ( col[ j ] * ldx ) + curr_col * ldx_t ] + sum;
+                    sum = _alpha * val[ j ] * x[ off_x + ( col[ j ] * ldx )+ curr_col * ldx_t ] + sum;
             }
 
             sdata[ local_id ] = sum;
@@ -73,11 +73,11 @@ csrmv_kernel( const int num_rows,
             if( thread_lane == 0 )
             {
                 if( _beta == 1 )
-                    y[ off_y + ( row * ldy ) + curr_col ] = sum + y[ off_y + ( row * ldy ) + curr_col ];
+                    y[ off_y +  row  + curr_col * ldy ] = sum + y[ off_y +  row + curr_col * ldy ];
                 else if( _beta == 0 )
-                    y[ off_y + ( row * ldy ) + curr_col ] = sum;
+                    y[ off_y +  row + curr_col * ldy ] = sum;
                 else
-                    y[ off_y + ( row * ldy ) + curr_col ] = sum + _beta * y[ off_y + ( row * ldy ) + curr_col ];
+                    y[ off_y +  row + curr_col * ldy ] = sum + _beta * y[ off_y +  row + curr_col * ldy ];
             }
         }
     });
