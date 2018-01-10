@@ -219,10 +219,23 @@ hipsparseStatus_t hipsparseScsrmm(hipsparseHandle_t handle,
                                                 const float *B,             int ldb,
                                                 const float *beta, float *C, int ldc) {
 
+   float *alpha_d = NULL;
+   float *beta_d = NULL;
+   hipMalloc(&alpha_d, 1 * sizeof(float));
+   hipMalloc(&beta_d, 1 * sizeof(float));
+   hipMemcpy(alpha_d, alpha, 1 * sizeof(float), hipMemcpyHostToDevice);
+   hipMemcpy(beta_d, beta, 1 * sizeof(float), hipMemcpyHostToDevice);
 
-   return hipHCSPARSEStatusToHIPStatus(hcsparseScsrmm(handle,hipHIPOperationToHCSPARSEOperation(transA), m, n, k, nnz,
-                                                      alpha, descrA, csrValA, csrRowPtrA,
-                                                      csrColIndA, B, ldb, beta, C, ldc));
+   hipsparseStatus_t status;
+
+   status = hipHCSPARSEStatusToHIPStatus(hcsparseScsrmm(handle,hipHIPOperationToHCSPARSEOperation(transA), m, n, k, nnz,
+                                                      alpha_d, descrA, csrValA, csrRowPtrA,
+                                                      csrColIndA, B, ldb, beta_d, C, ldc));
+
+   hipFree(&alpha_d);
+   hipFree(&beta_d);
+
+   return status;
 }
 
 hipsparseStatus_t hipsparseDcsrmm(hipsparseHandle_t handle, 
@@ -431,12 +444,24 @@ hipsparseStatus_t hipsparseScsrgeam(hipsparseHandle_t handle,
                                     int *csrRowPtrC, 
                                     int *csrColIndC) {
 
-   return hipHCSPARSEStatusToHIPStatus(hcsparseScsrgeam(handle, m, n, alpha, descrA,
+   float *alpha_d = NULL;
+   float *beta_d = NULL;
+   hipMalloc(&alpha_d, 1 * sizeof(float));
+   hipMalloc(&beta_d, 1 * sizeof(float));
+   hipMemcpy(alpha_d, alpha, 1 * sizeof(float), hipMemcpyHostToDevice);
+   hipMemcpy(beta_d, beta, 1 * sizeof(float), hipMemcpyHostToDevice);
+   
+   hipsparseStatus_t status;
+   status = hipHCSPARSEStatusToHIPStatus(hcsparseScsrgeam(handle, m, n, alpha_d, descrA,
                                                         nnzA, csrValA, csrRowPtrA,
-                                                        csrColIndA, beta, descrB, nnzB,
+                                                        csrColIndA, beta_d, descrB, nnzB,
                                                         csrValB, csrRowPtrB, csrColIndB,
                                                         descrC, csrValC, csrRowPtrC,
                                                         csrColIndC));
+   hipFree(&alpha_d);
+   hipFree(&beta_d);
+
+   return status;
 
 }
 
