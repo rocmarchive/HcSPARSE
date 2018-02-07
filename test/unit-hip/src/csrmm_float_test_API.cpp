@@ -20,11 +20,9 @@ TEST(csrmm_float_test, func_check)
       exit(1);
     }
 
-
      /* Test New APIs */
     hipsparseHandle_t handle;
     hipsparseStatus_t status1;
-
     status1 = hipsparseCreate(&handle);
     if (status1 != HIPSPARSE_STATUS_SUCCESS) {
       std::cout << "Error Initializing the sparse library."<<std::endl;
@@ -95,8 +93,8 @@ TEST(csrmm_float_test, func_check)
 
     status1 = hipsparseScsrmm(handle, transA, num_row_A, num_col_Y,
                             num_col_A, num_nonzero, static_cast<const float*>(gAlpha), descrA,
-                            valA, rowPtrA, colIndA, gX, num_col_X, 
-                            static_cast<const float*>(gBeta), gY, num_col_Y);
+                            valA, rowPtrA, colIndA, gX, num_col_A,
+                            static_cast<const float*>(gBeta), gY, num_row_A);
     hipDeviceSynchronize();
 
     for (int col = 0; col < num_col_X; col++)
@@ -107,9 +105,9 @@ TEST(csrmm_float_test, func_check)
             float sum = 0.0;
             for (; indx < rowOffsets[row+1]; indx++)
             {
-                sum += host_alpha[0] * host_X[colIndices[indx] * num_col_X + col] * values[indx];
+                sum += host_alpha[0] * host_X[colIndices[indx] + col * num_row_X] * values[indx];
             }
-            host_res[row * num_col_Y + col] = sum + host_beta[0] * host_res[row * num_col_Y + col];
+            host_res[row + col * num_row_A] = sum + host_beta[0] * host_res[row + col * num_row_A];
         }
     }
 

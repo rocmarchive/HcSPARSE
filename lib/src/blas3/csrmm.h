@@ -48,11 +48,11 @@ csrmv_kernel( const int num_rows,
             for( int j = row_start + thread_lane; j < row_end; j += subwave_size )
             {
                 if( _alpha == 1 )
-                    sum = val[ j ] * x[ off_x + ( col[ j ] * ldx )  + curr_col * ldx_t ] + sum;
+                    sum = val[ j ] * x[ off_x + ( col[ j ] * ldx_t )  + curr_col * ldx ] + sum;
                 else if( _alpha == 0 )
                     sum = 0;
                 else
-                    sum = _alpha * val[ j ] * x[ off_x + ( col[ j ] * ldx )+ curr_col * ldx_t ] + sum;
+                    sum = _alpha * val[ j ] * x[ off_x + ( col[ j ] * ldx_t )+ curr_col * ldx ] + sum;
             }
 
             sdata[ local_id ] = sum;
