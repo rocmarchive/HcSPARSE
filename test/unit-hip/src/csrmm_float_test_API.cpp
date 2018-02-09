@@ -118,7 +118,6 @@ TEST(csrmm_float_test, func_check)
     for (int i = 0; i < num_row_Y * num_col_Y; i++)
     {
         float diff = std::abs(host_res[i] - host_Y[i]);
-//        std::cout << i << ": " << "h = " << host_res[i] << " d: " << host_Y[i] << std::endl;
         EXPECT_LT(diff, 0.01);
     }
 

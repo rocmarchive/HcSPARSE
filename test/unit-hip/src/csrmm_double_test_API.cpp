@@ -7,7 +7,6 @@
 
 TEST(csrmm_double_test, func_check)
 {
-
     const char* filename = "./../../../../../test/gtest/src/input.mtx";
     int num_nonzero, num_row_A, num_col_A;
     double *values = NULL;
@@ -91,12 +90,11 @@ TEST(csrmm_double_test, func_check)
     hipMemcpy(colIndA, colIndices, sizeof(int) * num_nonzero, hipMemcpyHostToDevice);
 
     hipsparseOperation_t transA = HIPSPARSE_OPERATION_NON_TRANSPOSE;
-    int nnz = 0;
 
     status1 = hipsparseDcsrmm(handle, transA, num_row_A, num_col_Y,
-                            num_col_A, nnz, static_cast<const double*>(gAlpha), descrA,
-                            valA, rowPtrA, colIndA, gX, num_col_X, 
-                            static_cast<const double*>(gBeta), gY, num_col_Y);
+                            num_col_A, num_nonzero, static_cast<const double*>(gAlpha), descrA,
+                            valA, rowPtrA, colIndA, gX, num_col_A,
+                            static_cast<const double*>(gBeta), gY, num_row_A);
     hipDeviceSynchronize();
 
     for (int col = 0; col < num_col_X; col++)
@@ -107,9 +105,9 @@ TEST(csrmm_double_test, func_check)
             double sum = 0.0;
             for (; indx < rowOffsets[row+1]; indx++)
             {
-                sum += host_alpha[0] * host_X[colIndices[indx] * num_col_X + col] * values[indx];
+                sum += host_alpha[0] * host_X[colIndices[indx] + col * num_row_X] * values[indx];
             }
-            host_res[row * num_col_Y + col] = sum + host_beta[0] * host_res[row * num_col_Y + col];
+            host_res[row + col * num_row_A] = sum + host_beta[0] * host_res[row + col * num_row_A];
         }
     }
 
@@ -120,7 +118,7 @@ TEST(csrmm_double_test, func_check)
     for (int i = 0; i < num_row_Y * num_col_Y; i++)
     {
         double diff = std::abs(host_res[i] - host_Y[i]);
-//        EXPECT_LT(diff, 0.01);
+        EXPECT_LT(diff, 0.01);
     }
 
     status1 = hipsparseDestroyMatDescr(descrA);
