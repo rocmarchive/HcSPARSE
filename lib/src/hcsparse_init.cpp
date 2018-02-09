@@ -1509,7 +1509,10 @@ hcsparseXcoo2csr(hcsparseHandle_t handle, const int *cooRowInd,
   hcsparseControl control(handle->currentAcclView);
   hcsparseStatus stat = hcsparseSuccess;
 
-  stat = indices_to_offsets<int> (m, nnz, csrRowPtr, cooRowInd, &control);
+  if (idxBase == HCSPARSE_INDEX_BASE_ONE)
+    stat = indices_to_offsets_oneBase<int> (m, nnz, csrRowPtr, cooRowInd, &control);
+  else
+    stat = indices_to_offsets<int> (m, nnz, csrRowPtr, cooRowInd, &control);
 
   if (idxBase == HCSPARSE_INDEX_BASE_ONE)
   {

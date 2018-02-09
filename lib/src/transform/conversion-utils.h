@@ -13,6 +13,46 @@ indices_to_offsets (const int num_rows,
 {
     hc::accelerator acc = (control->accl_view).get_accelerator();
 
+    T *values = (T*) calloc (num_rows+1, sizeof(T));
+
+    for (int i = 0; i < num_rows+1; i++)
+        values[i] = 0;
+
+    T *av_values = (T*) am_alloc((num_rows+1) * sizeof(T), acc, 0);
+
+    control->accl_view.copy(values, av_values, (num_rows+1) * sizeof(T));
+
+    hc::extent<1> grdExt(1);
+    hc::tiled_extent<1> t_ext = grdExt.tile(1);
+
+    hc::parallel_for_each(control->accl_view, t_ext, [=] (hc::tiled_index<1> &tidx) [[hc]]
+    {
+        for(int i = 0; i < size; i++)
+        {
+            av_values[av_cooIndices[i]]++;
+        }
+    });
+
+    exclusive_scan<T, EW_PLUS> (num_rows+1, av_csrOffsets, av_values, control);
+
+    control->accl_view.wait();
+
+    free(values);
+    am_free(av_values);
+
+    return hcsparseSuccess;
+}
+
+template <typename T>
+hcsparseStatus
+indices_to_offsets_oneBase (const int num_rows,
+                            const int size,
+                            T *av_csrOffsets,
+                            const T *av_cooIndices,
+                            hcsparseControl* control)
+{
+    hc::accelerator acc = (control->accl_view).get_accelerator();
+
     T *values = (T*) calloc (num_rows, sizeof(T));
 
     for (int i = 0; i < num_rows; i++)
