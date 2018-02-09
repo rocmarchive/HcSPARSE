@@ -1,40 +1,47 @@
 #include <hcsparse.h>
 #include <iostream>
 #include <hc_am.hpp>
+#include "mmio_wrapper.h"
 #include "gtest/gtest.h"
 
 TEST(csrmm_double_test, func_check)
 {
-    hcsparseCsrMatrix gCsrMat;
-    hcdenseMatrix gX;
-    hcdenseMatrix gY;
-    hcsparseScalar gAlpha;
-    hcsparseScalar gBeta;
-
     std::vector<accelerator>acc = accelerator::get_all();
-    accelerator_view accl_view = (acc[1].create_view()); 
+    accelerator_view accl_view = (acc[1].create_view());
 
     hcsparseControl control(accl_view);
 
     const char* filename = "./../../../../test/gtest/src/input.mtx";
-
     int num_nonzero, num_row_A, num_col_A;
+    double *values = NULL;
+    int *rowOffsets = NULL;
+    int *colIndices = NULL;
 
-    hcsparseStatus status;
-    hcsparseSetup();
-    hcsparseInitCsrMatrix(&gCsrMat);
-    hcsparseInitScalar(&gAlpha);
-    hcsparseInitScalar(&gBeta);
-    hcdenseInitMatrix(&gX);
-    hcdenseInitMatrix(&gY);
+     if ((hcsparseCsrMatrixfromFile<double>(filename, false, &values, &rowOffsets, &colIndices,
+                                            &num_row_A, &num_col_A, &num_nonzero))) {
+      std::cout << "Error reading the matrix file" << std::endl;
+      exit(1);
+    }
 
-    status = hcsparseHeaderfromFile(&num_nonzero, &num_row_A, &num_col_A, filename);
+     /* Test New APIs */
+    hcsparseHandle_t handle;
+    hcsparseStatus_t status1;
+    hc::accelerator accl;
+    hc::accelerator_view av = accl.get_default_view();
 
-    if (status != hcsparseSuccess)
-    {
-        std::cout<<"The input file should be in mtx format"<<std::endl;
-        exit(1);
-    } 
+    status1 = hcsparseCreate(&handle, &av);
+    if (status1 != HCSPARSE_STATUS_SUCCESS) {
+      std::cout << "Error Initializing the sparse library."<<std::endl;
+      exit(1);
+    }
+
+    hcsparseMatDescr_t descrA;
+
+    status1 = hcsparseCreateMatDescr(&descrA);
+    if (status1 != HCSPARSE_STATUS_SUCCESS) {
+      std::cout << "error creating mat descrptr"<<std::endl;
+      exit(1);
+    }
 
     int num_row_X, num_col_X, num_row_Y, num_col_Y;
 
@@ -53,7 +60,7 @@ TEST(csrmm_double_test, func_check)
     for (int i = 0; i < num_col_X * num_row_X; i++)
     {
        host_X[i] = rand()%100;
-    } 
+    }
 
     for (int i = 0; i < num_row_Y * num_col_Y; i++)
     {
@@ -63,72 +70,56 @@ TEST(csrmm_double_test, func_check)
     host_alpha[0] = rand()%100;
     host_beta[0] = rand()%100;
 
-    gX.values = am_alloc(sizeof(double) * num_col_X * num_row_X, acc[1], 0);
-    gY.values = am_alloc(sizeof(double) * num_row_Y * num_col_Y, acc[1], 0);
-    gAlpha.value = am_alloc(sizeof(double) * 1, acc[1], 0);
-    gBeta.value = am_alloc(sizeof(double) * 1, acc[1], 0);
+    double *gX;
+    double *gY;
+    double *gAlpha;
+    double *gBeta;
+    double *valA = NULL;
+    double *rowPtrA = NULL;
+    double *colIndA = NULL;
 
-    control.accl_view.copy(host_X, gX.values, sizeof(double) * num_col_X * num_row_X);
-    control.accl_view.copy(host_Y, gY.values, sizeof(double) * num_row_Y * num_col_Y);
-    control.accl_view.copy(host_alpha, gAlpha.value, sizeof(double) * 1);
-    control.accl_view.copy(host_beta, gBeta.value, sizeof(double) * 1);
+    gX = am_alloc(sizeof(double) * num_col_X * num_row_X, acc[1], 0);
+    gY = am_alloc(sizeof(double) * num_row_Y * num_col_Y, acc[1], 0);
+    gAlpha = am_alloc(sizeof(double) * 1, acc[1], 0);
+    gBeta = am_alloc(sizeof(double) * 1, acc[1], 0);
+    valA = am_alloc(num_nonzero * sizeof(double), acc[1], 0);
+    rowPtrA = am_alloc((num_row_A+1) * sizeof(int), acc[1], 0);
+    colIndA = am_alloc(num_nonzero * sizeof(int), acc[1], 0);
 
-    gAlpha.offValue = 0;
-    gBeta.offValue = 0;
-    gX.offValues = 0;
-    gY.offValues = 0;
+    control.accl_view.copy(host_X, gX, sizeof(double) * num_col_X * num_row_X);
+    control.accl_view.copy(host_Y, gY, sizeof(double) * num_row_Y * num_col_Y);
+    control.accl_view.copy(host_alpha, gAlpha, sizeof(double) * 1);
+    control.accl_view.copy(host_beta, gBeta, sizeof(double) * 1);
+    control.accl_view.copy(values, valA, sizeof(double) * num_nonzero);
+    control.accl_view.copy(rowOffsets, rowPtrA, sizeof(int) * (num_row_A+1));
+    control.accl_view.copy(colIndices, colIndA, sizeof(int) * num_nonzero);
 
-    gX.num_rows = num_row_X;
-    gX.num_cols = num_col_X;
-    gX.lead_dim = num_col_X;
-    gY.num_rows = num_row_Y;
-    gY.num_cols = num_col_Y;
-    gY.lead_dim = num_col_Y;
+    hcsparseOperation_t transA = HCSPARSE_OPERATION_NON_TRANSPOSE;
 
-    gX.major = rowMajor;
-    gY.major = rowMajor;
-
-    gCsrMat.offValues = 0;
-    gCsrMat.offColInd = 0;
-    gCsrMat.offRowOff = 0;
-
-    double *values = (double*)calloc(num_nonzero, sizeof(double));
-    int *rowOffsets = (int*)calloc(num_row_A+1, sizeof(int));
-    int *colIndices = (int*)calloc(num_nonzero, sizeof(int));
-
-    gCsrMat.values = am_alloc(sizeof(double) * num_nonzero, acc[1], 0);
-    gCsrMat.rowOffsets = am_alloc(sizeof(int) * (num_row_A+1), acc[1], 0);
-    gCsrMat.colIndices = am_alloc(sizeof(int) * num_nonzero, acc[1], 0);
-    status = hcsparseDCsrMatrixfromFile(&gCsrMat, filename, &control, false);
-   
-    control.accl_view.copy(gCsrMat.values, values, sizeof(double) * num_nonzero);
-    control.accl_view.copy(gCsrMat.rowOffsets, rowOffsets, sizeof(int) * (num_row_A+1));
-    control.accl_view.copy(gCsrMat.colIndices, colIndices, sizeof(int) * num_nonzero);
-   
-    if (status != hcsparseSuccess)
-    {
-        std::cout<<"The input file should be in mtx format"<<std::endl;
-        exit(1);
-    }
- 
-    hcsparseDcsrmm(&gAlpha, &gCsrMat, &gX, &gBeta, &gY, &control); 
+    status1 = hcsparseDcsrmm(handle, transA, num_row_A, num_col_Y,
+                            num_col_A, num_nonzero, static_cast<const double*>(gAlpha), descrA,
+                            static_cast<const double*>(valA),
+                            (int *) rowPtrA,
+                            (int *)colIndA, (double*)gX, num_col_A,
+                            static_cast<const double*>(gBeta), (double *)gY, num_row_A);
 
     for (int col = 0; col < num_col_X; col++)
     {
         int indx = 0;
         for (int row = 0; row < num_row_A; row++)
         {
-            host_res[row * num_col_Y + col] *= host_beta[0];
+            double sum = 0.0;
             for (; indx < rowOffsets[row+1]; indx++)
             {
-                host_res[row * num_col_Y + col] = host_alpha[0] * host_X[colIndices[indx] * num_col_X + col] * values[indx] + host_res[row * num_col_Y + col];
+                sum += host_alpha[0] * host_X[colIndices[indx] + num_row_X * col] * values[indx];
             }
+            host_res[row + num_row_A * col] = sum + host_beta[0] * host_res[row + num_row_A * col];
         }
     }
 
-    control.accl_view.copy(gY.values, host_Y, sizeof(double) * num_row_Y * num_col_Y);
+    control.accl_view.copy(gY, host_Y, sizeof(double) * num_row_Y * num_col_Y);
 
-    bool isPassed = 1;  
+    bool isPassed = 1;
 
     for (int i = 0; i < num_row_Y * num_col_Y; i++)
     {
@@ -136,7 +127,21 @@ TEST(csrmm_double_test, func_check)
         EXPECT_LT(diff, 0.01);
     }
 
-    hcsparseTeardown();
+    std::cout << (isPassed?"TEST PASSED":"TEST FAILED") << std::endl;
+
+    status1 = hcsparseDestroyMatDescr(descrA);
+    if (status1 != HCSPARSE_STATUS_SUCCESS) {
+      std::cout << "error destroy mat descrptr"<<std::endl;
+      exit(1);
+    }
+
+    status1 = hcsparseDestroy(&handle);
+    if (status1 != HCSPARSE_STATUS_SUCCESS) {
+      std::cout << "Error DeInitializing the sparse library."<<std::endl;
+      exit(1);
+    }
+
+    /* End - Test of New APIs */
 
     free(host_res);
     free(host_X);
@@ -146,11 +151,11 @@ TEST(csrmm_double_test, func_check)
     free(values);
     free(rowOffsets);
     free(colIndices);
-    am_free(gX.values);
-    am_free(gY.values);
-    am_free(gAlpha.value);
-    am_free(gBeta.value);
-    am_free(gCsrMat.values);
-    am_free(gCsrMat.rowOffsets);
-    am_free(gCsrMat.colIndices);
+    am_free(gX);
+    am_free(gY);
+    am_free(gAlpha);
+    am_free(gBeta);
+    am_free(valA);
+    am_free(rowPtrA);
+    am_free(colIndA);
 }
