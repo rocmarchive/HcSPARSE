@@ -22,14 +22,18 @@ indices_to_offsets (const int num_rows,
 
     control->accl_view.copy(values, av_values, (num_rows+1) * sizeof(T));
 
-    hc::extent<1> grdExt(1);
-    hc::tiled_extent<1> t_ext = grdExt.tile(1);
+    int global_work_size = ((size + GROUP_SIZE - 1)/GROUP_SIZE) * GROUP_SIZE;
+
+    hc::extent<1> grdExt(global_work_size);
+    hc::tiled_extent<1> t_ext = grdExt.tile(GROUP_SIZE);
 
     hc::parallel_for_each(control->accl_view, t_ext, [=] (hc::tiled_index<1> &tidx) [[hc]]
     {
-        for(int i = 0; i < size; i++)
+        int global_id = tidx.global[0];
+        if (global_id < size)
         {
-            av_values[av_cooIndices[i]]++;
+            int *a = &av_values[av_cooIndices[global_id]];
+            hc::atomic_fetch_inc(a);
         }
     });
 
@@ -62,14 +66,18 @@ indices_to_offsets_oneBase (const int num_rows,
 
     control->accl_view.copy(values, av_values, num_rows * sizeof(T));
 
-    hc::extent<1> grdExt(1);
-    hc::tiled_extent<1> t_ext = grdExt.tile(1);
+    int global_work_size = ((size + GROUP_SIZE - 1)/GROUP_SIZE) * GROUP_SIZE;
+
+    hc::extent<1> grdExt(global_work_size);
+    hc::tiled_extent<1> t_ext = grdExt.tile(GROUP_SIZE);
 
     hc::parallel_for_each(control->accl_view, t_ext, [=] (hc::tiled_index<1> &tidx) [[hc]]
     {
-        for(int i = 0; i < size; i++)
+        int global_id = tidx.global[0];
+        if (global_id < size)
         {
-            av_values[av_cooIndices[i]-1]++;
+            int *a = &av_values[av_cooIndices[global_id]-1];
+            hc::atomic_fetch_inc(a);
         }
     });
 
