@@ -347,7 +347,7 @@ transform_csc_2_dense (ulong size,
             const int col_start = col_offsets[col];
             const int col_end   = col_offsets[col+1];
             for(int j = col_start + thread_lane; j < col_end; j += subwave_size)
-                A[row_indices[j] * num_cols + col] = values[j];
+                A[row_indices[j] + num_rows * col] = values[j];
         }
     });
 
