@@ -677,7 +677,7 @@ hipsparseScsr2csc(hipsparseHandle_t handle, int m, int n, int nnz,
 	hipMalloc(&denseValdevice, m * n * sizeof(float));
 	hipsparseStatus_t status;
 
-        status = hipsparseScsr2dense(handle, m, n, descrA, csrVal, csrRowPtr, csrColInd, denseValdevice, m);
+        status = hipsparseScsr2dense(handle, m, n, descrA, csrVal, csrRowPtr, csrColInd, denseValdevice, n);
 	if(status != HIPSPARSE_STATUS_SUCCESS )
   	{
         	std::cout<< " csr 2 dense conversion";
@@ -690,14 +690,14 @@ hipsparseScsr2csc(hipsparseHandle_t handle, int m, int n, int nnz,
   	hipMalloc(&nnz_per_column, n * sizeof(int));
   	hipMalloc(&nnz_ptr, 1 * sizeof(int));
 
-  	status = hipsparseSnnz(handle, HIPSPARSE_DIRECTION_COLUMN, m, n, descrA, denseValdevice, m, nnz_per_column, nnz_ptr);
+        status = hipsparseSnnz(handle, HIPSPARSE_DIRECTION_COLUMN, m, n, descrA, denseValdevice, n, nnz_per_column, nnz_ptr);
   	if(status != HIPSPARSE_STATUS_SUCCESS )
   	{
         	std::cout<< " nnz calculation error";
         	return status;
   	}
 
-	status = hipsparseSdense2csc(handle, m, n, descrA, denseValdevice, m, nnz_per_column,
+        status = hipsparseSdense2csc(handle, m, n, descrA, denseValdevice, n, nnz_per_column,
                                 cscVal, cscRowInd, cscColPtr);
 
   	if(status != HIPSPARSE_STATUS_SUCCESS )
