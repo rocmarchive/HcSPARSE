@@ -27,7 +27,7 @@ dense2csr (hcsparseControl* control, int m, int n,
           }
           csrRowPtrA[i+1] = row_off;
       }
-  });
+  }).wait();
 
   return hcsparseSuccess;
 
