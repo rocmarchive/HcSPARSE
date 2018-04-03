@@ -21,7 +21,7 @@ void transpose_kernel (hcsparseControl* control,
 
        transA[index_in] = A[index_out];
      }
-   });
+   }).wait();
 }
 
 template <typename T>
