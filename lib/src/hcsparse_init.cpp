@@ -873,7 +873,7 @@ hcsparseXcsrgemmNnz(hcsparseHandle_t handle,
           }
           rowPtr_d[rowA_id+1] = nnz;
       }
-  });
+  }).wait();
 
   inclusive_scan<int, EW_PLUS>(m+1, csrRowPtrC, rowPtr_d, &control);
 
@@ -1526,7 +1526,7 @@ hcsparseXcoo2csr(hcsparseHandle_t handle, const int *cooRowInd,
         {
             csrRowPtr[id]++;
         }
-    });
+    }).wait();
   }
 
   if (stat != hcsparseSuccess)

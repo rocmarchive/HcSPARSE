@@ -87,7 +87,7 @@ scan (int size,
             preSumArray[ groId ] = lds[wgSize -1];
             preSumArray1[ groId ] = lds[wgSize/2 -1];
         }
-    });
+    }).wait();
 
     T workPerThread = sizeScanBuff / BLOCK_SIZE;
 
@@ -168,7 +168,7 @@ scan (int size,
                 workSum = postSumArray[ mapId + offset ];
             }
         } // for
-    });
+    }).wait();
 
     hc::extent<1> grdExt(numElementsRUP);
     hc::tiled_extent<1> t_ext = grdExt.tile(BLOCK_SIZE);
@@ -248,7 +248,7 @@ scan (int size,
         //  Abort threads that are passed the end of the input vector
         if (gloId >= size) return;
         output[ gloId ] = sum;
-    });
+    }).wait();
     control->accl_view.wait();
 
     am_free(preSumArray);

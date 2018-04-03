@@ -43,7 +43,7 @@ void inner_product (const long size,
             }
             partial[tidx.tile[0]] = sum;
         }
-    });
+    }).wait();
 
     hc::extent<1> grdExt1(1);
     hc::tiled_extent<1> t_ext1 = grdExt1.tile(1);
@@ -57,7 +57,7 @@ void inner_product (const long size,
             sum += partial[i];
         }
         pR[pROffset] = sum;
-    });
+    }).wait();
 }
 
 template <typename T>

@@ -28,7 +28,7 @@ void axpby_kernel (const long size,
             T beta = pBeta[pBetaOffset];
             pR[i + pROffset] = operation<T, OP>(pX[i + pXOffset] * alpha, pY[i + pYOffset] * beta);
         }
-    });
+    }).wait();
 }
 
 template <typename T, ElementWiseOperator OP = EW_PLUS>

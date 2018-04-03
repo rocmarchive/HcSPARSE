@@ -42,7 +42,7 @@ void extract_diagonal_kernel ( const long num_rows,
                 }
             }
         }
-    });
+    }).wait();
 }
 
 template<typename T, bool inverse = false>

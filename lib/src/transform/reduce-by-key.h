@@ -39,7 +39,7 @@ reduce_by_key (int size,
         {
              offsetArray[ gloId ] = 0;
         }
-    });
+    }).wait();
 
     inclusive_scan<T, EW_PLUS>(size, offsetArray, offsetArray, control);
 
@@ -99,7 +99,7 @@ reduce_by_key (int size,
             keySumArray[ groId ] = ldsKeys[ wgSize-1 ];
             preSumArray[ groId ] = ldsVals[ wgSize-1 ];
         }
-    });
+    }).wait();
 
     int workPerThread = (numWrkGrp - 1) / BLOCK_SIZE + 1;
 
@@ -191,7 +191,7 @@ reduce_by_key (int size,
                 postSumArray[ mapId+offset ] = y;
             }
         }
-    });
+    }).wait();
 
     hc::parallel_for_each(control->accl_view, t_ext_numElm, [=] (hc::tiled_index<1> &tidx) [[hc]]
     {
@@ -216,7 +216,7 @@ reduce_by_key (int size,
             offsetValArray[ gloId ] = newResult;
         }
 
-    });
+    }).wait();
 
     hc::parallel_for_each(control->accl_view, t_ext_numElm, [=] (hc::tiled_index<1> &tidx) [[hc]]
     {
@@ -235,7 +235,7 @@ reduce_by_key (int size,
             values_output[ numSections - 1 ] = offsetValArray [ gloId ];
             offsetArray [ gloId ] = numSections;
         }
-    });
+    }).wait();
 
     control->accl_view.wait();
     am_free(offsetArray);

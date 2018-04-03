@@ -777,7 +777,7 @@ csrmv_adaptive_kernel (const T *vals,
 #endif
             }
         }
-    });
+    }).wait();
 }
 
 template <typename T>

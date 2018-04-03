@@ -22,7 +22,7 @@ void scale_kernel (const long size,
             long alpha = pAlpha[pAlphaOffset];
             pR[i + pROffset] = pY[i + pYOffset]* alpha;
         }
-    });
+    }).wait();
 }
 
 template <typename T>
