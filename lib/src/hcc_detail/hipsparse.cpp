@@ -218,7 +218,6 @@ hipsparseStatus_t hipsparseScsrmm(hipsparseHandle_t handle,
                                                 const int             *csrColIndA,
                                                 const float *B,             int ldb,
                                                 const float *beta, float *C, int ldc) {
-
    float *alpha_d = NULL;
    float *beta_d = NULL;
    hipMalloc(&alpha_d, 1 * sizeof(float));
@@ -235,21 +234,21 @@ hipsparseStatus_t hipsparseScsrmm(hipsparseHandle_t handle,
 	int *cscColPtr = NULL;
 	hipMalloc(&cscVal, nnz * sizeof(float));
 	hipMalloc(&cscRowInd, nnz * sizeof(int));
-	hipMalloc(&cscColPtr, (n+1) * sizeof(int));
+	hipMalloc(&cscColPtr, (k+1) * sizeof(int));
 
-	status = hipsparseScsr2csc(handle, m, n, nnz, csrValA, csrRowPtrA, csrColIndA, cscVal, cscRowInd, cscColPtr, HIPSPARSE_ACTION_NUMERIC, HIPSPARSE_INDEX_BASE_ZERO);
+	status = hipsparseScsr2csc(handle, m, k, nnz, csrValA, csrRowPtrA, csrColIndA, cscVal, cscRowInd, cscColPtr, HIPSPARSE_ACTION_NUMERIC, HIPSPARSE_INDEX_BASE_ZERO);
 
 	if(status == HIPSPARSE_STATUS_SUCCESS)
 	{
 		transA = HIPSPARSE_OPERATION_NON_TRANSPOSE;
-		status = hipHCSPARSEStatusToHIPStatus(hcsparseScsrmm(handle,hipHIPOperationToHCSPARSEOperation(transA), m, n, k, nnz,
-                                                      alpha_d, descrA, cscVal, cscRowInd, cscColPtr,
+		status = hipHCSPARSEStatusToHIPStatus(hcsparseScsrmm(handle,hipHIPOperationToHCSPARSEOperation(transA), k, n, m, nnz,
+                                                      alpha_d, descrA, cscVal, cscColPtr, cscRowInd,
 						      B, ldb, beta_d, C, ldc));
-
-		hipFree(&cscVal);
-		hipFree(&cscRowInd);
-		hipFree(&cscColPtr);
 	}
+
+        hipFree(&cscVal);
+        hipFree(&cscRowInd);
+        hipFree(&cscColPtr);
    }
    else
    {
@@ -702,7 +701,7 @@ hipsparseScsr2csc(hipsparseHandle_t handle, int m, int n, int nnz,
 
   	if(status != HIPSPARSE_STATUS_SUCCESS )
   	{
-        	std::cout<< " dense 2 csc conversion error";
+                std::cout<< " dense 2 csc conversion error";
 		std::cout<< status;
         	return status;
   	}
