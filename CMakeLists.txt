@@ -1,5 +1,9 @@
 cmake_minimum_required(VERSION 2.8)
 
+if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+    SET(CMAKE_INSTALL_PREFIX "/opt/rocm/hcsparse" CACHE PATH "Install path prefix, prepended onto install directories" FORCE)
+endif()
+
 # HIP_PATH
 IF(NOT DEFINED $ENV{HIP_PATH})
   SET(HIP_PATH "/opt/rocm/hip")
