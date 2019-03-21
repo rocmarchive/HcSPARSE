@@ -1,4 +1,5 @@
-## HcSPARSE ##
+## HcSPARSE - Deprecated Software
+the HcSPARSE project has been deprecated. Please use [rocSPARSE](https://github.com/ROCmSoftwarePlatform/rocSPARSE/) instead.
 
 ## A. Introduction: ##
 
